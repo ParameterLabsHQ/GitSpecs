@@ -1,7 +1,7 @@
 {
   "name": "gitspecs",
   "displayName": "GitSpecs",
-  "description": "Open-source GitLens-style worktrees, branches, commits, blame, history, compare, and search for VS Code and Cursor.",
+  "description": "Open-source GitLens-style worktrees, branches, commits, stashes, blame, history, compare, and search for VS Code and Cursor.",
   "version": "0.1.0",
   "publisher": "ParameterLabsHQ",
   "license": "GPL-3.0-only",
@@ -37,7 +37,11 @@
     "onCommand:gitspecs.history.file",
     "onCommand:gitspecs.history.line",
     "onCommand:gitspecs.compare",
-    "onCommand:gitspecs.search.commits"
+    "onCommand:gitspecs.search.commits",
+    "onView:gitspecs.stashes",
+    "onCommand:gitspecs.scm.showStashes",
+    "onCommand:gitspecs.stashes.refresh",
+    "onCommand:gitspecs.stashes.push"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -63,6 +67,10 @@
         {
           "id": "gitspecs.commits",
           "name": "Commits"
+        },
+        {
+          "id": "gitspecs.stashes",
+          "name": "Stashes"
         }
       ],
       "scm": [
@@ -77,13 +85,13 @@
     "viewsWelcome": [
       {
         "view": "gitspecs.scm",
-        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar.\n\nUse the title-bar icons to switch between Worktrees, Branches, and Commits."
+        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar.\n\nUse the title-bar icons to switch between Worktrees, Branches, Commits, and Stashes."
       }
     ],
     "commands": [
       {
         "command": "gitspecs.switchRepository",
-        "title": "GitSpecs: Switch Repository…"
+        "title": "GitSpecs: Switch Repository\u2026"
       },
       {
         "command": "gitspecs.scm.showWorktrees",
@@ -136,12 +144,12 @@
       },
       {
         "command": "gitspecs.compare",
-        "title": "GitSpecs: Compare References…",
+        "title": "GitSpecs: Compare References\u2026",
         "icon": "$(git-compare)"
       },
       {
         "command": "gitspecs.search.commits",
-        "title": "GitSpecs: Search Commits…",
+        "title": "GitSpecs: Search Commits\u2026",
         "icon": "$(search)"
       },
       {
@@ -151,7 +159,7 @@
       },
       {
         "command": "gitspecs.worktrees.create",
-        "title": "GitSpecs: Create Worktree…",
+        "title": "GitSpecs: Create Worktree\u2026",
         "icon": "$(add)"
       },
       {
@@ -172,7 +180,7 @@
       },
       {
         "command": "gitspecs.worktrees.remove",
-        "title": "GitSpecs: Remove Worktree…"
+        "title": "GitSpecs: Remove Worktree\u2026"
       },
       {
         "command": "gitspecs.worktrees.prune",
@@ -185,20 +193,20 @@
       },
       {
         "command": "gitspecs.branches.create",
-        "title": "GitSpecs: Create Branch…",
+        "title": "GitSpecs: Create Branch\u2026",
         "icon": "$(add)"
       },
       {
         "command": "gitspecs.branches.rename",
-        "title": "GitSpecs: Rename Branch…"
+        "title": "GitSpecs: Rename Branch\u2026"
       },
       {
         "command": "gitspecs.branches.delete",
-        "title": "GitSpecs: Delete Branch…"
+        "title": "GitSpecs: Delete Branch\u2026"
       },
       {
         "command": "gitspecs.branches.deleteForce",
-        "title": "GitSpecs: Delete Branch (Force)…"
+        "title": "GitSpecs: Delete Branch (Force)\u2026"
       },
       {
         "command": "gitspecs.branches.checkout",
@@ -206,7 +214,7 @@
       },
       {
         "command": "gitspecs.branches.publish",
-        "title": "GitSpecs: Publish Branch…"
+        "title": "GitSpecs: Publish Branch\u2026"
       },
       {
         "command": "gitspecs.branches.push",
@@ -222,31 +230,31 @@
       },
       {
         "command": "gitspecs.branches.setUpstream",
-        "title": "GitSpecs: Set Upstream…"
+        "title": "GitSpecs: Set Upstream\u2026"
       },
       {
         "command": "gitspecs.branches.deleteRemote",
-        "title": "GitSpecs: Delete Remote Branch…"
+        "title": "GitSpecs: Delete Remote Branch\u2026"
       },
       {
         "command": "gitspecs.branches.merge",
-        "title": "GitSpecs: Merge into Current…"
+        "title": "GitSpecs: Merge into Current\u2026"
       },
       {
         "command": "gitspecs.branches.rebase",
-        "title": "GitSpecs: Rebase Current Onto…"
+        "title": "GitSpecs: Rebase Current Onto\u2026"
       },
       {
         "command": "gitspecs.branches.cherryPick",
-        "title": "GitSpecs: Cherry-pick…"
+        "title": "GitSpecs: Cherry-pick\u2026"
       },
       {
         "command": "gitspecs.branches.createFromCommit",
-        "title": "GitSpecs: Create Branch from Commit…"
+        "title": "GitSpecs: Create Branch from Commit\u2026"
       },
       {
         "command": "gitspecs.branches.compare",
-        "title": "GitSpecs: Compare with…",
+        "title": "GitSpecs: Compare with\u2026",
         "icon": "$(git-compare)"
       },
       {
@@ -272,11 +280,43 @@
       },
       {
         "command": "gitspecs.commits.createBranch",
-        "title": "GitSpecs: Create Branch from Commit…"
+        "title": "GitSpecs: Create Branch from Commit\u2026"
       },
       {
         "command": "gitspecs.commits.openRemote",
         "title": "GitSpecs: Open Commit on Remote"
+      },
+      {
+        "command": "gitspecs.scm.showStashes",
+        "title": "GitSpecs: Show Stashes",
+        "icon": "$(archive)",
+        "category": "GitSpecs"
+      },
+      {
+        "command": "gitspecs.stashes.refresh",
+        "title": "GitSpecs: Refresh Stashes",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitspecs.stashes.push",
+        "title": "GitSpecs: Stash Changes\u2026",
+        "icon": "$(archive)"
+      },
+      {
+        "command": "gitspecs.stashes.apply",
+        "title": "GitSpecs: Apply Stash"
+      },
+      {
+        "command": "gitspecs.stashes.pop",
+        "title": "GitSpecs: Pop Stash\u2026"
+      },
+      {
+        "command": "gitspecs.stashes.drop",
+        "title": "GitSpecs: Drop Stash\u2026"
+      },
+      {
+        "command": "gitspecs.stashes.show",
+        "title": "GitSpecs: Show Stash"
       }
     ],
     "menus": {
@@ -320,6 +360,21 @@
           "command": "gitspecs.commits.refresh",
           "when": "view == gitspecs.commits || (view == gitspecs.scm && gitspecs.scm.tab == commits)",
           "group": "navigation@4"
+        },
+        {
+          "command": "gitspecs.scm.showStashes",
+          "when": "view == gitspecs.scm",
+          "group": "navigation@4"
+        },
+        {
+          "command": "gitspecs.stashes.push",
+          "when": "view == gitspecs.stashes || (view == gitspecs.scm && gitspecs.scm.tab == stashes)",
+          "group": "navigation@5"
+        },
+        {
+          "command": "gitspecs.stashes.refresh",
+          "when": "view == gitspecs.stashes || (view == gitspecs.scm && gitspecs.scm.tab == stashes)",
+          "group": "navigation@6"
         }
       ],
       "view/item/context": [
@@ -417,6 +472,26 @@
           "command": "gitspecs.commits.openRemote",
           "when": "(view == gitspecs.commits || (view == gitspecs.scm && gitspecs.scm.tab == commits)) && viewItem == commit",
           "group": "3_remote"
+        },
+        {
+          "command": "gitspecs.stashes.apply",
+          "when": "(view == gitspecs.stashes || (view == gitspecs.scm && gitspecs.scm.tab == stashes)) && viewItem == stash",
+          "group": "1_apply"
+        },
+        {
+          "command": "gitspecs.stashes.pop",
+          "when": "(view == gitspecs.stashes || (view == gitspecs.scm && gitspecs.scm.tab == stashes)) && viewItem == stash",
+          "group": "1_apply"
+        },
+        {
+          "command": "gitspecs.stashes.show",
+          "when": "(view == gitspecs.stashes || (view == gitspecs.scm && gitspecs.scm.tab == stashes)) && viewItem == stash",
+          "group": "2_show"
+        },
+        {
+          "command": "gitspecs.stashes.drop",
+          "when": "(view == gitspecs.stashes || (view == gitspecs.scm && gitspecs.scm.tab == stashes)) && viewItem == stash",
+          "group": "3_danger"
         }
       ],
       "commandPalette": [
@@ -438,6 +513,10 @@
         },
         {
           "command": "gitspecs.worktrees.openNewWindow",
+          "when": "false"
+        },
+        {
+          "command": "gitspecs.scm.showStashes",
           "when": "false"
         }
       ],
@@ -517,7 +596,7 @@
         "gitspecs.blame.statusBar": {
           "type": "boolean",
           "default": true,
-          "description": "Show current-line blame in the status bar (author • date • short SHA). Click for detail actions."
+          "description": "Show current-line blame in the status bar (author \u2022 date \u2022 short SHA). Click for detail actions."
         },
         "gitspecs.blame.codeLens": {
           "type": "boolean",

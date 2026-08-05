@@ -39,6 +39,15 @@ export {
   type RecentCommitsOptions,
 } from "./history.js";
 export {
+  StashesApi,
+  parseStashList,
+  resolveStashRef,
+  STASH_LIST_FORMAT,
+  type StashInfo,
+  type StashPushOptions,
+  type StashRefOptions,
+} from "./stashes.js";
+export {
   GitNotFoundError,
   NotAGitRepositoryError,
   GitCommandError,

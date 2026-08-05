@@ -16,11 +16,12 @@ describe("scmTabs pure helpers", () => {
     expect(DEFAULT_SCM_TAB).toBe("worktrees");
   });
 
-  it("isScmTab accepts worktrees, branches, and commits", () => {
+  it("isScmTab accepts worktrees, branches, commits, and stashes", () => {
     expect(isScmTab("worktrees")).toBe(true);
     expect(isScmTab("branches")).toBe(true);
     expect(isScmTab("commits")).toBe(true);
-    expect(isScmTab("stashes")).toBe(false);
+    expect(isScmTab("stashes")).toBe(true);
+    expect(isScmTab("tags")).toBe(false);
     expect(isScmTab("")).toBe(false);
   });
 
@@ -28,6 +29,7 @@ describe("scmTabs pure helpers", () => {
     expect(resolveScmTab("worktrees")).toBe("worktrees");
     expect(resolveScmTab("branches")).toBe("branches");
     expect(resolveScmTab("commits")).toBe("commits");
+    expect(resolveScmTab("stashes")).toBe("stashes");
     expect(resolveScmTab(undefined)).toBe(DEFAULT_SCM_TAB);
     expect(resolveScmTab("nope")).toBe(DEFAULT_SCM_TAB);
   });

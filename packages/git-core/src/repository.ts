@@ -7,6 +7,7 @@ import { WorktreesApi } from "./worktrees.js";
 import { BranchesApi } from "./branches.js";
 import { BlameApi } from "./blame.js";
 import { HistoryApi } from "./history.js";
+import { StashesApi } from "./stashes.js";
 
 export interface RepoRoot {
   root: string;
@@ -18,6 +19,7 @@ export class GitRepository {
   readonly branches: BranchesApi;
   readonly blame: BlameApi;
   readonly history: HistoryApi;
+  readonly stashes: StashesApi;
 
   constructor(
     readonly root: string,
@@ -27,6 +29,7 @@ export class GitRepository {
     this.branches = new BranchesApi(this);
     this.blame = new BlameApi(this);
     this.history = new HistoryApi(this);
+    this.stashes = new StashesApi(this);
   }
 
   async exec(args: string[], options: ExecOptions = {}): Promise<ExecResult> {

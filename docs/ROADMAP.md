@@ -43,7 +43,7 @@ Status is grounded in the monorepo as of this revision.
 | Line history | **Shipped** | `repo.history.line` (`git log -L` + file-history fallback); `gitspecs.history.line` | **P5** |
 | Search & compare UI (commits, files) | **Shipped** (QuickPick; no dual-pane webview) | `history.search`; `modules/search` (`gitspecs.search.commits`); compare file list | **P6** |
 | Commits sidebar / SCM commits browser | **Shipped** | `history.recent`; `modules/commits`; activity-bar `gitspecs.commits` + SCM tab | **P7** |
-| Stashes view + actions | **Not started** | — | **P8** |
+| Stashes view + actions | **Shipped** | `stashes.ts`; `modules/stashes`; activity-bar + SCM tab | **P8** |
 | Tags / remotes browser views | **Partial** | Remotes appear under Branches tree; no dedicated Tags/Remotes modules | **P9** |
 | Contributors view | **Not started** | — | **P10** |
 | Commit Graph (visual DAG) | **Not started** | Stub `modules/graph/README.md` only | **P11** |
@@ -156,7 +156,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 **Shipped:** `repo.history.recent` (`git log` HEAD ancestry, clamped limit); extension `modules/commits` TreeDataProvider; activity-bar `gitspecs.commits` + SCM consolidated tab (`gitspecs.scm.tab == commits`); commands `gitspecs.commits.copySha` / `checkout` / `createBranch` / `openRemote` / `refresh` via `bindCommand`.  
 
-### Phase P8 — Sidebar: Stashes
+### Phase P8 — Sidebar: Stashes *(done)*
 
 **Depends on:** P0  
 **Parity target:** GitLens Stashes  
@@ -166,6 +166,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Library: list / push / apply / pop / drop / show stash (`git stash`)  
 - Stashes tree view + commands with confirms on destructive ops  
 - Real-git tests  
+
+**Shipped:** `repo.stashes` (`list` / `push` / `apply` / `pop` / `drop` / `show`); extension `modules/stashes`; activity-bar `gitspecs.stashes` + SCM tab; pop/drop honor `gitspecs.confirmDelete`.  
 
 ### Phase P9 — Sidebar: Tags & remotes browser
 
@@ -245,15 +247,15 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M4 Graph** | P11 | Visual branch topology |
 | **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
 
-**Next implementation goal after this roadmap:** **P8** (Stashes), building on shipped P0–P7.
+**Next implementation goal after this roadmap:** **P9** (Tags & remotes browser), building on shipped P0–P8.
 
-Recommended default sequence for agents (P0–P7 shipped):
+Recommended default sequence for agents (P0–P8 shipped):
 
 ```
-P8 → P9 → P10 → P11 → P12 → (P13?) → P14
+P9 → P10 → P11 → P12 → (P13?) → P14
 ```
 
-Rationale: file/line history unlock navigation; compare/search + commits browser next; stashes/tags then graph; hosting APIs last.
+Rationale: tags/remotes/contributors next; graph after; hosting APIs last.
 
 ---
 
@@ -303,3 +305,4 @@ Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud�
 | 2026-08-04 | Initial must-have Phases 0–4 sketch |
 | 2026-08-04 | Expanded to full GitLens-style parity order **P0–P14**, status inventory, milestones, non-parity deferrals; next slice **P2** |
 | 2026-08-05 | Marked **P7** Commits sidebar shipped (`history.recent` + activity-bar/SCM commits browser); next slice **P8** |
+| 2026-08-05 | Marked **P8** Stashes shipped (`repo.stashes` + activity-bar/SCM); next slice **P9** |

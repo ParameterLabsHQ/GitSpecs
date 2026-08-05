@@ -37,13 +37,14 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     expect(scm).toHaveLength(1);
   });
 
-  it("keeps dedicated activity-bar Worktrees, Branches, and Commits views", () => {
+  it("keeps dedicated activity-bar Worktrees, Branches, Commits, and Stashes views", () => {
     const side = pkg.contributes.views.gitspecs;
     expect(side.map((v) => v.id)).toEqual(
       expect.arrayContaining([
         "gitspecs.worktrees",
         "gitspecs.branches",
         "gitspecs.commits",
+        "gitspecs.stashes",
       ]),
     );
   });
@@ -53,22 +54,27 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     expect(pkg.activationEvents).toContain("onCommand:gitspecs.scm.showWorktrees");
     expect(pkg.activationEvents).toContain("onCommand:gitspecs.scm.showBranches");
     expect(pkg.activationEvents).toContain("onCommand:gitspecs.scm.showCommits");
+    expect(pkg.activationEvents).toContain("onCommand:gitspecs.scm.showStashes");
     expect(pkg.activationEvents).toContain("onView:gitspecs.commits");
+    expect(pkg.activationEvents).toContain("onView:gitspecs.stashes");
     expect(pkg.activationEvents).not.toContain("onView:gitspecs.scm.worktrees");
     expect(pkg.activationEvents).not.toContain("onView:gitspecs.scm.branches");
   });
 
-  it("contributes Worktrees/Branches/Commits tab-switch commands with icons", () => {
+  it("contributes Worktrees/Branches/Commits/Stashes tab-switch commands with icons", () => {
     const cmds = pkg.contributes.commands;
     const showWt = cmds.find((c) => c.command === "gitspecs.scm.showWorktrees");
     const showBr = cmds.find((c) => c.command === "gitspecs.scm.showBranches");
     const showCm = cmds.find((c) => c.command === "gitspecs.scm.showCommits");
+    const showSt = cmds.find((c) => c.command === "gitspecs.scm.showStashes");
     expect(showWt).toBeDefined();
     expect(showBr).toBeDefined();
     expect(showCm).toBeDefined();
+    expect(showSt).toBeDefined();
     expect(showWt?.icon).toBeTruthy();
     expect(showBr?.icon).toBeTruthy();
     expect(showCm?.icon).toBeTruthy();
+    expect(showSt?.icon).toBeTruthy();
   });
 
   it("wires view/title navigation tabs limited to the consolidated SCM view", () => {
@@ -77,9 +83,10 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
       (m) =>
         m.command === "gitspecs.scm.showWorktrees" ||
         m.command === "gitspecs.scm.showBranches" ||
-        m.command === "gitspecs.scm.showCommits",
+        m.command === "gitspecs.scm.showCommits" ||
+        m.command === "gitspecs.scm.showStashes",
     );
-    expect(tabMenus).toHaveLength(3);
+    expect(tabMenus).toHaveLength(4);
     for (const m of tabMenus) {
       expect(m.when).toBe(`view == ${SCM_CONSOLIDATED_VIEW_ID}`);
       expect(m.group?.startsWith("navigation")).toBe(true);
@@ -146,17 +153,21 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     expect(src).toContain("gitspecs.scm.showWorktrees");
     expect(src).toContain("gitspecs.scm.showBranches");
     expect(src).toContain("gitspecs.scm.showCommits");
+    expect(src).toContain("gitspecs.scm.showStashes");
     expect(src).toContain("setContext");
     expect(src).toContain("SCM_TAB_CONTEXT_KEY");
     // Dual SCM accordion providers must not be registered.
     expect(src).not.toContain('registerTreeDataProvider("gitspecs.scm.worktrees"');
     expect(src).not.toContain('registerTreeDataProvider("gitspecs.scm.branches"');
-    // Activity-bar views remain (including commits).
+    // Activity-bar views remain (including commits/stashes).
     expect(src).toContain('registerTreeDataProvider("gitspecs.worktrees"');
     expect(src).toContain('registerTreeDataProvider("gitspecs.branches"');
     expect(src).toContain('registerTreeDataProvider("gitspecs.commits"');
+    expect(src).toContain('registerTreeDataProvider("gitspecs.stashes"');
     expect(src).toContain("CommitsProvider");
     expect(src).toContain("registerCommitCommands");
+    expect(src).toContain("StashesProvider");
+    expect(src).toContain("registerStashCommands");
   });
 
   it("default tab constant matches worktrees content kind", () => {

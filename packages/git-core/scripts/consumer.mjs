@@ -182,6 +182,49 @@ console.log(
   ),
 );
 
+// P8: stashes list/push/show/drop on shipped dist
+await writeFile(path.join(dir, "p8-stash.txt"), "stash-me\n");
+await execGit(git.path, ["-C", dir, "add", "p8-stash.txt"]);
+const emptyStashes = await repo.stashes.list();
+const pushed = await repo.stashes.push({ message: "consumer-p8-stash" });
+const afterPush = await repo.stashes.list();
+const stashShown = pushed
+  ? await repo.stashes.show({ stash: pushed.ref, stat: true })
+  : "";
+if (pushed) await repo.stashes.drop({ stash: pushed.ref });
+const afterDrop = await repo.stashes.list();
+const stashesOk =
+  Array.isArray(emptyStashes) &&
+  pushed &&
+  pushed.message.includes("consumer-p8-stash") &&
+  afterPush.some((s) => s.sha === pushed.sha) &&
+  typeof stashShown === "string" &&
+  stashShown.length > 0 &&
+  !afterDrop.some((s) => s.sha === pushed.sha);
+
+if (!stashesOk) {
+  console.error("P8 stashes consumer failed", {
+    emptyStashes,
+    pushed,
+    afterPush,
+    stashShown,
+    afterDrop,
+  });
+  process.exitCode = 1;
+}
+console.log(
+  JSON.stringify(
+    {
+      stashPushRef: pushed?.ref,
+      stashPushMessage: pushed?.message,
+      stashShowLen: stashShown.length,
+      stashesOk,
+    },
+    null,
+    2,
+  ),
+);
+
 const branches = await repo.branches.list({ includeRemotes: false });
 await repo.branches.create({ name: "consumer-branch" });
 const after = await repo.branches.list({ includeRemotes: false });

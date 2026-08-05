@@ -1,5 +1,9 @@
 import { parseRemoteUrl, commitUrl } from "@gitspecs/host-urls";
 import type { HistoryCommit } from "@gitspecs/git-core";
+import {
+  findAutolinks,
+  type AutolinkRule,
+} from "../autolinks/format.js";
 
 /** Serializable history commit for QuickPick / command args. */
 export interface HistoryCommitItem {
@@ -65,7 +69,13 @@ export function toHistoryCommitItem(
 }
 
 /** QuickPick label/description for a history commit (newest-first list). */
-export function formatHistoryPickLabel(commit: HistoryCommit): {
+export function formatHistoryPickLabel(
+  commit: HistoryCommit,
+  options: {
+    /** When set, appends autolink URLs into the detail line (P16). */
+    autolinkDetail?: string;
+  } = {},
+): {
   label: string;
   description: string;
   detail: string;
@@ -75,11 +85,26 @@ export function formatHistoryPickLabel(commit: HistoryCommit): {
     commit.authorTime > 0
       ? new Date(commit.authorTime * 1000).toISOString().slice(0, 10)
       : "";
+  const detailParts = [when, options.autolinkDetail].filter(Boolean);
   return {
     label: `$(git-commit) ${short}  ${commit.subject || "(no subject)"}`,
     description: commit.author,
-    detail: when,
+    detail: detailParts.join(" · "),
   };
+}
+
+/**
+ * Build a short autolink detail string for a commit subject (pure).
+ * Returns undefined when no rules match.
+ */
+export function historyAutolinkDetail(
+  subject: string,
+  rules: AutolinkRule[],
+): string | undefined {
+  if (!rules.length || !subject) return undefined;
+  const hits = findAutolinks(subject, rules);
+  if (hits.length === 0) return undefined;
+  return hits.map((h) => h.text).join(" ");
 }
 
 /** Default limit for history QuickPick lists. */

@@ -28,6 +28,9 @@ import { registerRevisionCommands } from "./modules/revision/commands.js";
 import { registerRevisionContentProvider } from "./modules/revision/provider.js";
 import { registerCompareCommands } from "./modules/compare/commands.js";
 import { registerSearchCommands } from "./modules/search/commands.js";
+import { ChangesAnnotationController } from "./modules/annotations/controller.js";
+import { registerAnnotationCommands } from "./modules/annotations/commands.js";
+import { registerTerminalLinks } from "./modules/terminalLinks/provider.js";
 import {
   DEFAULT_SCM_TAB,
   SCM_CONSOLIDATED_VIEW_ID,
@@ -135,6 +138,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerRevisionContentProvider(context, repos, log);
   registerRevisionCommands(context, repos, log);
   registerHistoryCommands(context, repos, log);
+
+  const changesAnnotations = new ChangesAnnotationController(repos, log);
+  context.subscriptions.push(changesAnnotations);
+  registerAnnotationCommands(context, repos, log, changesAnnotations);
+  registerTerminalLinks(context, repos, log);
 
   const blameCodeLens = new BlameCodeLensProvider(
     repos,

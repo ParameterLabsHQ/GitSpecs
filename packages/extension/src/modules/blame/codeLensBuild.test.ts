@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 import {
   shouldAcceptCodeLensResult,
   buildFileCodeLensSpecs,
+  buildSymbolCodeLensSpecs,
+  blameRowsForLineRange,
+  topLevelSymbolRanges,
 } from "./codeLensBuild.js";
 import type { BlameLine } from "@gitspecs/git-core";
 
@@ -96,5 +99,35 @@ describe("buildFileCodeLensSpecs", () => {
 
   it("returns empty for no rows", () => {
     expect(buildFileCodeLensSpecs([])).toEqual([]);
+  });
+});
+
+describe("buildSymbolCodeLensSpecs / blameRowsForLineRange", () => {
+  it("filters blame rows to a line range", () => {
+    const rows = [ada, bob, { ...ada, lineNumber: 10, author: "Cara" }];
+    // 0-based lines 0–0 → blame line 1 only
+    const subset = blameRowsForLineRange(rows, 0, 0);
+    expect(subset).toHaveLength(1);
+    expect(subset[0]!.author).toBe("Ada");
+
+    const specs = buildSymbolCodeLensSpecs(rows, [
+      { name: "fnA", startLine: 0, endLine: 0 },
+      { name: "fnB", startLine: 1, endLine: 1 },
+    ]);
+    expect(specs.some((s) => s.title.includes("fnA"))).toBe(true);
+    expect(specs.some((s) => s.title.includes("fnB"))).toBe(true);
+    expect(specs.find((s) => s.line === 1 && s.title.includes("last change"))?.title).toContain(
+      "Bob",
+    );
+  });
+
+  it("topLevelSymbolRanges maps document symbols", () => {
+    const ranges = topLevelSymbolRanges([
+      {
+        name: "Foo",
+        range: { start: { line: 2 }, end: { line: 10 } },
+      },
+    ]);
+    expect(ranges).toEqual([{ name: "Foo", startLine: 2, endLine: 10 }]);
   });
 });

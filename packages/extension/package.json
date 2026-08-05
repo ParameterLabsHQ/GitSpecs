@@ -41,6 +41,7 @@
     "onCommand:gitspecs.revision.diffWithWorking",
     "onCommand:gitspecs.revision.previous",
     "onCommand:gitspecs.revision.next",
+    "onCommand:gitspecs.annotations.toggleChanges",
     "onCommand:gitspecs.compare",
     "onCommand:gitspecs.search.commits",
     "onView:gitspecs.stashes",
@@ -202,6 +203,11 @@
         "command": "gitspecs.revision.next",
         "title": "GitSpecs: Open Next Revision",
         "icon": "$(arrow-right)"
+      },
+      {
+        "command": "gitspecs.annotations.toggleChanges",
+        "title": "GitSpecs: Toggle Changes Annotations",
+        "icon": "$(diff)"
       },
       {
         "command": "gitspecs.compare",
@@ -895,6 +901,38 @@
           "type": "boolean",
           "default": false,
           "description": "When file blame is on, color the overview ruler by author age (newer = warmer). Polish heatmap; off by default."
+        },
+        "gitspecs.annotations.changes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Highlight lines changed in the working tree and/or unpushed commits. Toggle via GitSpecs: Toggle Changes Annotations."
+        },
+        "gitspecs.terminalLinks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Detect commit SHAs and branch/tag names in the integrated terminal and offer copy/checkout actions."
+        },
+        "gitspecs.autolinks": {
+          "type": "array",
+          "default": [],
+          "description": "Issue/PR autolink rules. Each item: { \"prefix\": \"#\", \"url\": \"https://host/issues/<num>\" }. Linkified in blame hovers, history details, and graph tooltips (no network).",
+          "items": {
+            "type": "object",
+            "required": [
+              "prefix",
+              "url"
+            ],
+            "properties": {
+              "prefix": {
+                "type": "string",
+                "description": "Text before the issue number, e.g. # or JIRA-."
+              },
+              "url": {
+                "type": "string",
+                "description": "URL template; <num> is replaced with the captured digits."
+              }
+            }
+          }
         }
       }
     }

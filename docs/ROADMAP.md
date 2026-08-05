@@ -55,10 +55,10 @@ Status is grounded in the monorepo as of this revision.
 | Hosting provider HTTP APIs (PRs, issues) | **Deferred** | Needs PAT/OAuth secrets; offline git must not block — see P13 note | **P13** optional |
 | Heatmaps / avatar CDN / always-on perf polish | **Shipped** (finite slice) | Blame heatmap setting; CONTRIBUTING; GitHub CI matrix; no avatar CDN | **P14** polish |
 | Revision navigation (prev/next revision, diff with previous/working) | **Shipped** | `history.revisionNeighbors` / rename-aware `showFile`; `modules/revision` (`gitspecs:` provider + prev/next/diff) | **P15** |
-| Changes annotations (working-tree / unpushed lines) | **Not started** | — | **P16** |
-| Symbol-level CodeLens | **Not started** (file-level shipped in P3) | — | **P16** |
-| Terminal links (SHAs/branches/tags in terminal) | **Not started** | — | **P16** |
-| Autolinks (issue keys → URLs, config-driven) | **Not started** | — | **P16** |
+| Changes annotations (working-tree / unpushed lines) | **Shipped** | `repo.changes.changedLines`; `modules/annotations` | **P16** |
+| Symbol-level CodeLens | **Shipped** | `buildSymbolCodeLensSpecs` + `executeDocumentSymbolProvider` | **P16** |
+| Terminal links (SHAs/branches/tags in terminal) | **Shipped** | `modules/terminalLinks` | **P16** |
+| Autolinks (issue keys → URLs, config-driven) | **Shipped** | `modules/autolinks`; blame/history/graph wiring | **P16** |
 | Multi-repo simultaneous views | **Not started** (single current repo) | — | **P17** |
 | Commit Graph webview (DAG canvas, search/filter, WIP row) | **Not started** (high-density tree shipped in P11) | — | **P18** |
 | Interactive rebase sequence editor | **Not started** (guided flows shipped in P12) | — | **P19** |
@@ -295,6 +295,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - **Autolinks:** setting `gitspecs.autolinks` — array of `{ prefix, url }` rules with `<num>` substitution; linkified in blame hovers, commit QuickPick details, and graph tooltips via a pure helper (`modules/autolinks/format.ts` or `host-urls`); **no network, no issue titles** (P21 enriches)
 - Real-git tests for diff parsers; pure unit tests for autolink/terminal matchers; contrib structural tests
 
+**Shipped:** `repo.changes.changedLines` + unified-diff hunk parser; `gitspecs.annotations.toggleChanges` / `gitspecs.annotations.changes`; symbol CodeLens via document symbols; terminal link provider (`gitspecs.terminalLinks`); config autolinks (`gitspecs.autolinks`) in blame hovers, history QuickPick detail, graph tooltips.
+
 **Out of P16:** provider-fetched issue metadata (P21); Modes (P14 follow-up).
 
 ### Phase P17 — Multi-repo views
@@ -402,18 +404,18 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M3 Explore & compare** | P6–P10 | Browse commits/stashes/tags; rich compare/search (P6–P7 shipped) |
 | **M4 Graph** | P11 | Visual branch topology — **done** (high-density tree) |
 | **M5 Advanced** | P12–P14 | Rewrite UX shipped; P13 deferred → superseded by P21; P14 finite polish shipped |
-| **M6 Editor depth** | P15–P16 | **P15 done** (revision docs + prev/next/diff); P16 annotations, symbol CodeLens, terminal links, autolinks |
+| **M6 Editor depth** | P15–P16 | **Done** (revision nav + annotations/links) |
 | **M7 Scale** | P17 | Every repo visible at once |
 | **M8 Webview surfaces** | P18–P20 | Commit Graph canvas, interactive rebase editor, Visual File History, dual-pane compare |
 | **M9 Connected** | P21–P22 | PRs/issues/avatars via platform auth; client-side work hub |
 | **M10 Assist** | P23 | Optional BYO-key AI, off by default |
 
-**Next implementation goal:** **P16 — Annotations & link surfaces.** P15 revision navigation is shipped; P16–P23 remains the ladder to full GitLens parity, free.
+**Next implementation goal:** **P17 — Multi-repo views.** P15–P16 editor depth is shipped; P17–P23 remains the ladder to full GitLens parity, free.
 
 Recommended default sequence for agents:
 
 ```
-(P0–P12, P15 done) → P16 → P17 → P18 → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
+(P0–P12, P15–P16 done) → P17 → P18 → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
 ```
 
 Each phase: read this file + `AGENTS.md` → design note in `docs/superpowers/specs/` if the phase is large (P17, P18, P19, P21 are) → implementation plan → PR with tests → update Section 2 + changelog here. One phase per goal; keep phase N green before starting N+1.
@@ -478,3 +480,4 @@ Interactive rebase **UI** is a local parity target (**P19**); the P12 note preda
 | 2026-08-05 | **P13 deferred** (no token storage); **P14** finite polish (heatmap + CONTRIBUTING + CI) |
 | 2026-08-05 | **Scope expanded to full GitLens parity, free.** Added **P15–P23** (revision navigation, annotations/links, multi-repo, webview platform + graph canvas, rebase editor, visual history/compare, hosting APIs superseding P13, work hub, BYO-key AI); re-scoped Section 5 non-goals; added clean-room rule + [gap analysis](./superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md). Next slice: **P15** |
 | 2026-08-05 | Marked **P15** Revision navigation shipped (`revisionNeighbors`, `gitspecs:` documents, prev/next/diff commands); next slice **P16** |
+| 2026-08-05 | Marked **P16** Annotations & link surfaces shipped (changes decorations, symbol CodeLens, terminal links, autolinks); next slice **P17** |

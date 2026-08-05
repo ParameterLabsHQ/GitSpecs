@@ -5,7 +5,9 @@ import type { PlatformLog } from "../../shell/log.js";
 import type { BlameCache } from "./cache.js";
 import {
   buildFileCodeLensSpecs,
+  buildSymbolCodeLensSpecs,
   shouldAcceptCodeLensResult,
+  topLevelSymbolRanges,
 } from "./codeLensBuild.js";
 
 function isUnderRepo(repoRoot: string, fsPath: string): boolean {
@@ -91,23 +93,67 @@ export class BlameCodeLensProvider implements vscode.CodeLensProvider, vscode.Di
         return [];
       }
 
-      const specs = buildFileCodeLensSpecs(rows);
+      const fileSpecs = buildFileCodeLensSpecs(rows);
+      const symbolSpecs = await this.symbolSpecs(document, rows, token);
+      if (
+        !shouldAcceptCodeLensResult({
+          cancelled: token.isCancellationRequested,
+          requestedVersion,
+          currentVersion: document.version,
+        })
+      ) {
+        return [];
+      }
+
+      const specs = [...fileSpecs, ...symbolSpecs];
       if (specs.length === 0) return [];
 
-      const top = new vscode.Range(0, 0, 0, 0);
-      return specs.map(
-        (spec) =>
-          new vscode.CodeLens(top, {
-            title: spec.title,
-            command: "gitspecs.blame.codeLensDetail",
-            arguments: spec.payload ? [spec.payload] : [],
-            tooltip: spec.tooltip,
-          }),
-      );
+      return specs.map((spec) => {
+        const line = Math.max(0, Math.min(document.lineCount - 1, spec.line ?? 0));
+        const range = new vscode.Range(line, 0, line, 0);
+        return new vscode.CodeLens(range, {
+          title: spec.title,
+          command: "gitspecs.blame.codeLensDetail",
+          arguments: spec.payload ? [spec.payload] : [],
+          tooltip: spec.tooltip,
+        });
+      });
     } catch (err) {
       this.log.debug(
         `CodeLens blame failed: ${err instanceof Error ? err.message : String(err)}`,
       );
+      return [];
+    }
+  }
+
+  /** Top-level document symbols → per-symbol author/last-change lenses. */
+  private async symbolSpecs(
+    document: vscode.TextDocument,
+    rows: import("@gitspecs/git-core").BlameLine[],
+    token: vscode.CancellationToken,
+  ) {
+    try {
+      const symbols = await vscode.commands.executeCommand<
+        vscode.DocumentSymbol[] | vscode.SymbolInformation[] | undefined
+      >("vscode.executeDocumentSymbolProvider", document.uri);
+      if (token.isCancellationRequested || !symbols?.length) return [];
+
+      // DocumentSymbol[] has ranges + children; SymbolInformation[] is flat with locations.
+      const topLevel = isDocumentSymbolArray(symbols)
+        ? topLevelSymbolRanges(symbols)
+        : topLevelSymbolRanges(
+            symbols.map((s) => ({
+              name: s.name,
+              range: s.location.range,
+            })),
+          );
+
+      // Skip symbols that cover the entire file (file-level lenses already cover them).
+      const filtered = topLevel.filter(
+        (s) => !(s.startLine === 0 && s.endLine >= document.lineCount - 1),
+      );
+      return buildSymbolCodeLensSpecs(rows, filtered);
+    } catch {
       return [];
     }
   }
@@ -117,4 +163,11 @@ export class BlameCodeLensProvider implements vscode.CodeLensProvider, vscode.Di
     this._onDidChange.dispose();
     for (const d of this.disposables) d.dispose();
   }
+}
+
+function isDocumentSymbolArray(
+  symbols: vscode.DocumentSymbol[] | vscode.SymbolInformation[],
+): symbols is vscode.DocumentSymbol[] {
+  const first = symbols[0];
+  return Boolean(first && "children" in first && "range" in first && !("location" in first));
 }

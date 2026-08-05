@@ -11,11 +11,13 @@ import {
 import {
   DEFAULT_HISTORY_LIMIT,
   formatHistoryPickLabel,
+  historyAutolinkDetail,
   historyCommitActions,
   resolveCommitUrl,
   toHistoryCommitItem,
   type HistoryCommitItem,
 } from "./actions.js";
+import { readAutolinkRules } from "../autolinks/settings.js";
 
 function isDiskFile(doc: vscode.TextDocument): boolean {
   return doc.uri.scheme === "file";
@@ -124,9 +126,12 @@ async function pickCommitAndAct(
   filePath: string,
   title: string,
 ): Promise<void> {
+  const autolinkRules = readAutolinkRules();
   const pick = await vscode.window.showQuickPick(
     commits.map((c) => {
-      const labels = formatHistoryPickLabel(c);
+      const labels = formatHistoryPickLabel(c, {
+        autolinkDetail: historyAutolinkDetail(c.subject, autolinkRules),
+      });
       return {
         ...labels,
         commit: c,

@@ -1,5 +1,9 @@
 import type { BlameLine } from "@gitspecs/git-core";
 import { formatBlameAnnotation } from "@gitspecs/git-core";
+import {
+  applyAutolinksMarkdown,
+  type AutolinkRule,
+} from "../autolinks/format.js";
 
 /** Re-export library formatter so the extension uses the shipped function. */
 export function formatLineBlame(line: BlameLine): string {
@@ -137,10 +141,14 @@ export function formatCodeLensLastChange(
 /**
  * Richer hover markdown for decorations (P3 enrichment).
  * Includes relative time when authorTime is present.
+ * Optional `autolinkRules` linkifies issue keys in the commit summary (P16).
  */
 export function formatEnrichedBlameHover(
   line: BlameLine,
-  options: { nowMs?: number } = {},
+  options: {
+    nowMs?: number;
+    autolinkRules?: AutolinkRule[];
+  } = {},
 ): string {
   const relative =
     line.authorTime != null
@@ -150,9 +158,14 @@ export function formatEnrichedBlameHover(
     line.authorTime != null
       ? new Date(line.authorTime * 1000).toISOString()
       : "(unknown time)";
+  let summary = line.summary ? `*${line.summary}*` : undefined;
+  if (line.summary && options.autolinkRules?.length) {
+    const linked = applyAutolinksMarkdown(line.summary, options.autolinkRules);
+    summary = `*${linked}*`;
+  }
   return [
     `**${line.author || "unknown"}** \`${line.sha.slice(0, 7)}\``,
-    line.summary ? `*${line.summary}*` : undefined,
+    summary,
     relative ? `${relative} (${absolute})` : absolute,
     line.authorMail ? line.authorMail : undefined,
   ]

@@ -5,10 +5,11 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import { presentError } from "../../shell/errors.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { DEFAULT_GRAPH_LIMIT, formatGraphTreeRow } from "./format.js";
+import { readAutolinkRules } from "../autolinks/settings.js";
 
 export class GraphItem extends vscode.TreeItem {
   constructor(readonly node: GraphCommit) {
-    const row = formatGraphTreeRow(node);
+    const row = formatGraphTreeRow(node, { autolinkRules: readAutolinkRules() });
     super(row.label, vscode.TreeItemCollapsibleState.None);
     this.contextValue = "graphCommit";
     this.description = row.description;

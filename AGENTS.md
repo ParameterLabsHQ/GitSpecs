@@ -37,19 +37,20 @@ Local clone folder may still be named `gitlens-clone`; that is incidental filesy
 
 Open-source **GitLens-style** extension for VS Code/Cursor. The product goal (set 2026-08-05) is **full GitLens feature parity, offered free** — including client-side features GitLens gates behind paid plans — while excluding vendor-cloud backends and paywalls.
 
-**Shipped today (high level, P0–P12 + P14–P15):**
+**Shipped today (high level, P0–P12 + P14–P16):**
 
 - Worktrees + branches + commits browser (library + activity bar + SCM)
 - File blame (decorations, status bar, CodeLens, heatmap), file + line history
 - Compare + commit search (QuickPick); stashes, tags, remotes, contributors views
 - Commit Graph (lane-layout high-density tree); guided rebase/cherry-pick conflict UX
 - Revision documents (`gitspecs:`), prev/next revision, diff with previous/working tree
+- Changes annotations, symbol CodeLens, terminal links, config-driven autolinks
 - Hosting links: **URL-only** (`host-urls`); system `git` only (2.23+)
 
 **Product roadmap (order of implementation):**  
-→ **[docs/ROADMAP.md](./docs/ROADMAP.md)** — phases **P0–P23**, status inventory, milestones, and non-goals. P0–P12 + **P15** shipped; **P16–P23** is the ladder to full parity (P13 superseded by P21). Evidence: [GitLens parity gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md).
+→ **[docs/ROADMAP.md](./docs/ROADMAP.md)** — phases **P0–P23**, status inventory, milestones, and non-goals. P0–P12 + **P15–P16** shipped; **P17–P23** is the ladder to full parity (P13 superseded by P21). Evidence: [GitLens parity gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md).
 
-**Next implementation slice (per roadmap):** **P16 — Annotations & link surfaces.**
+**Next implementation slice (per roadmap):** **P17 — Multi-repo views.**
 
 Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 
@@ -87,6 +88,9 @@ Work done in the initial build/rebrand session, in rough order:
 │           │   ├── commits/     # commits browser (P7)
 │           │   ├── history/     # file + line history (P4–P5)
 │           │   ├── revision/    # revision documents, prev/next/diff (P15)
+│           │   ├── annotations/ # working-tree / unpushed line decorations (P16)
+│           │   ├── autolinks/   # config-driven issue key → URL (P16)
+│           │   ├── terminalLinks/ # terminal SHA/ref links (P16)
 │           │   ├── compare/     # two-ref / working-tree compare (P6)
 │           │   ├── search/      # commit message/author search (P6)
 │           │   ├── blame/       # file blame, status bar, CodeLens, heatmap (P1–P3, P14)
@@ -163,7 +167,7 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 | M3 Explore & compare | P6–P10 | **Done** (compare/search, commits, stashes, tags/remotes, contributors) |
 | M4 Graph | P11 | **Done** (lane-layout high-density tree) |
 | M5 Advanced | P12–P14 | P12 done; P13 superseded by P21; P14 ongoing polish |
-| M6 Editor depth | P15–P16 | P15 done; **Next** P16 — annotations, symbol CodeLens, terminal links, autolinks |
+| M6 Editor depth | P15–P16 | **Done** (revision nav + annotations/links) |
 | M7 Scale | P17 | Planned — multi-repo views |
 | M8 Webview surfaces | P18–P20 | Planned — webview platform, Commit Graph canvas, rebase editor, Visual File History, dual-pane compare |
 | M9 Connected | P21–P22 | Planned — hosting APIs (`vscode.authentication` / `SecretStorage`), work hub |

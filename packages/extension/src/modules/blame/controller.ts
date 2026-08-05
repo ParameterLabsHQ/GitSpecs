@@ -22,6 +22,7 @@ import {
   heatmapBucketIndex,
   heatmapDecorationTypeOptions,
 } from "./heatmap.js";
+import { readAutolinkRules } from "../autolinks/settings.js";
 
 const STATUS_BAR_DEBOUNCE_MS = 200;
 const DECORATION_DEBOUNCE_MS = 400;
@@ -346,7 +347,9 @@ export class BlameController implements vscode.Disposable {
       }
       this.lastStatusPayload = toDetailPayload(line);
       this.statusBar.text = `$(git-commit) ${formatStatusBarBlame(line)}`;
-      this.statusBar.tooltip = formatEnrichedBlameHover(line);
+      this.statusBar.tooltip = formatEnrichedBlameHover(line, {
+        autolinkRules: readAutolinkRules(),
+      });
       this.statusBar.show();
     } catch (err) {
       if (seq !== this.statusBarSeq) return;
@@ -411,7 +414,9 @@ export class BlameController implements vscode.Disposable {
               contentText: formatLineBlame(blame),
             },
           },
-          hoverMessage: new vscode.MarkdownString(formatEnrichedBlameHover(blame)),
+          hoverMessage: new vscode.MarkdownString(
+            formatEnrichedBlameHover(blame, { autolinkRules: readAutolinkRules() }),
+          ),
         });
         if (heatmap) {
           const bucket = heatmapBucketIndex(blame.authorTime ?? 0);

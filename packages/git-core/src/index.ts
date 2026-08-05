@@ -93,6 +93,15 @@ export {
   type GuidedCherryPickOptions,
 } from "./rewrite.js";
 export {
+  ChangesApi,
+  parseUnifiedDiffHunks,
+  mergeAdjacentRanges,
+  expandChangedLines,
+  type ChangeLineKind,
+  type ChangedLineRange,
+  type ChangedLinesOptions,
+} from "./changes.js";
+export {
   GitNotFoundError,
   NotAGitRepositoryError,
   GitCommandError,

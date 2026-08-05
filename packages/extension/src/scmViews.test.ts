@@ -33,13 +33,18 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     // Dual accordion ids must not return as the default SCM layout.
     expect(ids).not.toContain("gitspecs.scm.worktrees");
     expect(ids).not.toContain("gitspecs.scm.branches");
+    expect(ids).not.toContain("gitspecs.scm.commits");
     expect(scm).toHaveLength(1);
   });
 
-  it("keeps dedicated activity-bar Worktrees and Branches views", () => {
+  it("keeps dedicated activity-bar Worktrees, Branches, and Commits views", () => {
     const side = pkg.contributes.views.gitspecs;
     expect(side.map((v) => v.id)).toEqual(
-      expect.arrayContaining(["gitspecs.worktrees", "gitspecs.branches"]),
+      expect.arrayContaining([
+        "gitspecs.worktrees",
+        "gitspecs.branches",
+        "gitspecs.commits",
+      ]),
     );
   });
 
@@ -47,27 +52,34 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     expect(pkg.activationEvents).toContain(`onView:${SCM_CONSOLIDATED_VIEW_ID}`);
     expect(pkg.activationEvents).toContain("onCommand:gitspecs.scm.showWorktrees");
     expect(pkg.activationEvents).toContain("onCommand:gitspecs.scm.showBranches");
+    expect(pkg.activationEvents).toContain("onCommand:gitspecs.scm.showCommits");
+    expect(pkg.activationEvents).toContain("onView:gitspecs.commits");
     expect(pkg.activationEvents).not.toContain("onView:gitspecs.scm.worktrees");
     expect(pkg.activationEvents).not.toContain("onView:gitspecs.scm.branches");
   });
 
-  it("contributes Worktrees/Branches tab-switch commands with icons", () => {
+  it("contributes Worktrees/Branches/Commits tab-switch commands with icons", () => {
     const cmds = pkg.contributes.commands;
     const showWt = cmds.find((c) => c.command === "gitspecs.scm.showWorktrees");
     const showBr = cmds.find((c) => c.command === "gitspecs.scm.showBranches");
+    const showCm = cmds.find((c) => c.command === "gitspecs.scm.showCommits");
     expect(showWt).toBeDefined();
     expect(showBr).toBeDefined();
+    expect(showCm).toBeDefined();
     expect(showWt?.icon).toBeTruthy();
     expect(showBr?.icon).toBeTruthy();
+    expect(showCm?.icon).toBeTruthy();
   });
 
   it("wires view/title navigation tabs limited to the consolidated SCM view", () => {
     const title = pkg.contributes.menus["view/title"];
     const tabMenus = title.filter(
       (m) =>
-        m.command === "gitspecs.scm.showWorktrees" || m.command === "gitspecs.scm.showBranches",
+        m.command === "gitspecs.scm.showWorktrees" ||
+        m.command === "gitspecs.scm.showBranches" ||
+        m.command === "gitspecs.scm.showCommits",
     );
-    expect(tabMenus).toHaveLength(2);
+    expect(tabMenus).toHaveLength(3);
     for (const m of tabMenus) {
       expect(m.when).toBe(`view == ${SCM_CONSOLIDATED_VIEW_ID}`);
       expect(m.group?.startsWith("navigation")).toBe(true);
@@ -78,20 +90,26 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     const title = pkg.contributes.menus["view/title"];
     const wtCreate = title.find((m) => m.command === "gitspecs.worktrees.create");
     const brCreate = title.find((m) => m.command === "gitspecs.branches.create");
+    const cmRefresh = title.find((m) => m.command === "gitspecs.commits.refresh");
     expect(wtCreate?.when).toContain("gitspecs.worktrees");
     expect(wtCreate?.when).toContain(SCM_CONSOLIDATED_VIEW_ID);
     expect(wtCreate?.when).toContain(`${SCM_TAB_CONTEXT_KEY} == worktrees`);
     expect(brCreate?.when).toContain("gitspecs.branches");
     expect(brCreate?.when).toContain(SCM_CONSOLIDATED_VIEW_ID);
     expect(brCreate?.when).toContain(`${SCM_TAB_CONTEXT_KEY} == branches`);
+    expect(cmRefresh?.when).toContain("gitspecs.commits");
+    expect(cmRefresh?.when).toContain(SCM_CONSOLIDATED_VIEW_ID);
+    expect(cmRefresh?.when).toContain(`${SCM_TAB_CONTEXT_KEY} == commits`);
   });
 
   it("wires item context menus for consolidated view with tab-aware when clauses", () => {
     const items = pkg.contributes.menus["view/item/context"];
     const wtMenus = items.filter((m) => m.command.startsWith("gitspecs.worktrees."));
     const brMenus = items.filter((m) => m.command.startsWith("gitspecs.branches."));
+    const cmMenus = items.filter((m) => m.command.startsWith("gitspecs.commits."));
     expect(wtMenus.length).toBeGreaterThan(0);
     expect(brMenus.length).toBeGreaterThan(0);
+    expect(cmMenus.length).toBeGreaterThan(0);
     for (const m of wtMenus) {
       expect(m.when).toContain("gitspecs.worktrees");
       expect(m.when).toContain(SCM_CONSOLIDATED_VIEW_ID);
@@ -103,6 +121,12 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
       expect(m.when).toContain(SCM_CONSOLIDATED_VIEW_ID);
       expect(m.when).toContain(`${SCM_TAB_CONTEXT_KEY} == branches`);
       expect(m.when).not.toContain("gitspecs.scm.branches");
+    }
+    for (const m of cmMenus) {
+      expect(m.when).toContain("gitspecs.commits");
+      expect(m.when).toContain(SCM_CONSOLIDATED_VIEW_ID);
+      expect(m.when).toContain(`${SCM_TAB_CONTEXT_KEY} == commits`);
+      expect(m.when).toContain("viewItem == commit");
     }
   });
 
@@ -119,16 +143,20 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     expect(src).toContain("ScmTabState");
     expect(src).toContain("SCM_CONSOLIDATED_VIEW_ID");
     expect(src).toContain("registerTreeDataProvider(SCM_CONSOLIDATED_VIEW_ID");
-    expect(src).toContain('gitspecs.scm.showWorktrees');
-    expect(src).toContain('gitspecs.scm.showBranches');
+    expect(src).toContain("gitspecs.scm.showWorktrees");
+    expect(src).toContain("gitspecs.scm.showBranches");
+    expect(src).toContain("gitspecs.scm.showCommits");
     expect(src).toContain("setContext");
     expect(src).toContain("SCM_TAB_CONTEXT_KEY");
     // Dual SCM accordion providers must not be registered.
     expect(src).not.toContain('registerTreeDataProvider("gitspecs.scm.worktrees"');
     expect(src).not.toContain('registerTreeDataProvider("gitspecs.scm.branches"');
-    // Activity-bar dual views remain.
+    // Activity-bar views remain (including commits).
     expect(src).toContain('registerTreeDataProvider("gitspecs.worktrees"');
     expect(src).toContain('registerTreeDataProvider("gitspecs.branches"');
+    expect(src).toContain('registerTreeDataProvider("gitspecs.commits"');
+    expect(src).toContain("CommitsProvider");
+    expect(src).toContain("registerCommitCommands");
   });
 
   it("default tab constant matches worktrees content kind", () => {

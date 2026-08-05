@@ -16,16 +16,18 @@ describe("scmTabs pure helpers", () => {
     expect(DEFAULT_SCM_TAB).toBe("worktrees");
   });
 
-  it("isScmTab accepts only worktrees and branches", () => {
+  it("isScmTab accepts worktrees, branches, and commits", () => {
     expect(isScmTab("worktrees")).toBe(true);
     expect(isScmTab("branches")).toBe(true);
-    expect(isScmTab("commits")).toBe(false);
+    expect(isScmTab("commits")).toBe(true);
+    expect(isScmTab("stashes")).toBe(false);
     expect(isScmTab("")).toBe(false);
   });
 
   it("resolveScmTab falls back to default for unknown values", () => {
     expect(resolveScmTab("worktrees")).toBe("worktrees");
     expect(resolveScmTab("branches")).toBe("branches");
+    expect(resolveScmTab("commits")).toBe("commits");
     expect(resolveScmTab(undefined)).toBe(DEFAULT_SCM_TAB);
     expect(resolveScmTab("nope")).toBe(DEFAULT_SCM_TAB);
   });
@@ -44,21 +46,27 @@ describe("scmTabs pure helpers", () => {
     expect(state.active).toBe("branches");
     expect(seen).toEqual(["branches"]);
 
+    expect(state.setActive("commits")).toBe(true);
+    expect(state.active).toBe("commits");
+    expect(seen).toEqual(["branches", "commits"]);
+
     expect(state.setActive("worktrees")).toBe(true);
     expect(state.active).toBe("worktrees");
-    expect(seen).toEqual(["branches", "worktrees"]);
+    expect(seen).toEqual(["branches", "commits", "worktrees"]);
 
     unsub();
     state.setActive("branches");
-    expect(seen).toEqual(["branches", "worktrees"]);
+    expect(seen).toEqual(["branches", "commits", "worktrees"]);
   });
 
   it("tab selection maps to content kind for the facade", () => {
     // Mirrors how ScmGroupedProvider chooses which provider to query.
-    const contentKind = (tab: ScmTab): "worktrees" | "branches" => tab;
+    const contentKind = (tab: ScmTab): ScmTab => tab;
     const state = new ScmTabState();
     expect(contentKind(state.active)).toBe("worktrees");
     state.setActive("branches");
     expect(contentKind(state.active)).toBe("branches");
+    state.setActive("commits");
+    expect(contentKind(state.active)).toBe("commits");
   });
 });

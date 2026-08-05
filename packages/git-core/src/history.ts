@@ -50,6 +50,16 @@ export interface CommitSearchOptions {
   all?: boolean;
 }
 
+export interface RecentCommitsOptions {
+  /** Max commits to return (default 100). Clamped to 1–10_000. */
+  limit?: number;
+  /**
+   * Revision to start walking from (default: HEAD — current branch ancestry).
+   * Pass a branch/tag/sha to list that history instead.
+   */
+  rev?: string;
+}
+
 /**
  * Machine-readable log format:
  *   sha \0 author \0 author-mail \0 author-time \0 subject
@@ -61,6 +71,22 @@ const DEFAULT_LIMIT = 100;
 
 export class HistoryApi {
   constructor(private readonly repo: GitRepository) {}
+
+  /**
+   * Recent commits on the current branch (HEAD ancestry) via `git log`.
+   * Newest-first with sha, subject, author, authorTime.
+   * Optional `rev` walks from another tip; default is HEAD.
+   */
+  async recent(options: RecentCommitsOptions = {}): Promise<HistoryCommit[]> {
+    const limit = clampLimit(options.limit);
+    const args = ["log", `-n${limit}`, `--format=${HISTORY_LOG_FORMAT}`];
+    const rev = options.rev?.trim();
+    if (rev) {
+      args.push(rev);
+    }
+    const result = await this.repo.exec(args);
+    return parseHistoryLog(result.stdout);
+  }
 
   /**
    * File history via `git log --follow` (rename-aware).

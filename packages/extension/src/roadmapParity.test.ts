@@ -91,8 +91,8 @@ describe("docs/ROADMAP.md GitLens parity contract", () => {
     expect(roadmap).toMatch(/Cloud Patches/);
     expect(roadmap).toMatch(/Code Suggest|AI commit/i);
     expect(roadmap).toMatch(/out of open-source parity|non-parity|Non-goals/i);
-    // Implementation order still documented (P0–P5 done; remaining sequence or full history)
-    expect(roadmap).toMatch(/P6 → P7|P2 → P4 → P5/);
+    // Implementation order still documented (remaining sequence or full history)
+    expect(roadmap).toMatch(/P8 → P9|P6 → P7|P2 → P4 → P5/);
     expect(roadmap).toMatch(/\*\*P2\*\*|Phase P2/);
   });
 });

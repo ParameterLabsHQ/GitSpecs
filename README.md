@@ -1,6 +1,6 @@
 # GitSpecs
 
-Open-source **GitLens-style** tooling for **VS Code** and **Cursor** (GPL-3.0-only): worktrees, branches, blame, history, compare, and commit search today, with a phased path toward broader local feature parity.
+Open-source **GitLens-style** tooling for **VS Code** and **Cursor** (GPL-3.0-only): worktrees, branches, commits browser, blame, history, compare, and commit search today, with a phased path toward broader local feature parity.
 
 **Roadmap (implementation order):** [docs/ROADMAP.md](./docs/ROADMAP.md) — phases P0–P14, status inventory, and what is deliberately *not* parity (cloud/AI).
 
@@ -14,11 +14,11 @@ Open-source **GitLens-style** tooling for **VS Code** and **Cursor** (GPL-3.0-on
 
 ### Source Control tab (GitLens-style)
 
-**Worktrees** and **Branches** appear as collapsible sections in the **Source Control** view (alongside the built-in Changes list), with the same create/refresh actions and context menus as the dedicated sidebar.
+**Worktrees**, **Branches**, and **Commits** appear as title-bar tabs in a single **GitSpecs** panel under **Source Control** (alongside the built-in Changes list), with the same create/refresh actions and context menus as the dedicated sidebar.
 
 ### Dedicated activity bar
 
-A **GitSpecs** icon in the activity bar hosts the same Worktrees and Branches views full-height.
+A **GitSpecs** icon in the activity bar hosts the same Worktrees, Branches, and Commits views full-height.
 
 ### Worktrees
 
@@ -35,6 +35,11 @@ Local + remote listing with upstream ahead/behind, create/rename/delete (safe + 
 - **GitSpecs: Blame File to Output** — full file dump in the GitSpecs output channel  
 - Status-bar current-line blame and file-level CodeLens (settings to disable)
 
+### Commits browser
+
+- Activity-bar **Commits** view and SCM **Commits** tab — recent commits on the current branch  
+- Context actions: copy SHA, checkout (detached, confirmed), create branch from commit, open on remote  
+
 ### History, compare & search
 
 - **GitSpecs: File History** / **Line History** — QuickPick commits; copy SHA, open on remote, view file at revision  
@@ -43,7 +48,7 @@ Local + remote listing with upstream ahead/behind, create/rename/delete (safe + 
 
 ### What’s next
 
-See the full phased plan in **[docs/ROADMAP.md](./docs/ROADMAP.md)**. Next slice: **P7** Commits sidebar, then stashes/tags/remotes views, commit graph.
+See the full phased plan in **[docs/ROADMAP.md](./docs/ROADMAP.md)**. Next slice: **P8** Stashes, then tags/remotes/contributors views, commit graph.
 
 ## Monorepo layout
 

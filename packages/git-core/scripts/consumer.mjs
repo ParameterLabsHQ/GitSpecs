@@ -151,6 +151,37 @@ console.log(
   ),
 );
 
+// P7: recent commits on current branch (HEAD ancestry)
+const recent = await repo.history.recent({ limit: 20 });
+const recentOk =
+  Array.isArray(recent) &&
+  recent.length >= 1 &&
+  recent.every((c) => c.sha && c.author && c.authorTime > 0 && typeof c.subject === "string") &&
+  // On main after switch-back: feature tip sha must not appear as HEAD tip
+  recent[0]?.sha !== p6Sha;
+
+// Alternate rev still walks feature tip
+const recentFeature = await repo.history.recent({ rev: "p6-feature", limit: 5 });
+const recentFeatureOk = recentFeature[0]?.sha === p6Sha;
+
+if (!recentOk || !recentFeatureOk) {
+  console.error("P7 history.recent consumer failed", { recent, recentFeature, p6Sha });
+  process.exitCode = 1;
+}
+console.log(
+  JSON.stringify(
+    {
+      recentCount: recent.length,
+      recentNewestSha: recent[0]?.sha,
+      recentNewestSubject: recent[0]?.subject,
+      recentOk,
+      recentFeatureOk,
+    },
+    null,
+    2,
+  ),
+);
+
 const branches = await repo.branches.list({ includeRemotes: false });
 await repo.branches.create({ name: "consumer-branch" });
 const after = await repo.branches.list({ includeRemotes: false });

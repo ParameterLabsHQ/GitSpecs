@@ -3,7 +3,7 @@
  * No vscode imports — unit-testable without the extension host.
  */
 
-export type ScmTab = "worktrees" | "branches";
+export type ScmTab = "worktrees" | "branches" | "commits";
 
 /** Single SCM view contributed under the Source Control container. */
 export const SCM_CONSOLIDATED_VIEW_ID = "gitspecs.scm";
@@ -14,7 +14,7 @@ export const SCM_TAB_CONTEXT_KEY = "gitspecs.scm.tab";
 export const DEFAULT_SCM_TAB: ScmTab = "worktrees";
 
 export function isScmTab(value: string): value is ScmTab {
-  return value === "worktrees" || value === "branches";
+  return value === "worktrees" || value === "branches" || value === "commits";
 }
 
 export function resolveScmTab(value: string | undefined): ScmTab {

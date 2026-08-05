@@ -7,6 +7,8 @@ import { WorktreesProvider } from "./modules/worktrees/provider.js";
 import { registerWorktreeCommands } from "./modules/worktrees/commands.js";
 import { BranchesProvider } from "./modules/branches/provider.js";
 import { registerBranchCommands } from "./modules/branches/commands.js";
+import { CommitsProvider } from "./modules/commits/provider.js";
+import { registerCommitCommands } from "./modules/commits/commands.js";
 import { BlameController } from "./modules/blame/controller.js";
 import { registerBlameCommands } from "./modules/blame/commands.js";
 import { BlameCodeLensProvider } from "./modules/blame/codeLens.js";
@@ -44,18 +46,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   const worktreesProvider = new WorktreesProvider(repos, refresh, log);
   const branchesProvider = new BranchesProvider(repos, refresh, log);
-  context.subscriptions.push(worktreesProvider, branchesProvider);
+  const commitsProvider = new CommitsProvider(repos, refresh, log);
+  context.subscriptions.push(worktreesProvider, branchesProvider, commitsProvider);
 
   // Activity-bar dual views keep dedicated providers.
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider("gitspecs.worktrees", worktreesProvider),
     vscode.window.registerTreeDataProvider("gitspecs.branches", branchesProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.commits", commitsProvider),
   );
 
-  // Single consolidated SCM panel with Worktrees/Branches tabs (GitLens-style).
+  // Single consolidated SCM panel with Worktrees/Branches/Commits tabs.
   const scmTabs = new ScmTabState();
   await setScmTabContext(DEFAULT_SCM_TAB);
-  const scmGrouped = new ScmGroupedProvider(scmTabs, worktreesProvider, branchesProvider);
+  const scmGrouped = new ScmGroupedProvider(
+    scmTabs,
+    worktreesProvider,
+    branchesProvider,
+    commitsProvider,
+  );
   context.subscriptions.push(
     scmGrouped,
     vscode.window.registerTreeDataProvider(SCM_CONSOLIDATED_VIEW_ID, scmGrouped),
@@ -69,10 +78,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(
     vscode.commands.registerCommand("gitspecs.scm.showWorktrees", () => switchScmTab("worktrees")),
     vscode.commands.registerCommand("gitspecs.scm.showBranches", () => switchScmTab("branches")),
+    vscode.commands.registerCommand("gitspecs.scm.showCommits", () => switchScmTab("commits")),
   );
 
   registerWorktreeCommands(context, repos, refresh, log);
   registerBranchCommands(context, repos, refresh, log);
+  registerCommitCommands(context, repos, refresh, log);
   registerCompareCommands(context, repos, log);
   registerSearchCommands(context, repos, log);
 
@@ -98,7 +109,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
   );
 
-  log.info("GitSpecs activated (worktrees, branches, blame, history, compare, search)");
+  log.info(
+    "GitSpecs activated (worktrees, branches, commits, blame, history, compare, search)",
+  );
 }
 
 export function deactivate(): void {

@@ -42,7 +42,7 @@ Status is grounded in the monorepo as of this revision.
 | File history | **Shipped** | `git-core` `history.ts` `repo.history.file`; `modules/history` (`gitspecs.history.file`) | **P4** |
 | Line history | **Shipped** | `repo.history.line` (`git log -L` + file-history fallback); `gitspecs.history.line` | **P5** |
 | Search & compare UI (commits, files) | **Shipped** (QuickPick; no dual-pane webview) | `history.search`; `modules/search` (`gitspecs.search.commits`); compare file list | **P6** |
-| Commits sidebar / SCM commits browser | **Not started** | — | **P7** |
+| Commits sidebar / SCM commits browser | **Shipped** | `history.recent`; `modules/commits`; activity-bar `gitspecs.commits` + SCM tab | **P7** |
 | Stashes view + actions | **Not started** | — | **P8** |
 | Tags / remotes browser views | **Partial** | Remotes appear under Branches tree; no dedicated Tags/Remotes modules | **P9** |
 | Contributors view | **Not started** | — | **P10** |
@@ -142,7 +142,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 **Shipped:** `repo.branches.compare` returns `files` (name-status) + working-tree mode; `repo.history.search`; extension `gitspecs.compare` / upgraded `gitspecs.branches.compare` QuickPick (actions + file list + host URL); `gitspecs.search.commits` pick-and-act (copy SHA / open remote).  
 
-### Phase P7 — Sidebar: Commits browser
+### Phase P7 — Sidebar: Commits browser *(done)*
 
 **Depends on:** P0  
 **Parity target:** GitLens Commits view  
@@ -153,6 +153,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Activity-bar and/or SCM section: Commits tree (graph-lite list is fine)  
 - Actions: copy sha, checkout, create branch from commit (reuse branches API), open on remote  
 - Refresh via existing `RefreshBus`  
+
+**Shipped:** `repo.history.recent` (`git log` HEAD ancestry, clamped limit); extension `modules/commits` TreeDataProvider; activity-bar `gitspecs.commits` + SCM consolidated tab (`gitspecs.scm.tab == commits`); commands `gitspecs.commits.copySha` / `checkout` / `createBranch` / `openRemote` / `refresh` via `bindCommand`.  
 
 ### Phase P8 — Sidebar: Stashes
 
@@ -239,19 +241,19 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M0 Daily git ops** | P0 | Replace GitLens for worktrees/branches |
 | **M1 Authorship** | P1–P3 | See who changed lines without leaving the editor |
 | **M2 History** | P4–P5 | Walk file/line revision history — **done** |
-| **M3 Explore & compare** | P6–P10 | Browse commits/stashes/tags; rich compare/search |
+| **M3 Explore & compare** | P6–P10 | Browse commits/stashes/tags; rich compare/search (P6–P7 shipped) |
 | **M4 Graph** | P11 | Visual branch topology |
 | **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
 
-**Next implementation goal after this roadmap:** **P7** (Commits sidebar), building on shipped P0 branches and P6 compare/search.
+**Next implementation goal after this roadmap:** **P8** (Stashes), building on shipped P0–P7.
 
-Recommended default sequence for agents (P0–P5 shipped):
+Recommended default sequence for agents (P0–P7 shipped):
 
 ```
-P6 → P7 → P8 → P9 → P10 → P11 → P12 → (P13?) → P14
+P8 → P9 → P10 → P11 → P12 → (P13?) → P14
 ```
 
-Rationale: file/line history unlock navigation; compare/search next; graph after commits list exists; hosting APIs last.
+Rationale: file/line history unlock navigation; compare/search + commits browser next; stashes/tags then graph; hosting APIs last.
 
 ---
 
@@ -300,3 +302,4 @@ Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud�
 |------|--------|
 | 2026-08-04 | Initial must-have Phases 0–4 sketch |
 | 2026-08-04 | Expanded to full GitLens-style parity order **P0–P14**, status inventory, milestones, non-parity deferrals; next slice **P2** |
+| 2026-08-05 | Marked **P7** Commits sidebar shipped (`history.recent` + activity-bar/SCM commits browser); next slice **P8** |

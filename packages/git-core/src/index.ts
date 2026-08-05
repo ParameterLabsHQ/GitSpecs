@@ -36,6 +36,7 @@ export {
   type FileHistoryOptions,
   type LineHistoryOptions,
   type CommitSearchOptions,
+  type RecentCommitsOptions,
 } from "./history.js";
 export {
   GitNotFoundError,

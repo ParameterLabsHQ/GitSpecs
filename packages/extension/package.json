@@ -1,7 +1,7 @@
 {
   "name": "gitspecs",
   "displayName": "GitSpecs",
-  "description": "Open-source GitLens-style worktrees, branches, blame, history, compare, and search for VS Code and Cursor.",
+  "description": "Open-source GitLens-style worktrees, branches, commits, blame, history, compare, and search for VS Code and Cursor.",
   "version": "0.1.0",
   "publisher": "ParameterLabsHQ",
   "license": "GPL-3.0-only",
@@ -20,12 +20,15 @@
     "onStartupFinished",
     "onView:gitspecs.worktrees",
     "onView:gitspecs.branches",
+    "onView:gitspecs.commits",
     "onView:gitspecs.scm",
     "onCommand:gitspecs.switchRepository",
     "onCommand:gitspecs.scm.showWorktrees",
     "onCommand:gitspecs.scm.showBranches",
+    "onCommand:gitspecs.scm.showCommits",
     "onCommand:gitspecs.worktrees.refresh",
     "onCommand:gitspecs.branches.refresh",
+    "onCommand:gitspecs.commits.refresh",
     "onCommand:gitspecs.blame.toggleFile",
     "onCommand:gitspecs.blame.showLine",
     "onCommand:gitspecs.blame.fileToOutput",
@@ -56,6 +59,10 @@
         {
           "id": "gitspecs.branches",
           "name": "Branches"
+        },
+        {
+          "id": "gitspecs.commits",
+          "name": "Commits"
         }
       ],
       "scm": [
@@ -70,7 +77,7 @@
     "viewsWelcome": [
       {
         "view": "gitspecs.scm",
-        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar.\n\nUse the title-bar icons to switch between Worktrees and Branches."
+        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar.\n\nUse the title-bar icons to switch between Worktrees, Branches, and Commits."
       }
     ],
     "commands": [
@@ -88,6 +95,12 @@
         "command": "gitspecs.scm.showBranches",
         "title": "GitSpecs: Show Branches",
         "icon": "$(git-branch)",
+        "category": "GitSpecs"
+      },
+      {
+        "command": "gitspecs.scm.showCommits",
+        "title": "GitSpecs: Show Commits",
+        "icon": "$(git-commit)",
         "category": "GitSpecs"
       },
       {
@@ -243,6 +256,27 @@
       {
         "command": "gitspecs.branches.openRemote",
         "title": "GitSpecs: Open on Remote"
+      },
+      {
+        "command": "gitspecs.commits.refresh",
+        "title": "GitSpecs: Refresh Commits",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitspecs.commits.copySha",
+        "title": "GitSpecs: Copy Commit SHA"
+      },
+      {
+        "command": "gitspecs.commits.checkout",
+        "title": "GitSpecs: Checkout Commit (Detached)"
+      },
+      {
+        "command": "gitspecs.commits.createBranch",
+        "title": "GitSpecs: Create Branch from Commit…"
+      },
+      {
+        "command": "gitspecs.commits.openRemote",
+        "title": "GitSpecs: Open Commit on Remote"
       }
     ],
     "menus": {
@@ -258,23 +292,33 @@
           "group": "navigation@2"
         },
         {
-          "command": "gitspecs.worktrees.create",
-          "when": "view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)",
+          "command": "gitspecs.scm.showCommits",
+          "when": "view == gitspecs.scm",
           "group": "navigation@3"
         },
         {
-          "command": "gitspecs.worktrees.refresh",
+          "command": "gitspecs.worktrees.create",
           "when": "view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)",
           "group": "navigation@4"
         },
         {
+          "command": "gitspecs.worktrees.refresh",
+          "when": "view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)",
+          "group": "navigation@5"
+        },
+        {
           "command": "gitspecs.branches.create",
           "when": "view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)",
-          "group": "navigation@3"
+          "group": "navigation@4"
         },
         {
           "command": "gitspecs.branches.refresh",
           "when": "view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)",
+          "group": "navigation@5"
+        },
+        {
+          "command": "gitspecs.commits.refresh",
+          "when": "view == gitspecs.commits || (view == gitspecs.scm && gitspecs.scm.tab == commits)",
           "group": "navigation@4"
         }
       ],
@@ -353,6 +397,26 @@
           "command": "gitspecs.branches.compare",
           "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem =~ /branch/",
           "group": "5_hist"
+        },
+        {
+          "command": "gitspecs.commits.copySha",
+          "when": "(view == gitspecs.commits || (view == gitspecs.scm && gitspecs.scm.tab == commits)) && viewItem == commit",
+          "group": "1_copy"
+        },
+        {
+          "command": "gitspecs.commits.checkout",
+          "when": "(view == gitspecs.commits || (view == gitspecs.scm && gitspecs.scm.tab == commits)) && viewItem == commit",
+          "group": "2_nav"
+        },
+        {
+          "command": "gitspecs.commits.createBranch",
+          "when": "(view == gitspecs.commits || (view == gitspecs.scm && gitspecs.scm.tab == commits)) && viewItem == commit",
+          "group": "2_nav"
+        },
+        {
+          "command": "gitspecs.commits.openRemote",
+          "when": "(view == gitspecs.commits || (view == gitspecs.scm && gitspecs.scm.tab == commits)) && viewItem == commit",
+          "group": "3_remote"
         }
       ],
       "commandPalette": [
@@ -362,6 +426,10 @@
         },
         {
           "command": "gitspecs.scm.showBranches",
+          "when": "false"
+        },
+        {
+          "command": "gitspecs.scm.showCommits",
           "when": "false"
         },
         {

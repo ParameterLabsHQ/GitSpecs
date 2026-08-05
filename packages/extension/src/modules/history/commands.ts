@@ -18,6 +18,7 @@ import {
   type HistoryCommitItem,
 } from "./actions.js";
 import { readAutolinkRules } from "../autolinks/settings.js";
+import { openVisualFileHistory } from "./visualFileHistory.js";
 
 function isDiskFile(doc: vscode.TextDocument): boolean {
   return doc.uri.scheme === "file";
@@ -45,6 +46,12 @@ export function registerHistoryCommands(
       "gitspecs.history.line",
       run(async () => {
         await showLineHistory(repos, log);
+      }),
+    ),
+    vscode.commands.registerCommand(
+      "gitspecs.history.visualFile",
+      run(async () => {
+        await openVisualFileHistory(context, repos, log);
       }),
     ),
   );

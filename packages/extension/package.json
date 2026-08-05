@@ -36,6 +36,7 @@
     "onCommand:gitspecs.blame.codeLensDetail",
     "onCommand:gitspecs.history.file",
     "onCommand:gitspecs.history.line",
+    "onCommand:gitspecs.history.visualFile",
     "onCommand:gitspecs.revision.openAtRevision",
     "onCommand:gitspecs.revision.diffWithPrevious",
     "onCommand:gitspecs.revision.diffWithWorking",
@@ -43,6 +44,7 @@
     "onCommand:gitspecs.revision.next",
     "onCommand:gitspecs.annotations.toggleChanges",
     "onCommand:gitspecs.compare",
+    "onCommand:gitspecs.compare.dualPane",
     "onCommand:gitspecs.search.commits",
     "onView:gitspecs.stashes",
     "onCommand:gitspecs.scm.showStashes",
@@ -65,7 +67,15 @@
     "onCommand:gitspecs.rewrite.continue",
     "onCommand:gitspecs.rewrite.status",
     "onCommand:gitspecs.rewrite.interactiveRebase",
-    "onCommand:gitspecs.rewrite.editTodo"
+    "onCommand:gitspecs.rewrite.editTodo",
+    "onView:gitspecs.hub",
+    "onCommand:gitspecs.hosting.signInGitHub",
+    "onCommand:gitspecs.hosting.prForBranch",
+    "onCommand:gitspecs.hosting.createPr",
+    "onCommand:gitspecs.hosting.setGitLabPat",
+    "onCommand:gitspecs.ai.configure",
+    "onCommand:gitspecs.ai.generateCommitMessage",
+    "onCommand:gitspecs.ai.explainCommit"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -111,6 +121,10 @@
         {
           "id": "gitspecs.graph",
           "name": "Commit Graph"
+        },
+        {
+          "id": "gitspecs.hub",
+          "name": "Hub"
         }
       ],
       "scm": [
@@ -196,6 +210,11 @@
         "icon": "$(git-commit)"
       },
       {
+        "command": "gitspecs.history.visualFile",
+        "title": "GitSpecs: Visual File History",
+        "icon": "$(graph-line)"
+      },
+      {
         "command": "gitspecs.revision.openAtRevision",
         "title": "GitSpecs: Open File at Revision\u2026",
         "icon": "$(history)"
@@ -229,6 +248,11 @@
         "command": "gitspecs.compare",
         "title": "GitSpecs: Compare References\u2026",
         "icon": "$(git-compare)"
+      },
+      {
+        "command": "gitspecs.compare.dualPane",
+        "title": "GitSpecs: Dual-Pane Compare\u2026",
+        "icon": "$(split-horizontal)"
       },
       {
         "command": "gitspecs.search.commits",
@@ -495,6 +519,34 @@
       {
         "command": "gitspecs.rewrite.editTodo",
         "title": "GitSpecs: Edit Rebase Sequence\u2026"
+      },
+      {
+        "command": "gitspecs.hosting.signInGitHub",
+        "title": "GitSpecs: Sign In to GitHub\u2026"
+      },
+      {
+        "command": "gitspecs.hosting.setGitLabPat",
+        "title": "GitSpecs: Set GitLab PAT\u2026"
+      },
+      {
+        "command": "gitspecs.hosting.prForBranch",
+        "title": "GitSpecs: PR for Current Branch\u2026"
+      },
+      {
+        "command": "gitspecs.hosting.createPr",
+        "title": "GitSpecs: Create Pull Request\u2026"
+      },
+      {
+        "command": "gitspecs.ai.configure",
+        "title": "GitSpecs: Configure AI Provider\u2026"
+      },
+      {
+        "command": "gitspecs.ai.generateCommitMessage",
+        "title": "GitSpecs: Generate Commit Message (AI)"
+      },
+      {
+        "command": "gitspecs.ai.explainCommit",
+        "title": "GitSpecs: Explain Commit (AI)\u2026"
       },
       {
         "command": "gitspecs.rewrite.rebase",
@@ -968,6 +1020,31 @@
               }
             }
           }
+        },
+        "gitspecs.hosting.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable hosting integrations (PRs/issues). Inert until signed in; never blocks offline git."
+        },
+        "gitspecs.hosting.github.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Optional GitHub API base URL for self-hosted (e.g. https://github.example.com/api/v3)."
+        },
+        "gitspecs.hosting.gitlab.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Optional GitLab API base URL for self-hosted (e.g. https://gitlab.example.com/api/v4)."
+        },
+        "gitspecs.ai.endpoint": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI-compatible API base URL (e.g. https://api.openai.com/v1). Empty disables AI commands until Configure AI is used."
+        },
+        "gitspecs.ai.model": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "description": "Model id for BYO-key AI assist (off until configured)."
         }
       }
     }
@@ -981,6 +1058,7 @@
   },
   "dependencies": {
     "@gitspecs/git-core": "workspace:*",
+    "@gitspecs/host-api": "workspace:*",
     "@gitspecs/host-urls": "workspace:*"
   },
   "devDependencies": {

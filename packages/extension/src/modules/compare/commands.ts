@@ -11,6 +11,7 @@ import {
   resolveCompareUrl,
   type ComparePickItem,
 } from "./format.js";
+import { openDualPaneCompare } from "./compareView.js";
 
 /** Sentinel label for working-tree compare in QuickPick. */
 export const WORKING_TREE_PICK = "$(git-commit) Working Tree";
@@ -32,6 +33,12 @@ export function registerCompareCommands(
       "gitspecs.compare",
       run(async () => {
         await runCompareInteractive(repos, log);
+      }),
+    ),
+    vscode.commands.registerCommand(
+      "gitspecs.compare.dualPane",
+      run(async () => {
+        await openDualPaneCompare(context, repos, log);
       }),
     ),
   );

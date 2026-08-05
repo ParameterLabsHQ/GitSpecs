@@ -37,7 +37,7 @@ Local clone folder may still be named `gitlens-clone`; that is incidental filesy
 
 Open-source **GitLens-style** extension for VS Code/Cursor. The product goal (set 2026-08-05) is **full GitLens feature parity, offered free** — including client-side features GitLens gates behind paid plans — while excluding vendor-cloud backends and paywalls.
 
-**Shipped today (high level, P0–P12 + P14–P19):**
+**Shipped today (high level, P0–P12 + P14–P23):**
 
 - Worktrees + branches + commits browser (library + activity bar + SCM)
 - File blame (decorations, status bar, CodeLens, heatmap), file + line history
@@ -48,12 +48,14 @@ Open-source **GitLens-style** extension for VS Code/Cursor. The product goal (se
 - Multi-repo tree roots (all views) with per-item repo resolution
 - Webview platform + Commit Graph canvas (`gitspecs.graph.openView`)
 - Interactive rebase sequence editor (`gitspecs.rewrite.interactiveRebase`)
+- Visual File History + dual-pane compare webviews
+- Hosting APIs (platform auth) + work hub + optional BYO-key AI
 - Hosting links: **URL-only** (`host-urls`); system `git` only (2.23+)
 
 **Product roadmap (order of implementation):**  
-→ **[docs/ROADMAP.md](./docs/ROADMAP.md)** — phases **P0–P23**, status inventory, milestones, and non-goals. P0–P12 + **P15–P19** shipped; **P20–P23** is the ladder to full parity (P13 superseded by P21). Evidence: [GitLens parity gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md).
+→ **[docs/ROADMAP.md](./docs/ROADMAP.md)** — phases **P0–P23**, status inventory, milestones, and non-goals. P0–P12 + **P15–P23** shipped; remaining is the ladder to full parity (P13 superseded by P21). Evidence: [GitLens parity gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md).
 
-**Next implementation slice (per roadmap):** **P20 — Visual File History & dual-pane Search & Compare.**
+**Next implementation slice (per roadmap):** **none (P15–P23 parity ladder complete; P14 polish ongoing).**
 
 Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 
@@ -172,9 +174,9 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 | M5 Advanced | P12–P14 | P12 done; P13 superseded by P21; P14 ongoing polish |
 | M6 Editor depth | P15–P16 | **Done** (revision nav + annotations/links) |
 | M7 Scale | P17 | **Done** — multi-repo tree roots |
-| M8 Webview surfaces | P18–P20 | P18–P19 done; P20 planned |
-| M9 Connected | P21–P22 | Planned — hosting APIs (`vscode.authentication` / `SecretStorage`), work hub |
-| M10 Assist | P23 | Planned — optional BYO-key AI, off by default |
+| M8 Webview surfaces | P18–P20 | P18–P20 done |
+| M9 Connected | P21–P22 | **Done** — hosting APIs + work hub |
+| M10 Assist | P23 | **Done** — BYO-key AI, off until configured |
 
 ### Picking up the next phase (coding agents — Claude Code, Grok Build, etc.)
 
@@ -225,7 +227,7 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 - Extension bundle: **esbuild** (`packages/extension/esbuild.mjs`), `vscode` external, CJS outfile `dist/extension.js`.
 - Prefer small pure helpers next to commands when logic needs unit tests without the extension host.
 - Destructive actions: confirm when `gitspecs.confirmDelete` is true (default).
-- Log git argv + exit/stderr to the output channel; never invent token storage — hosting auth (**P21+**) must use `vscode.authentication` (GitHub) or `context.secrets` / `SecretStorage` (PATs). No tokens in settings, files, or globalState. Before P21 lands there are no secrets at all.
+- Log git argv + exit/stderr to the output channel; hosting auth uses **platform APIs only**: `vscode.authentication` (GitHub) and `context.secrets` / `SecretStorage` (PATs, AI keys). No tokens in settings, files, or globalState.
 
 ## License / contributions
 

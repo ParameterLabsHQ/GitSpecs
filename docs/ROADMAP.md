@@ -62,11 +62,11 @@ Status is grounded in the monorepo as of this revision.
 | Multi-repo simultaneous views | **Shipped** | `RepoRootItem` grouping; item `repoRoot` + `resolveRepoForItem` | **P17** |
 | Commit Graph webview (DAG canvas, search/filter, WIP row) | **Shipped** | webview platform + `gitspecs.graphView` / `graph.openView`; `logPage` | **P18** |
 | Interactive rebase sequence editor | **Shipped** | `rebaseTodo` + `interactiveRebase`; webview sequence editor | **P19** |
-| Visual File History (timeline chart) | **Not started** | — | **P20** |
-| Dual-pane Search & Compare | **Not started** (QuickPick shipped in P6) | — | **P20** |
-| Hosting APIs: PRs / issues / avatars | **Not started** — supersedes P13 via `vscode.authentication` + `SecretStorage` | — | **P21** |
-| Work hub (client-side Launchpad-style) | **Not started** | — | **P22** |
-| AI assist (BYO key, optional, off by default) | **Not started** | — | **P23** |
+| Visual File History (timeline chart) | **Shipped** | `history.fileChurn`; `gitspecs.history.visualFile` webview | **P20** |
+| Dual-pane Search & Compare | **Shipped** | `gitspecs.compare.dualPane` webview | **P20** |
+| Hosting APIs: PRs / issues / avatars | **Shipped** | `@gitspecs/host-api`; hosting module + platform auth | **P21** |
+| Work hub (client-side Launchpad-style) | **Shipped** | `gitspecs.hub` + `aggregateHub` | **P22** |
+| AI assist (BYO key, optional, off by default) | **Shipped** | `modules/ai` (SecretStorage key, consent, prompts) | **P23** |
 
 ---
 
@@ -359,6 +359,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - **Dual-pane compare:** persistent compare surface (webview or split tree) for two refs or ref-vs-working-tree — ahead/behind, shortstat, per-file open-diff actions; promotes the P6 QuickPick flow
 - Tests: numstat parser real-git tests; message-protocol unit tests; contrib structural tests
 
+**Shipped:** `repo.history.fileChurn` / `parseFileChurnLog`; Visual File History webview; dual-pane compare webview (`gitspecs.compare.dualPane`).
+
 ### Phase P21 — Hosting provider APIs *(supersedes P13)*
 
 **Depends on:** P0 host-urls; P16 (autolinks are the enrichment target)  
@@ -373,6 +375,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Resilience: cached last-known data, rate-limit aware, never blocks or delays local git commands
 - Update AGENTS.md token rule ("no invented token storage" → "platform auth APIs only") in the same PR
 
+**Shipped:** `@gitspecs/host-api` (GitHub/GitLab clients, injected fetch); `gitspecs.hosting.*` auth + PR-for-branch + create-PR URL; settings `hosting.enabled` / base URLs; AGENTS platform-auth rule.
+
 ### Phase P22 — Work hub (client-side Launchpad-style)
 
 **Depends on:** P21  
@@ -384,6 +388,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Grouping by urgency (blocked / needs your action / waiting on others); actions: open PR/issue, checkout branch, create worktree for a PR branch
 - Data via `@gitspecs/host-api` only; poll-on-refresh (RefreshBus + manual) — no push/webhook infrastructure
 - Pure unit tests for aggregation/grouping over `host-api` fixtures; contrib structural tests
+
+**Shipped:** Hub activity-bar view; pure `aggregateHub` grouping; poll-on-refresh via host-api + WIP branches.
 
 ### Phase P23 — AI assist *(optional, BYO key, off by default)*
 
@@ -412,16 +418,16 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M5 Advanced** | P12–P14 | Rewrite UX shipped; P13 deferred → superseded by P21; P14 finite polish shipped |
 | **M6 Editor depth** | P15–P16 | **Done** (revision nav + annotations/links) |
 | **M7 Scale** | P17 | **Done** — every repo visible under roots |
-| **M8 Webview surfaces** | P18–P20 | P18–P19 done; P20 Visual File History + dual-pane compare |
-| **M9 Connected** | P21–P22 | PRs/issues/avatars via platform auth; client-side work hub |
-| **M10 Assist** | P23 | Optional BYO-key AI, off by default |
+| **M8 Webview surfaces** | P18–P20 | **Done** (platform, graph canvas, rebase editor, visual history, dual-pane compare) |
+| **M9 Connected** | P21–P22 | **Done** — PRs/issues via platform auth; work hub |
+| **M10 Assist** | P23 | **Done** — optional BYO-key AI, off until configured |
 
-**Next implementation goal:** **P20 — Visual File History & dual-pane Search & Compare.** P15–P19 shipped; P20–P23 remains the ladder to full GitLens parity, free.
+**Next implementation goal:** **Parity ladder complete for P15–P23.** Ongoing P14 polish only.
 
 Recommended default sequence for agents:
 
 ```
-(P0–P12, P15–P19 done) → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
+(P0–P12, P15–P23 done) (+ ongoing P14 polish)
 ```
 
 Each phase: read this file + `AGENTS.md` → design note in `docs/superpowers/specs/` if the phase is large (P17, P18, P19, P21 are) → implementation plan → PR with tests → update Section 2 + changelog here. One phase per goal; keep phase N green before starting N+1.
@@ -490,3 +496,7 @@ Interactive rebase **UI** is a local parity target (**P19**); the P12 note preda
 | 2026-08-05 | Marked **P17** Multi-repo views shipped (per-repo tree roots, item repo resolution, principle 4 amended); next slice **P18** |
 | 2026-08-05 | Marked **P18** Webview platform + Commit Graph canvas shipped (`docs/WEBVIEWS.md`, `logPage`, `gitspecs.graph.openView`); next slice **P19** |
 | 2026-08-05 | Marked **P19** Interactive rebase sequence editor shipped (`interactiveRebase`, todo parser, webview editor); next slice **P20** |
+| 2026-08-05 | Marked **P20** Visual File History + dual-pane compare shipped (`fileChurn`, webviews); next slice **P21** |
+| 2026-08-05 | Marked **P21** Hosting APIs shipped (`@gitspecs/host-api`, vscode.authentication / SecretStorage); next **P22** |
+| 2026-08-05 | Marked **P22** Work hub shipped (`gitspecs.hub`); next **P23** |
+| 2026-08-05 | Marked **P23** BYO-key AI assist shipped (off until configured); parity ladder P15–P23 complete |

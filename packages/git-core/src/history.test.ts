@@ -4,6 +4,7 @@ import path from "node:path";
 import {
   parseHistoryLog,
   parseFileHistoryWithPaths,
+  parseFileChurnLog,
   HISTORY_LOG_FORMAT,
 } from "./history.js";
 import { createFixtureRepo, commitFile } from "./test-utils.js";
@@ -410,6 +411,50 @@ describe("history.recent (real git)", () => {
     const commits = await repo.history.recent({ limit: 0 });
     expect(commits.length).toBeGreaterThan(0);
     expect(commits[0]!.sha).toMatch(/^[0-9a-f]{40}$/i);
+  });
+});
+
+describe("parseFileChurnLog / fileChurn (P20)", () => {
+  it("parses numstat pairs after format lines", () => {
+    const sha = "a".repeat(40);
+    const raw = [
+      [sha, "Ada", "<a@x.com>", "100", "add lines"].join("\0"),
+      "",
+      "3\t1\tfile.txt",
+      "",
+    ].join("\n");
+    const rows = parseFileChurnLog(raw);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      sha,
+      subject: "add lines",
+      additions: 3,
+      deletions: 1,
+    });
+  });
+
+  it("fileChurn returns real additions/deletions via shipped API", async () => {
+    const fixture = await createFixtureRepo();
+    const sha1 = await commitFile(
+      fixture.dir,
+      fixture.git,
+      "churn.txt",
+      "a\nb\n",
+      "churn: add two",
+    );
+    const sha2 = await commitFile(
+      fixture.dir,
+      fixture.git,
+      "churn.txt",
+      "a\nb\nc\nd\n",
+      "churn: add two more",
+    );
+    const rows = await fixture.repo.history.fileChurn("churn.txt", { limit: 10 });
+    expect(rows.length).toBeGreaterThanOrEqual(2);
+    const bySha = new Map(rows.map((r) => [r.sha, r]));
+    expect(bySha.get(sha1)?.additions).toBeGreaterThanOrEqual(2);
+    expect(bySha.get(sha2)?.additions).toBeGreaterThanOrEqual(2);
+    expect(rows[0]!.sha).toBe(sha2);
   });
 });
 

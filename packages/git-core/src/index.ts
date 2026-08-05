@@ -32,6 +32,7 @@ export {
   HistoryApi,
   parseHistoryLog,
   parseFileHistoryWithPaths,
+  parseFileChurnLog,
   HISTORY_LOG_FORMAT,
   type HistoryCommit,
   type FileHistoryEntry,
@@ -41,6 +42,8 @@ export {
   type RecentCommitsOptions,
   type RevisionNeighbors,
   type RevisionNeighborsOptions,
+  type FileChurnEntry,
+  type FileChurnOptions,
 } from "./history.js";
 export {
   StashesApi,

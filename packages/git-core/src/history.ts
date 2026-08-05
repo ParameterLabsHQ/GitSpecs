@@ -99,6 +99,19 @@ export interface RevisionNeighborsOptions {
   rev?: string;
 }
 
+/** Per-commit churn for a path (`git log --numstat`). */
+export interface FileChurnEntry extends HistoryCommit {
+  /** Lines added in this commit for the path. */
+  additions: number;
+  /** Lines deleted in this commit for the path. */
+  deletions: number;
+}
+
+export interface FileChurnOptions {
+  limit?: number;
+  rev?: string;
+}
+
 /**
  * Machine-readable log format:
  *   sha \0 author \0 author-mail \0 author-time \0 subject
@@ -298,6 +311,29 @@ export class HistoryApi {
   }
 
   /**
+   * File history with per-commit additions/deletions via `git log --numstat`
+   * (and `--follow`). Newest-first. Used by Visual File History (P20).
+   */
+  async fileChurn(
+    path: string,
+    options: FileChurnOptions = {},
+  ): Promise<FileChurnEntry[]> {
+    const rel = toRepoRelative(this.repo.root, path);
+    const limit = clampLimit(options.limit);
+    const args = [
+      "log",
+      "--follow",
+      `-n${limit}`,
+      `--format=${HISTORY_LOG_FORMAT}`,
+      "--numstat",
+    ];
+    if (options.rev) args.push(options.rev);
+    args.push("--", rel);
+    const result = await this.repo.exec(args);
+    return parseFileChurnLog(result.stdout);
+  }
+
+  /**
    * Search commits by message and/or author via `git log --grep` / `--author`.
    * Requires at least one of `grep` or `author` (non-empty after trim).
    * Results are newest-first `HistoryCommit[]`.
@@ -377,6 +413,67 @@ export function parseHistoryLog(stdout: string): HistoryCommit[] {
  *
  * When a path line is missing for a commit, falls back to `fallbackPath`.
  */
+/**
+ * Parse `git log --format=HISTORY_LOG_FORMAT --numstat` output.
+ *
+ * Each commit is a format line followed by one or more numstat lines:
+ * `added\\tdeleted\\tpath` (binary files use `-`).
+ */
+export function parseFileChurnLog(stdout: string): FileChurnEntry[] {
+  const text = stdout.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  if (!text.trim()) return [];
+
+  const entries: FileChurnEntry[] = [];
+  const lines = text.split("\n");
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i] ?? "";
+    i += 1;
+    if (!line) continue;
+    const parts = line.split("\0");
+    if (parts.length < 5) continue;
+    const [sha, author, authorMail, authorTimeRaw, ...subjectParts] = parts;
+    if (!sha || !/^[0-9a-f]{7,64}$/i.test(sha)) continue;
+
+    let additions = 0;
+    let deletions = 0;
+    while (i < lines.length) {
+      const n = lines[i] ?? "";
+      if (!n) {
+        i += 1;
+        // blank may separate records; peek next
+        continue;
+      }
+      if (n.includes("\0") && /^[0-9a-f]{7,64}/i.test(n.split("\0")[0] ?? "")) {
+        break;
+      }
+      // numstat: added \t deleted \t path
+      const cols = n.split("\t");
+      if (cols.length >= 2) {
+        const a = cols[0] === "-" ? 0 : Number(cols[0]);
+        const d = cols[1] === "-" ? 0 : Number(cols[1]);
+        if (Number.isFinite(a)) additions += a;
+        if (Number.isFinite(d)) deletions += d;
+        i += 1;
+        continue;
+      }
+      break;
+    }
+
+    const authorTime = Number(authorTimeRaw);
+    entries.push({
+      sha,
+      author: author ?? "",
+      authorMail: authorMail || undefined,
+      authorTime: Number.isFinite(authorTime) ? authorTime : 0,
+      subject: subjectParts.join("\0"),
+      additions,
+      deletions,
+    });
+  }
+  return entries;
+}
+
 export function parseFileHistoryWithPaths(
   stdout: string,
   fallbackPath: string,

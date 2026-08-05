@@ -13,6 +13,9 @@ importers:
       '@gitspecs/git-core':
         specifier: workspace:*
         version: link:../git-core
+      '@gitspecs/host-api':
+        specifier: workspace:*
+        version: link:../host-api
       '@gitspecs/host-urls':
         specifier: workspace:*
         version: link:../host-urls
@@ -37,6 +40,18 @@ importers:
         version: 2.1.9(@types/node@22.20.1)
 
   packages/git-core:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.1)
+
+  packages/host-api:
     devDependencies:
       '@types/node':
         specifier: ^22.10.0

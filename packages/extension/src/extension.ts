@@ -31,6 +31,9 @@ import { registerSearchCommands } from "./modules/search/commands.js";
 import { ChangesAnnotationController } from "./modules/annotations/controller.js";
 import { registerAnnotationCommands } from "./modules/annotations/commands.js";
 import { registerTerminalLinks } from "./modules/terminalLinks/provider.js";
+import { registerHostingCommands } from "./modules/hosting/commands.js";
+import { HubProvider } from "./modules/hub/provider.js";
+import { registerAiCommands } from "./modules/ai/commands.js";
 import {
   DEFAULT_SCM_TAB,
   SCM_CONSOLIDATED_VIEW_ID,
@@ -68,6 +71,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const remotesProvider = new RemotesProvider(repos, refresh, log);
   const contributorsProvider = new ContributorsProvider(repos, refresh, log);
   const graphProvider = new GraphProvider(repos, refresh, log);
+  const hubProvider = new HubProvider(repos, refresh, log);
   context.subscriptions.push(
     worktreesProvider,
     branchesProvider,
@@ -77,6 +81,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     remotesProvider,
     contributorsProvider,
     graphProvider,
+    hubProvider,
   );
 
   context.subscriptions.push(
@@ -88,6 +93,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.window.registerTreeDataProvider("gitspecs.remotes", remotesProvider),
     vscode.window.registerTreeDataProvider("gitspecs.contributors", contributorsProvider),
     vscode.window.registerTreeDataProvider("gitspecs.graph", graphProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.hub", hubProvider),
   );
 
   const scmTabs = new ScmTabState();
@@ -163,6 +169,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(changesAnnotations);
   registerAnnotationCommands(context, repos, log, changesAnnotations);
   registerTerminalLinks(context, repos, log);
+  registerHostingCommands(context, repos, log);
+  registerAiCommands(context, repos, log);
 
   const blameCodeLens = new BlameCodeLensProvider(
     repos,

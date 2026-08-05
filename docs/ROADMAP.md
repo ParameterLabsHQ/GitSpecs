@@ -18,7 +18,7 @@ This is the **single product contract** for how GitSpecs approaches open-source 
 1. **System `git` only** for repository truth (`@gitspecs/git-core`). No isomorphic-git, no embedded binary.
 2. **Library before UI.** Porcelain parsers and ops live in pure packages; the extension binds TreeViews, commands, decorations, CodeLens, webviews.
 3. **URL remotes before hosting APIs.** `host-urls` stays network-free; hosting HTTP APIs arrive only in **P21** and never block offline git.
-4. **One current repo context** (multi-root switcher) for all views/commands — **until P17**, which adds multi-repo views while keeping single-repo behavior unchanged.
+4. **Multi-repo views with a single editor current repo.** Tree views list every discovered repository (grouped under per-repo roots when `allRepos.length > 1`). Editor-scoped features (blame, history, revision navigation, annotations) and palette actions without a tree item still use **one current repository** (`RepoContext.currentRepo` + Switch Repository). Tree command handlers resolve the repo from the item’s `repoRoot` when present.
 5. **Branding:** `GitSpecs` / `ParameterLabsHQ` / `gitspecs.*` only (see `AGENTS.md`).
 6. **Full-product parity, free.** Client-side GitLens features are in scope even when GitLens sells them (Commit Graph canvas, rich integrations, work hub, BYO-key AI). Vendor **cloud services** — Launchpad's backend, Cloud Patches, Code Suggest, hosted AI — and paywalls are **non-parity** (Section 5).
 7. **Native-first UI.** TreeView/QuickPick/InputBox by default; custom webviews only via the shared webview platform introduced in **P18** — no ad-hoc webviews.
@@ -59,7 +59,7 @@ Status is grounded in the monorepo as of this revision.
 | Symbol-level CodeLens | **Shipped** | `buildSymbolCodeLensSpecs` + `executeDocumentSymbolProvider` | **P16** |
 | Terminal links (SHAs/branches/tags in terminal) | **Shipped** | `modules/terminalLinks` | **P16** |
 | Autolinks (issue keys → URLs, config-driven) | **Shipped** | `modules/autolinks`; blame/history/graph wiring | **P16** |
-| Multi-repo simultaneous views | **Not started** (single current repo) | — | **P17** |
+| Multi-repo simultaneous views | **Shipped** | `RepoRootItem` grouping; item `repoRoot` + `resolveRepoForItem` | **P17** |
 | Commit Graph webview (DAG canvas, search/filter, WIP row) | **Not started** (high-density tree shipped in P11) | — | **P18** |
 | Interactive rebase sequence editor | **Not started** (guided flows shipped in P12) | — | **P19** |
 | Visual File History (timeline chart) | **Not started** | — | **P20** |
@@ -313,6 +313,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Real-git tests with two temp repos; structural tests for grouped roots; single-repo workspaces render exactly as today
 - Amend roadmap principle 4 in the same PR
 
+**Shipped:** `RepoContext.isMultiRepo` / `repoByRoot`; all tree providers (worktrees, branches, commits, stashes, tags, remotes, contributors, graph) group under `RepoRootItem` when >1 repo; leaf items carry `repoRoot`; tree commands use `resolveRepoForItem`; single-repo stays flat; design note `docs/superpowers/specs/2026-08-05-p17-multi-repo-views.md`; principle 4 amended.
+
 ### Phase P18 — Webview platform + Commit Graph canvas
 
 **Depends on:** P11 (graph model); P17 recommended first  
@@ -405,17 +407,17 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M4 Graph** | P11 | Visual branch topology — **done** (high-density tree) |
 | **M5 Advanced** | P12–P14 | Rewrite UX shipped; P13 deferred → superseded by P21; P14 finite polish shipped |
 | **M6 Editor depth** | P15–P16 | **Done** (revision nav + annotations/links) |
-| **M7 Scale** | P17 | Every repo visible at once |
+| **M7 Scale** | P17 | **Done** — every repo visible under roots |
 | **M8 Webview surfaces** | P18–P20 | Commit Graph canvas, interactive rebase editor, Visual File History, dual-pane compare |
 | **M9 Connected** | P21–P22 | PRs/issues/avatars via platform auth; client-side work hub |
 | **M10 Assist** | P23 | Optional BYO-key AI, off by default |
 
-**Next implementation goal:** **P17 — Multi-repo views.** P15–P16 editor depth is shipped; P17–P23 remains the ladder to full GitLens parity, free.
+**Next implementation goal:** **P18 — Webview platform + Commit Graph canvas.** P15–P17 shipped; P18–P23 remains the ladder to full GitLens parity, free.
 
 Recommended default sequence for agents:
 
 ```
-(P0–P12, P15–P16 done) → P17 → P18 → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
+(P0–P12, P15–P17 done) → P18 → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
 ```
 
 Each phase: read this file + `AGENTS.md` → design note in `docs/superpowers/specs/` if the phase is large (P17, P18, P19, P21 are) → implementation plan → PR with tests → update Section 2 + changelog here. One phase per goal; keep phase N green before starting N+1.
@@ -481,3 +483,4 @@ Interactive rebase **UI** is a local parity target (**P19**); the P12 note preda
 | 2026-08-05 | **Scope expanded to full GitLens parity, free.** Added **P15–P23** (revision navigation, annotations/links, multi-repo, webview platform + graph canvas, rebase editor, visual history/compare, hosting APIs superseding P13, work hub, BYO-key AI); re-scoped Section 5 non-goals; added clean-room rule + [gap analysis](./superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md). Next slice: **P15** |
 | 2026-08-05 | Marked **P15** Revision navigation shipped (`revisionNeighbors`, `gitspecs:` documents, prev/next/diff commands); next slice **P16** |
 | 2026-08-05 | Marked **P16** Annotations & link surfaces shipped (changes decorations, symbol CodeLens, terminal links, autolinks); next slice **P17** |
+| 2026-08-05 | Marked **P17** Multi-repo views shipped (per-repo tree roots, item repo resolution, principle 4 amended); next slice **P18** |

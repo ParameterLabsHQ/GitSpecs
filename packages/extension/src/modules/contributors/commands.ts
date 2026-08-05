@@ -4,6 +4,7 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
+import { resolveRepoForItem } from "../../shell/repoTree.js";
 import type { ContributorItem } from "./provider.js";
 
 export function registerContributorCommands(

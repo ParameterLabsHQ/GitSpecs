@@ -1,15 +1,21 @@
 import * as vscode from "vscode";
-import type { ContributorInfo } from "@gitspecs/git-core";
+import type { ContributorInfo, GitRepository } from "@gitspecs/git-core";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { RefreshBus } from "../../shell/refreshBus.js";
 import { presentError } from "../../shell/errors.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { DEFAULT_CONTRIBUTORS_LIMIT, formatContributorTreeRow } from "./format.js";
+import { RepoRootItem, shouldGroupByRepo } from "../../shell/repoTree.js";
+
+export type ContributorNode = RepoRootItem | ContributorItem;
 
 export class ContributorItem extends vscode.TreeItem {
-  constructor(readonly contributor: ContributorInfo) {
+  readonly repoRoot: string;
+
+  constructor(readonly contributor: ContributorInfo, repoRoot: string) {
     const row = formatContributorTreeRow(contributor);
     super(row.label, vscode.TreeItemCollapsibleState.None);
+    this.repoRoot = repoRoot;
     this.contextValue = "contributor";
     this.description = row.description;
     this.tooltip = row.tooltip;
@@ -18,7 +24,7 @@ export class ContributorItem extends vscode.TreeItem {
 }
 
 export class ContributorsProvider
-  implements vscode.TreeDataProvider<ContributorItem>, vscode.Disposable
+  implements vscode.TreeDataProvider<ContributorNode>, vscode.Disposable
 {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -35,16 +41,31 @@ export class ContributorsProvider
     );
   }
 
-  getTreeItem(element: ContributorItem): vscode.TreeItem {
+  getTreeItem(element: ContributorNode): vscode.TreeItem {
     return element;
   }
 
-  async getChildren(): Promise<ContributorItem[]> {
-    const repo = this.repos.currentRepo;
-    if (!repo) return [];
+  async getChildren(element?: ContributorNode): Promise<ContributorNode[]> {
+    if (element instanceof ContributorItem) return [];
+    if (element instanceof RepoRootItem) {
+      const repo = this.repos.repoByRoot(element.repoRoot);
+      if (!repo) return [];
+      return this.listContributors(repo);
+    }
+
+    const all = this.repos.allRepos;
+    if (all.length === 0) return [];
+    if (shouldGroupByRepo(all.length)) {
+      const current = this.repos.currentRepo?.root;
+      return all.map((r) => new RepoRootItem(r, r.root === current));
+    }
+    return this.listContributors(all[0]!);
+  }
+
+  private async listContributors(repo: GitRepository): Promise<ContributorItem[]> {
     try {
       const list = await repo.contributors.list({ limit: DEFAULT_CONTRIBUTORS_LIMIT });
-      return list.map((c) => new ContributorItem(c));
+      return list.map((c) => new ContributorItem(c, repo.root));
     } catch (err) {
       await presentError(this.log, err, "Contributors");
       return [];

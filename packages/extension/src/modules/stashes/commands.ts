@@ -4,6 +4,7 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
+import { resolveRepoForItem } from "../../shell/repoTree.js";
 import type { StashItem } from "./provider.js";
 
 function confirmDeletes(): boolean {
@@ -59,7 +60,7 @@ export function registerStashCommands(
     vscode.commands.registerCommand(
       "gitspecs.stashes.apply",
       run(async (item?: StashItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const stash = item?.stash ?? (await pickStash(repos));
         if (!stash) return;
@@ -74,7 +75,7 @@ export function registerStashCommands(
     vscode.commands.registerCommand(
       "gitspecs.stashes.pop",
       run(async (item?: StashItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const stash = item?.stash ?? (await pickStash(repos));
         if (!stash) return;
@@ -94,7 +95,7 @@ export function registerStashCommands(
     vscode.commands.registerCommand(
       "gitspecs.stashes.drop",
       run(async (item?: StashItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const stash = item?.stash ?? (await pickStash(repos));
         if (!stash) return;
@@ -114,7 +115,7 @@ export function registerStashCommands(
     vscode.commands.registerCommand(
       "gitspecs.stashes.show",
       runQuiet(async (item?: StashItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const stash = item?.stash ?? (await pickStash(repos));
         if (!stash) return;

@@ -5,6 +5,7 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
+import { resolveRepoForItem } from "../../shell/repoTree.js";
 import type { BranchItem } from "./provider.js";
 import { resolvePublishRemote } from "./publishRemote.js";
 import { runCompareInteractive } from "../compare/commands.js";
@@ -52,7 +53,7 @@ export function registerBranchCommands(
     vscode.commands.registerCommand(
       "gitspecs.branches.rename",
       run(async (item?: BranchItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const oldName = item?.info.name ?? (await pickLocalBranch(repos));
         if (!oldName) return;
@@ -82,7 +83,7 @@ export function registerBranchCommands(
     vscode.commands.registerCommand(
       "gitspecs.branches.checkout",
       run(async (item?: BranchItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const name = item?.info.name ?? (await pickAnyBranch(repos));
         if (!name) return;
@@ -103,7 +104,7 @@ export function registerBranchCommands(
     vscode.commands.registerCommand(
       "gitspecs.branches.publish",
       run(async (item?: BranchItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const name = item?.info.name ?? (await pickLocalBranch(repos));
         if (!name) return;
@@ -166,7 +167,7 @@ export function registerBranchCommands(
     vscode.commands.registerCommand(
       "gitspecs.branches.setUpstream",
       run(async (item?: BranchItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const branch = item?.info.name ?? (await pickLocalBranch(repos));
         if (!branch) return;
@@ -185,7 +186,7 @@ export function registerBranchCommands(
     vscode.commands.registerCommand(
       "gitspecs.branches.deleteRemote",
       run(async (item?: BranchItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         let remote: string;
         let name: string;
@@ -216,7 +217,7 @@ export function registerBranchCommands(
     vscode.commands.registerCommand(
       "gitspecs.branches.merge",
       run(async (item?: BranchItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const ref = item?.info.name ?? (await pickAnyBranch(repos));
         if (!ref) return;
@@ -235,7 +236,7 @@ export function registerBranchCommands(
     vscode.commands.registerCommand(
       "gitspecs.branches.rebase",
       run(async (item?: BranchItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const onto = item?.info.name ?? (await pickAnyBranch(repos));
         if (!onto) return;
@@ -313,7 +314,7 @@ export function registerBranchCommands(
     vscode.commands.registerCommand(
       "gitspecs.branches.openRemote",
       run(async (item?: BranchItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         let branchName = item?.info.name;
         if (!branchName) {

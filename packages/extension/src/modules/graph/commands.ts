@@ -4,6 +4,7 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
+import { resolveRepoForItem } from "../../shell/repoTree.js";
 import { resolveCommitUrl } from "../history/actions.js";
 import { runCompareInteractive } from "../compare/commands.js";
 import type { GraphItem } from "./provider.js";
@@ -42,7 +43,7 @@ export function registerGraphCommands(
     vscode.commands.registerCommand(
       "gitspecs.graph.checkout",
       run(async (item?: GraphItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo || !item?.node.sha) return;
         const short = item.node.sha.slice(0, 7);
         const ok = await vscode.window.showWarningMessage(
@@ -58,7 +59,7 @@ export function registerGraphCommands(
     vscode.commands.registerCommand(
       "gitspecs.graph.createBranch",
       run(async (item?: GraphItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo || !item?.node.sha) return;
         const name = await vscode.window.showInputBox({
           title: "New branch name",
@@ -84,7 +85,7 @@ export function registerGraphCommands(
     vscode.commands.registerCommand(
       "gitspecs.graph.openRemote",
       runQuiet(async (item?: GraphItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo || !item?.node.sha) return;
         let remoteUrl: string | undefined;
         try {

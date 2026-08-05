@@ -4,6 +4,7 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
+import { resolveRepoForItem } from "../../shell/repoTree.js";
 import type { RemoteItem } from "./provider.js";
 import { resolveRemoteWebUrl } from "./format.js";
 
@@ -31,7 +32,7 @@ export function registerRemoteCommands(
     vscode.commands.registerCommand(
       "gitspecs.remotes.fetch",
       run(async (item?: RemoteItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const name = item?.remote.name;
         await vscode.window.withProgress(

@@ -5,6 +5,7 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
+import { resolveRepoForItem } from "../../shell/repoTree.js";
 import type { WorktreeItem } from "./provider.js";
 import {
   existingWorktreeBranchNames,
@@ -169,7 +170,7 @@ export function registerWorktreeCommands(
     vscode.commands.registerCommand(
       "gitspecs.worktrees.remove",
       run(async (item?: WorktreeItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const p = item?.info.path ?? (await pickWorktreePath(repos));
         if (!p) return;

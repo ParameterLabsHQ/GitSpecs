@@ -1,16 +1,22 @@
 import * as vscode from "vscode";
-import type { GraphCommit } from "@gitspecs/git-core";
+import type { GraphCommit, GitRepository } from "@gitspecs/git-core";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { RefreshBus } from "../../shell/refreshBus.js";
 import { presentError } from "../../shell/errors.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { DEFAULT_GRAPH_LIMIT, formatGraphTreeRow } from "./format.js";
 import { readAutolinkRules } from "../autolinks/settings.js";
+import { RepoRootItem, shouldGroupByRepo } from "../../shell/repoTree.js";
+
+export type GraphNode = RepoRootItem | GraphItem;
 
 export class GraphItem extends vscode.TreeItem {
-  constructor(readonly node: GraphCommit) {
+  readonly repoRoot: string;
+
+  constructor(readonly node: GraphCommit, repoRoot: string) {
     const row = formatGraphTreeRow(node, { autolinkRules: readAutolinkRules() });
     super(row.label, vscode.TreeItemCollapsibleState.None);
+    this.repoRoot = repoRoot;
     this.contextValue = "graphCommit";
     this.description = row.description;
     this.tooltip = row.tooltip;
@@ -20,7 +26,7 @@ export class GraphItem extends vscode.TreeItem {
   }
 }
 
-export class GraphProvider implements vscode.TreeDataProvider<GraphItem>, vscode.Disposable {
+export class GraphProvider implements vscode.TreeDataProvider<GraphNode>, vscode.Disposable {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
   private readonly disposables: vscode.Disposable[] = [];
@@ -36,16 +42,31 @@ export class GraphProvider implements vscode.TreeDataProvider<GraphItem>, vscode
     );
   }
 
-  getTreeItem(element: GraphItem): vscode.TreeItem {
+  getTreeItem(element: GraphNode): vscode.TreeItem {
     return element;
   }
 
-  async getChildren(): Promise<GraphItem[]> {
-    const repo = this.repos.currentRepo;
-    if (!repo) return [];
+  async getChildren(element?: GraphNode): Promise<GraphNode[]> {
+    if (element instanceof GraphItem) return [];
+    if (element instanceof RepoRootItem) {
+      const repo = this.repos.repoByRoot(element.repoRoot);
+      if (!repo) return [];
+      return this.listGraph(repo);
+    }
+
+    const all = this.repos.allRepos;
+    if (all.length === 0) return [];
+    if (shouldGroupByRepo(all.length)) {
+      const current = this.repos.currentRepo?.root;
+      return all.map((r) => new RepoRootItem(r, r.root === current));
+    }
+    return this.listGraph(all[0]!);
+  }
+
+  private async listGraph(repo: GitRepository): Promise<GraphItem[]> {
     try {
       const nodes = await repo.graph.log({ limit: DEFAULT_GRAPH_LIMIT, all: true });
-      return nodes.map((n) => new GraphItem(n));
+      return nodes.map((n) => new GraphItem(n, repo.root));
     } catch (err) {
       await presentError(this.log, err, "Commit Graph");
       return [];

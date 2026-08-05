@@ -4,6 +4,7 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
+import { resolveRepoForItem } from "../../shell/repoTree.js";
 import { resolveCommitUrl } from "../history/actions.js";
 import type { CommitItem } from "./provider.js";
 import { truncateSubject } from "./format.js";
@@ -50,7 +51,7 @@ export function registerCommitCommands(
     vscode.commands.registerCommand(
       "gitspecs.commits.checkout",
       run(async (item?: CommitItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) {
           void vscode.window.showInformationMessage("No Git repository selected");
           return;
@@ -77,7 +78,7 @@ export function registerCommitCommands(
     vscode.commands.registerCommand(
       "gitspecs.commits.createBranch",
       run(async (item?: CommitItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) {
           void vscode.window.showInformationMessage("No Git repository selected");
           return;
@@ -107,7 +108,7 @@ export function registerCommitCommands(
     vscode.commands.registerCommand(
       "gitspecs.commits.openRemote",
       runQuiet(async (item?: CommitItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) {
           void vscode.window.showInformationMessage("No Git repository selected");
           return;

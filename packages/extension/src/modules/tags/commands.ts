@@ -4,6 +4,7 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
+import { resolveRepoForItem } from "../../shell/repoTree.js";
 import type { TagItem } from "./provider.js";
 
 function confirmDeletes(): boolean {
@@ -57,7 +58,7 @@ export function registerTagCommands(
     vscode.commands.registerCommand(
       "gitspecs.tags.delete",
       run(async (item?: TagItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const name =
           item?.tag.name ??
@@ -93,7 +94,7 @@ export function registerTagCommands(
     vscode.commands.registerCommand(
       "gitspecs.tags.checkout",
       run(async (item?: TagItem) => {
-        const repo = repos.currentRepo;
+        const repo = resolveRepoForItem(repos, item);
         if (!repo) return;
         const name = item?.tag.name;
         if (!name) return;

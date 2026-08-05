@@ -1,15 +1,15 @@
 import * as vscode from "vscode";
-import type { WorktreeItem, WorktreesProvider } from "../modules/worktrees/provider.js";
+import type { WorktreeNode, WorktreesProvider } from "../modules/worktrees/provider.js";
 import type { BranchNode, BranchesProvider } from "../modules/branches/provider.js";
-import type { CommitItem, CommitsProvider } from "../modules/commits/provider.js";
-import type { StashItem, StashesProvider } from "../modules/stashes/provider.js";
+import type { CommitNode, CommitsProvider } from "../modules/commits/provider.js";
+import type { StashNode, StashesProvider } from "../modules/stashes/provider.js";
 import type { ScmTabState } from "./scmTabs.js";
 
-export type ScmTreeNode = WorktreeItem | BranchNode | CommitItem | StashItem;
+export type ScmTreeNode = WorktreeNode | BranchNode | CommitNode | StashNode;
 
 /**
  * Facade TreeDataProvider for the single consolidated SCM view.
- * Delegates by active {@link ScmTabState}.
+ * Delegates by active {@link ScmTabState}. Supports multi-repo roots (P17).
  */
 export class ScmGroupedProvider implements vscode.TreeDataProvider<ScmTreeNode>, vscode.Disposable {
   private readonly _onDidChangeTreeData = new vscode.EventEmitter<
@@ -51,16 +51,13 @@ export class ScmGroupedProvider implements vscode.TreeDataProvider<ScmTreeNode>,
   async getChildren(element?: ScmTreeNode): Promise<ScmTreeNode[]> {
     const tab = this.tabState.active;
     if (tab === "worktrees") {
-      if (element) return [];
-      return this.worktrees.getChildren();
+      return this.worktrees.getChildren(element as WorktreeNode | undefined);
     }
     if (tab === "commits") {
-      if (element) return [];
-      return this.commits.getChildren();
+      return this.commits.getChildren(element as CommitNode | undefined);
     }
     if (tab === "stashes") {
-      if (element) return [];
-      return this.stashes.getChildren();
+      return this.stashes.getChildren(element as StashNode | undefined);
     }
     return this.branches.getChildren(element as BranchNode | undefined);
   }

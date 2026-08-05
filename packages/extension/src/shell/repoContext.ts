@@ -27,6 +27,20 @@ export class RepoContext implements vscode.Disposable {
     return this.repos;
   }
 
+  /** True when more than one repository is open (P17 multi-repo tree grouping). */
+  get isMultiRepo(): boolean {
+    return this.repos.length > 1;
+  }
+
+  /** Look up a repository by absolute root path. */
+  repoByRoot(root: string): GitRepository | undefined {
+    if (!root) return undefined;
+    const normalized = root.replace(/\/+$/, "");
+    return this.repos.find(
+      (r) => r.root === root || r.root === normalized || r.root.replace(/\/+$/, "") === normalized,
+    );
+  }
+
   get gitBinary(): GitBinary | undefined {
     return this.git;
   }

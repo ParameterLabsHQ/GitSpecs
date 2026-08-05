@@ -265,6 +265,36 @@ console.log(
   ),
 );
 
+// P11: commit graph model
+const graphNodes = await repo.graph.log({ limit: 20, all: true });
+const graphOk =
+  Array.isArray(graphNodes) &&
+  graphNodes.length >= 1 &&
+  graphNodes.every(
+    (n) =>
+      n.sha &&
+      Array.isArray(n.parents) &&
+      typeof n.graph === "string" &&
+      n.graph.length > 0 &&
+      typeof n.lane === "number",
+  );
+if (!graphOk) {
+  console.error("P11 graph consumer failed", { graphNodes });
+  process.exitCode = 1;
+}
+console.log(
+  JSON.stringify(
+    {
+      graphCount: graphNodes.length,
+      graphTip: graphNodes[0]?.sha,
+      graphTipGraph: graphNodes[0]?.graph,
+      graphOk,
+    },
+    null,
+    2,
+  ),
+);
+
 const branches = await repo.branches.list({ includeRemotes: false });
 await repo.branches.create({ name: "consumer-branch" });
 const after = await repo.branches.list({ includeRemotes: false });

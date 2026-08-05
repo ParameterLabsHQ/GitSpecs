@@ -49,7 +49,9 @@
     "onCommand:gitspecs.remotes.refresh",
     "onCommand:gitspecs.remotes.fetch",
     "onView:gitspecs.contributors",
-    "onCommand:gitspecs.contributors.refresh"
+    "onCommand:gitspecs.contributors.refresh",
+    "onView:gitspecs.graph",
+    "onCommand:gitspecs.graph.refresh"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -91,6 +93,10 @@
         {
           "id": "gitspecs.contributors",
           "name": "Contributors"
+        },
+        {
+          "id": "gitspecs.graph",
+          "name": "Commit Graph"
         }
       ],
       "scm": [
@@ -389,6 +395,31 @@
       {
         "command": "gitspecs.contributors.copyEmail",
         "title": "GitSpecs: Copy Contributor Email"
+      },
+      {
+        "command": "gitspecs.graph.refresh",
+        "title": "GitSpecs: Refresh Commit Graph",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitspecs.graph.copySha",
+        "title": "GitSpecs: Copy Graph Commit SHA"
+      },
+      {
+        "command": "gitspecs.graph.checkout",
+        "title": "GitSpecs: Checkout Graph Commit"
+      },
+      {
+        "command": "gitspecs.graph.createBranch",
+        "title": "GitSpecs: Create Branch from Graph Commit\u2026"
+      },
+      {
+        "command": "gitspecs.graph.compare",
+        "title": "GitSpecs: Compare Graph Commit\u2026"
+      },
+      {
+        "command": "gitspecs.graph.openRemote",
+        "title": "GitSpecs: Open Graph Commit on Remote"
       }
     ],
     "menus": {
@@ -471,6 +502,11 @@
         {
           "command": "gitspecs.contributors.refresh",
           "when": "view == gitspecs.contributors",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitspecs.graph.refresh",
+          "when": "view == gitspecs.graph",
           "group": "navigation@1"
         }
       ],
@@ -629,6 +665,31 @@
           "command": "gitspecs.contributors.copyEmail",
           "when": "view == gitspecs.contributors && viewItem == contributor",
           "group": "1_copy"
+        },
+        {
+          "command": "gitspecs.graph.copySha",
+          "when": "view == gitspecs.graph && viewItem == graphCommit",
+          "group": "1_copy"
+        },
+        {
+          "command": "gitspecs.graph.checkout",
+          "when": "view == gitspecs.graph && viewItem == graphCommit",
+          "group": "2_nav"
+        },
+        {
+          "command": "gitspecs.graph.createBranch",
+          "when": "view == gitspecs.graph && viewItem == graphCommit",
+          "group": "2_nav"
+        },
+        {
+          "command": "gitspecs.graph.compare",
+          "when": "view == gitspecs.graph && viewItem == graphCommit",
+          "group": "3_hist"
+        },
+        {
+          "command": "gitspecs.graph.openRemote",
+          "when": "view == gitspecs.graph && viewItem == graphCommit",
+          "group": "3_hist"
         }
       ],
       "commandPalette": [

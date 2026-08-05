@@ -11,6 +11,7 @@ import { StashesApi } from "./stashes.js";
 import { TagsApi } from "./tags.js";
 import { RemotesApi } from "./remotes.js";
 import { ContributorsApi } from "./contributors.js";
+import { GraphApi } from "./graph.js";
 
 export interface RepoRoot {
   root: string;
@@ -26,6 +27,7 @@ export class GitRepository {
   readonly tags: TagsApi;
   readonly remotes: RemotesApi;
   readonly contributors: ContributorsApi;
+  readonly graph: GraphApi;
 
   constructor(
     readonly root: string,
@@ -39,6 +41,7 @@ export class GitRepository {
     this.tags = new TagsApi(this);
     this.remotes = new RemotesApi(this);
     this.contributors = new ContributorsApi(this);
+    this.graph = new GraphApi(this);
   }
 
   async exec(args: string[], options: ExecOptions = {}): Promise<ExecResult> {

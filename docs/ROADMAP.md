@@ -46,7 +46,7 @@ Status is grounded in the monorepo as of this revision.
 | Stashes view + actions | **Shipped** | `stashes.ts`; `modules/stashes`; activity-bar + SCM tab | **P8** |
 | Tags / remotes browser views | **Shipped** | `tags.ts` / `remotes.ts`; `modules/tags` + `modules/remotes` | **P9** |
 | Contributors view | **Shipped** | `contributors.ts` shortlog; `modules/contributors` | **P10** |
-| Commit Graph (visual DAG) | **Not started** | Stub `modules/graph/README.md` only | **P11** |
+| Commit Graph (visual DAG) | **Shipped** (high-density tree) | `graph.ts` parents+lanes; `modules/graph` (default 200 / max 500) | **P11** |
 | Interactive rebase / history rewrite UI | **Not started** | — | **P12** (parity-target, hard) |
 | Hosting provider HTTP APIs (PRs, issues) | **Not started** | Explicitly late / optional | **P13** optional |
 | Heatmaps / avatar CDN / always-on perf polish | **Not started** | Deferred polish | **P14** polish |
@@ -195,7 +195,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 **Shipped:** `repo.contributors.list` via `git shortlog -sne`; activity-bar Contributors tree; copy name/email; RefreshBus.  
 
-### Phase P11 — Commit Graph
+### Phase P11 — Commit Graph *(done)*
 
 **Depends on:** P7 (commits data); P0 branches  
 **Parity target:** GitLens Commit Graph (often Pro) — still a **clone must-have**, last large local UI slice  
@@ -206,6 +206,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - UI: webview or high-density tree showing topology; select commit → details  
 - Actions: checkout, create branch, compare, open remote  
 - Performance bounds documented (e.g. last 200–500 commits default)  
+
+**Shipped:** `repo.graph.log` (parents + `%D` refs + lane layout; default 200 / max 500); activity-bar high-density `gitspecs.graph` tree; checkout / create branch / compare / open remote / copy SHA.  
 
 ### Phase P12 — History rewrite UX (parity-target, optional order)
 
@@ -248,18 +250,18 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M1 Authorship** | P1–P3 | See who changed lines without leaving the editor |
 | **M2 History** | P4–P5 | Walk file/line revision history — **done** |
 | **M3 Explore & compare** | P6–P10 | Browse commits/stashes/tags; rich compare/search (P6–P7 shipped) |
-| **M4 Graph** | P11 | Visual branch topology |
+| **M4 Graph** | P11 | Visual branch topology — **done** (high-density tree) |
 | **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
 
-**Next implementation goal after this roadmap:** **P11** (Commit Graph), building on shipped P0–P10.
+**Next implementation goal after this roadmap:** **P12** (History rewrite UX), building on shipped P0–P11.
 
-Recommended default sequence for agents (P0–P10 shipped):
+Recommended default sequence for agents (P0–P11 shipped):
 
 ```
-P11 → P12 → (P13?) → P14
+P12 → (P13?) → P14
 ```
 
-Rationale: graph then rewrite UX; hosting APIs last.
+Rationale: rewrite UX then optional hosting APIs / polish.
 
 ---
 
@@ -312,3 +314,4 @@ Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud�
 | 2026-08-05 | Marked **P8** Stashes shipped (`repo.stashes` + activity-bar/SCM); next slice **P9** |
 | 2026-08-05 | Marked **P9** Tags & Remotes shipped; next slice **P10** |
 | 2026-08-05 | Marked **P10** Contributors shipped; next slice **P11** |
+| 2026-08-05 | Marked **P11** Commit Graph shipped (lane layout + high-density tree); next slice **P12** |

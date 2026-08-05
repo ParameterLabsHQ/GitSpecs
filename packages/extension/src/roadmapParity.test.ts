@@ -71,16 +71,19 @@ describe("docs/ROADMAP.md GitLens parity contract", () => {
       true,
     );
 
-    // Graph still stub (README only, no library ops)
+    // Graph library + module present (P11 shipped as high-density tree)
     expect(existsSync(path.join(repoRoot, "packages/extension/src/modules/graph/README.md"))).toBe(
       true,
     );
-    expect(existsSync(path.join(repoRoot, "packages/git-core/src/graph.ts"))).toBe(false);
+    expect(existsSync(path.join(repoRoot, "packages/git-core/src/graph.ts"))).toBe(true);
+    expect(
+      existsSync(path.join(repoRoot, "packages/extension/src/modules/graph/provider.ts")),
+    ).toBe(true);
 
-    // Roadmap must claim file/line history shipped; graph not started
+    // Roadmap must claim file/line history and graph shipped
     expect(roadmap).toMatch(/File history[\s\S]{0,120}\*\*Shipped\*\*/i);
     expect(roadmap).toMatch(/Line history[\s\S]{0,120}\*\*Shipped\*\*/i);
-    expect(roadmap).toMatch(/Commit Graph[\s\S]{0,120}\*\*Not started\*\*/i);
+    expect(roadmap).toMatch(/Commit Graph[\s\S]{0,160}\*\*Shipped\*\*/i);
     // Blame and worktrees claimed shipped
     expect(roadmap).toMatch(/Worktree management[\s\S]{0,80}\*\*Shipped\*\*/);
     expect(roadmap).toMatch(/File blame[\s\S]{0,80}\*\*Shipped\*\*/);
@@ -92,7 +95,7 @@ describe("docs/ROADMAP.md GitLens parity contract", () => {
     expect(roadmap).toMatch(/Code Suggest|AI commit/i);
     expect(roadmap).toMatch(/out of open-source parity|non-parity|Non-goals/i);
     // Implementation order still documented (remaining sequence or full history)
-    expect(roadmap).toMatch(/P11 → P12|P10 → P11|P9 → P10|P8 → P9|P6 → P7|P2 → P4 → P5/);
+    expect(roadmap).toMatch(/P12 →|P11 → P12|P10 → P11|P9 → P10|P8 → P9|P6 → P7|P2 → P4 → P5/);
     expect(roadmap).toMatch(/\*\*P2\*\*|Phase P2/);
   });
 });

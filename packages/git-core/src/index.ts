@@ -67,6 +67,20 @@ export {
   type ContributorsOptions,
 } from "./contributors.js";
 export {
+  GraphApi,
+  parseGraphLog,
+  parseDecorations,
+  layoutGraph,
+  clampGraphLimit,
+  renderGraphPrefix,
+  GRAPH_LOG_FORMAT,
+  DEFAULT_GRAPH_LIMIT,
+  MAX_GRAPH_LIMIT,
+  type GraphCommit,
+  type GraphCommitRaw,
+  type GraphLogOptions,
+} from "./graph.js";
+export {
   GitNotFoundError,
   NotAGitRepositoryError,
   GitCommandError,

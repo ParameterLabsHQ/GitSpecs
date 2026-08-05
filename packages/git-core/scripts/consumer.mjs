@@ -59,6 +59,56 @@ console.log(
   ),
 );
 
+// P4/P5: history library API on shipped dist
+await writeFile(path.join(dir, "f.txt"), "hi\nline2 evolved\n");
+await execGit(git.path, ["-C", dir, "add", "f.txt"]);
+await execGit(git.path, ["-C", dir, "commit", "-m", "evolve line2"]);
+const secondSha = (await execGit(git.path, ["-C", dir, "rev-parse", "HEAD"])).stdout.trim();
+
+const fileHist = await repo.history.file("f.txt", { limit: 10 });
+const lineHist = await repo.history.line("f.txt", {
+  startLine: 2,
+  endLine: 2,
+  limit: 10,
+});
+const shown = await repo.history.showFile("f.txt", initSha);
+
+const fileShas = fileHist.map((c) => c.sha);
+const lineShas = lineHist.map((c) => c.sha);
+const historyOk =
+  fileShas.includes(initSha) &&
+  fileShas.includes(secondSha) &&
+  fileHist[0]?.sha === secondSha &&
+  fileHist.every((c) => c.author && c.authorTime > 0 && c.subject) &&
+  lineShas.includes(secondSha) &&
+  shown === "hi\nline2\n";
+
+if (!historyOk) {
+  console.error("history consumer failed", {
+    fileHist,
+    lineHist,
+    shown,
+    initSha,
+    secondSha,
+  });
+  process.exitCode = 1;
+}
+console.log(
+  JSON.stringify(
+    {
+      fileHistoryCount: fileHist.length,
+      fileNewestSha: fileHist[0]?.sha,
+      fileNewestSubject: fileHist[0]?.subject,
+      lineHistoryCount: lineHist.length,
+      lineTouchesSecond: lineShas.includes(secondSha),
+      showAtInit: shown,
+      historyOk,
+    },
+    null,
+    2,
+  ),
+);
+
 const branches = await repo.branches.list({ includeRemotes: false });
 await repo.branches.create({ name: "consumer-branch" });
 const after = await repo.branches.list({ includeRemotes: false });

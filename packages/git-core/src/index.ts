@@ -26,6 +26,14 @@ export {
   type BlameOptions,
 } from "./blame.js";
 export {
+  HistoryApi,
+  parseHistoryLog,
+  HISTORY_LOG_FORMAT,
+  type HistoryCommit,
+  type FileHistoryOptions,
+  type LineHistoryOptions,
+} from "./history.js";
+export {
   GitNotFoundError,
   NotAGitRepositoryError,
   GitCommandError,

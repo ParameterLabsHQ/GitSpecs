@@ -6,6 +6,7 @@ import { NotAGitRepositoryError } from "./errors.js";
 import { WorktreesApi } from "./worktrees.js";
 import { BranchesApi } from "./branches.js";
 import { BlameApi } from "./blame.js";
+import { HistoryApi } from "./history.js";
 
 export interface RepoRoot {
   root: string;
@@ -16,6 +17,7 @@ export class GitRepository {
   readonly worktrees: WorktreesApi;
   readonly branches: BranchesApi;
   readonly blame: BlameApi;
+  readonly history: HistoryApi;
 
   constructor(
     readonly root: string,
@@ -24,6 +26,7 @@ export class GitRepository {
     this.worktrees = new WorktreesApi(this);
     this.branches = new BranchesApi(this);
     this.blame = new BlameApi(this);
+    this.history = new HistoryApi(this);
   }
 
   async exec(args: string[], options: ExecOptions = {}): Promise<ExecResult> {

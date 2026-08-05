@@ -65,20 +65,21 @@ describe("docs/ROADMAP.md GitLens parity contract", () => {
     expect(existsSync(path.join(repoRoot, "packages/git-core/src/worktrees.ts"))).toBe(true);
     expect(existsSync(path.join(repoRoot, "packages/git-core/src/branches.ts"))).toBe(true);
     expect(existsSync(path.join(repoRoot, "packages/git-core/src/blame.ts"))).toBe(true);
+    expect(existsSync(path.join(repoRoot, "packages/git-core/src/history.ts"))).toBe(true);
     expect(existsSync(path.join(repoRoot, "packages/host-urls/src/index.ts"))).toBe(true);
-
-    // History/graph still stubs (README only, no library ops)
-    expect(existsSync(path.join(repoRoot, "packages/extension/src/modules/history/README.md"))).toBe(
+    expect(existsSync(path.join(repoRoot, "packages/extension/src/modules/history/commands.ts"))).toBe(
       true,
     );
+
+    // Graph still stub (README only, no library ops)
     expect(existsSync(path.join(repoRoot, "packages/extension/src/modules/graph/README.md"))).toBe(
       true,
     );
-    expect(existsSync(path.join(repoRoot, "packages/git-core/src/history.ts"))).toBe(false);
     expect(existsSync(path.join(repoRoot, "packages/git-core/src/graph.ts"))).toBe(false);
 
-    // Roadmap must not claim history/graph shipped
-    expect(roadmap).toMatch(/File history[\s\S]{0,80}\*\*Not started\*\*/i);
+    // Roadmap must claim file/line history shipped; graph not started
+    expect(roadmap).toMatch(/File history[\s\S]{0,120}\*\*Shipped\*\*/i);
+    expect(roadmap).toMatch(/Line history[\s\S]{0,120}\*\*Shipped\*\*/i);
     expect(roadmap).toMatch(/Commit Graph[\s\S]{0,120}\*\*Not started\*\*/i);
     // Blame and worktrees claimed shipped
     expect(roadmap).toMatch(/Worktree management[\s\S]{0,80}\*\*Shipped\*\*/);
@@ -90,7 +91,8 @@ describe("docs/ROADMAP.md GitLens parity contract", () => {
     expect(roadmap).toMatch(/Cloud Patches/);
     expect(roadmap).toMatch(/Code Suggest|AI commit/i);
     expect(roadmap).toMatch(/out of open-source parity|non-parity|Non-goals/i);
-    expect(roadmap).toMatch(/P2 → P4 → P5/);
+    // Implementation order still documented (P0–P5 done; remaining sequence or full history)
+    expect(roadmap).toMatch(/P6 → P7|P2 → P4 → P5/);
     expect(roadmap).toMatch(/\*\*P2\*\*|Phase P2/);
   });
 });

@@ -1,7 +1,7 @@
 {
   "name": "gitspecs",
   "displayName": "GitSpecs",
-  "description": "Open-source GitLens-style worktrees, branches, and file blame for VS Code and Cursor.",
+  "description": "Open-source GitLens-style worktrees, branches, blame, and history for VS Code and Cursor.",
   "version": "0.1.0",
   "publisher": "ParameterLabsHQ",
   "license": "GPL-3.0-only",
@@ -30,7 +30,9 @@
     "onCommand:gitspecs.blame.showLine",
     "onCommand:gitspecs.blame.fileToOutput",
     "onCommand:gitspecs.blame.statusBarDetails",
-    "onCommand:gitspecs.blame.codeLensDetail"
+    "onCommand:gitspecs.blame.codeLensDetail",
+    "onCommand:gitspecs.history.file",
+    "onCommand:gitspecs.history.line"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -106,6 +108,16 @@
       {
         "command": "gitspecs.blame.codeLensDetail",
         "title": "GitSpecs: CodeLens Blame Details"
+      },
+      {
+        "command": "gitspecs.history.file",
+        "title": "GitSpecs: File History",
+        "icon": "$(history)"
+      },
+      {
+        "command": "gitspecs.history.line",
+        "title": "GitSpecs: Line History",
+        "icon": "$(git-commit)"
       },
       {
         "command": "gitspecs.worktrees.refresh",
@@ -358,11 +370,26 @@
           "command": "gitspecs.blame.toggleFile",
           "when": "editorTextFocus && resourceScheme == file",
           "group": "gitspecs@2"
+        },
+        {
+          "command": "gitspecs.history.file",
+          "when": "editorTextFocus && resourceScheme == file",
+          "group": "gitspecs@3"
+        },
+        {
+          "command": "gitspecs.history.line",
+          "when": "editorTextFocus && resourceScheme == file",
+          "group": "gitspecs@4"
         }
       ],
       "editor/title": [
         {
           "command": "gitspecs.blame.toggleFile",
+          "when": "resourceScheme == file",
+          "group": "navigation"
+        },
+        {
+          "command": "gitspecs.history.file",
           "when": "resourceScheme == file",
           "group": "navigation"
         }

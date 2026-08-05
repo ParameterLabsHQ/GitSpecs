@@ -2,7 +2,7 @@
 
 **Product:** GitSpecs · **Org:** ParameterLabsHQ · **Repo:** [ParameterLabsHQ/GitSpecs](https://github.com/ParameterLabsHQ/GitSpecs)  
 **License:** GPL-3.0-only  
-**Updated:** 2026-08-04  
+**Updated:** 2026-08-05  
 **Audience:** maintainers and coding agents
 
 This is the **single product contract** for how GitSpecs approaches open-source **GitLens-style** parity in VS Code/Cursor. It orders work into **shippable phases**, records honest **current status**, and separates **local system-git parity** from **cloud/Pro non-goals**.
@@ -39,8 +39,8 @@ Status is grounded in the monorepo as of this revision.
 | Status-bar blame (current line) | **Shipped** | `modules/blame` status bar + `gitspecs.blame.statusBar` | **P2** |
 | CodeLens (recent change / authors on symbols) | **Shipped** (file-level) | `modules/blame/codeLens.ts` + `gitspecs.blame.codeLens` | **P3** |
 | Hover / rich authorship peek | **Shipped** (enriched) | Enriched decoration hover + shared blame cache | P1 / **P3** |
-| File history | **Not started** | Stub `modules/history/README.md` only | **P4** |
-| Line history | **Not started** | Stub only | **P5** |
+| File history | **Shipped** | `git-core` `history.ts` `repo.history.file`; `modules/history` (`gitspecs.history.file`) | **P4** |
+| Line history | **Shipped** | `repo.history.line` (`git log -L` + file-history fallback); `gitspecs.history.line` | **P5** |
 | Search & compare UI (commits, files, lines) | **Not started** | Basic branch compare only | **P6** |
 | Commits sidebar / SCM commits browser | **Not started** | — | **P7** |
 | Stashes view + actions | **Not started** | — | **P8** |
@@ -103,7 +103,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Hover enrichment reuses blame/history data without blocking the extension host (cache + debounce)  
 - Setting to disable CodeLens  
 
-### Phase P4 — Revision navigation: file history *(next)*
+### Phase P4 — Revision navigation: file history *(done)*
 
 **Depends on:** P0; benefits from P1  
 **Parity target:** GitLens File History  
@@ -115,7 +115,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Actions: copy sha, open commit on remote (URL), compare with working tree / parent (hooks P6), checkout file at revision (optional show content in editor)  
 - Real-git tests on multi-commit fixtures  
 
-### Phase P5 — Revision navigation: line history
+### Phase P5 — Revision navigation: line history *(done)*
 
 **Depends on:** P4  
 **Parity target:** GitLens Line History  
@@ -236,20 +236,20 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 |-----------|--------|----------------------|
 | **M0 Daily git ops** | P0 | Replace GitLens for worktrees/branches |
 | **M1 Authorship** | P1–P3 | See who changed lines without leaving the editor |
-| **M2 History** | P4–P5 | Walk file/line revision history |
+| **M2 History** | P4–P5 | Walk file/line revision history — **done** |
 | **M3 Explore & compare** | P6–P10 | Browse commits/stashes/tags; rich compare/search |
 | **M4 Graph** | P11 | Visual branch topology |
 | **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
 
-**Next implementation goal after this roadmap:** **P2** (status-bar / current-line blame), then **P3** or **P4** (CodeLens vs file history—prefer **P4 file history** if authorship P2 is small, or **P2 then P4** for daily-driver value).
+**Next implementation goal after this roadmap:** **P6** (compare & search UI), building on shipped P4 file history and P0 `branches.compare`.
 
-Recommended default sequence for agents:
+Recommended default sequence for agents (P0–P5 shipped):
 
 ```
-P2 → P4 → P5 → P3 → P6 → P7 → P8 → P9 → P10 → P11 → P12 → (P13?) → P14
+P6 → P7 → P8 → P9 → P10 → P11 → P12 → (P13?) → P14
 ```
 
-Rationale: status-bar blame is a small win on P1; file/line history unlock more navigation than CodeLens; CodeLens after history can deep-link into it; graph after commits list exists; hosting APIs last.
+Rationale: file/line history unlock navigation; compare/search next; graph after commits list exists; hosting APIs last.
 
 ---
 

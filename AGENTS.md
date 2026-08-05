@@ -40,13 +40,14 @@ Open-source **GitLens-style** extension for VS Code/Cursor. **Worktrees, branche
 **Shipped today (high level):**
 
 - Worktrees + branches (library + activity bar + SCM)
-- File blame (toggle decorations, line, output)
+- File blame (toggle decorations, line, output, status bar, CodeLens)
+- File + line history (QuickPick; copy SHA / open remote / view at rev)
 - Hosting links: **URL-only** (`host-urls`); system `git` only (2.23+)
 
 **Product roadmap (order of implementation):**  
 → **[docs/ROADMAP.md](./docs/ROADMAP.md)** — complete phases **P0–P14**, status inventory, milestones, and non-parity deferrals (Launchpad, AI, Cloud Patches, etc.).
 
-**Next implementation slice (per roadmap):** **P4** file history (P2 status-bar blame and P3 CodeLens are shipped; see recommended sequence in the roadmap).
+**Next implementation slice (per roadmap):** **P6** compare & search (P4 file history and P5 line history are shipped; see recommended sequence in the roadmap).
 
 Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 
@@ -81,8 +82,8 @@ Work done in the initial build/rebrand session, in rough order:
 │           ├── modules/
 │           │   ├── worktrees/
 │           │   ├── branches/
-│           │   ├── history/     # stub only
-│           │   ├── blame/       # stub only
+│           │   ├── history/     # file + line history (P4–P5)
+│           │   ├── blame/       # file blame, status bar, CodeLens (P1–P3)
 │           │   └── graph/       # stub only
 │           └── extension.ts
 ├── docs/superpowers/specs/2026-08-04-gitspecs-design.md
@@ -100,7 +101,7 @@ Work done in the initial build/rebrand session, in rough order:
 3. **Modules own UX** (commands, tree providers); shell owns repo context + refresh + errors.
 4. **One current repository** in multi-root workspaces (`RepoContext` + Switch Repository command).
 5. **Native UI** for v1: TreeView, QuickPick, InputBox, confirms — no custom webview sidebars.
-6. **Future modules** stay as stubs until designed; do not half-implement blame/graph.
+6. **Future modules** stay as stubs until designed; do not half-implement graph/compare sidebars.
 
 ## Commands for agents
 
@@ -146,7 +147,7 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 |-----------|--------|------------------|
 | M0 Daily git ops | P0 | Done |
 | M1 Authorship | P1–P3 | **Done** (file blame, status-bar, CodeLens) |
-| M2 History | P4–P5 | Not started (stubs only); **P4 next** |
+| M2 History | P4–P5 | **Done** (file + line history) |
 | M3 Explore & compare | P6–P10 | Compare partial; views not started |
 | M4 Graph | P11 | Not started (stub) |
 | M5 Advanced | P12–P14 | Optional / polish / non-cloud |
@@ -158,6 +159,13 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 - Commands: `gitspecs.blame.toggleFile` / `showLine` / `fileToOutput` / `statusBarDetails` / `codeLensDetail`.
 - Settings: `gitspecs.blame.statusBar`, `gitspecs.blame.codeLens` (both default true).
 - Format via shipped `formatBlameAnnotation` + pure helpers in `modules/blame/format.ts` / `detail.ts` (do not reimplement in tests).
+
+### History module notes (P4–P5)
+
+- Library: `@gitspecs/git-core` → `repo.history.file` (`git log --follow`), `repo.history.line` (`git log -L` with file-history fallback), `repo.history.showFile`.
+- Extension: `modules/history` QuickPick UX; pure helpers in `actions.ts`.
+- Commands: `gitspecs.history.file` / `gitspecs.history.line`.
+- Actions: copy SHA, open commit URL (`@gitspecs/host-urls`), view file at revision (untitled editor).
 
 ## Coding conventions
 

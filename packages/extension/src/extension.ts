@@ -10,6 +10,7 @@ import { registerBranchCommands } from "./modules/branches/commands.js";
 import { BlameController } from "./modules/blame/controller.js";
 import { registerBlameCommands } from "./modules/blame/commands.js";
 import { BlameCodeLensProvider } from "./modules/blame/codeLens.js";
+import { registerHistoryCommands } from "./modules/history/commands.js";
 import {
   DEFAULT_SCM_TAB,
   SCM_CONSOLIDATED_VIEW_ID,
@@ -74,6 +75,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const blameController = new BlameController(repos, log);
   context.subscriptions.push(blameController);
   registerBlameCommands(context, repos, log, blameController);
+  registerHistoryCommands(context, repos, log);
 
   const blameCodeLens = new BlameCodeLensProvider(
     repos,

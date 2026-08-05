@@ -11,7 +11,12 @@ export interface HistoryCommitItem {
   filePath: string;
 }
 
-export type HistoryActionId = "copySha" | "openCommitUrl" | "viewAtRev";
+export type HistoryActionId =
+  | "copySha"
+  | "openCommitUrl"
+  | "viewAtRev"
+  | "diffWithPrevious"
+  | "diffWithWorking";
 
 export interface HistoryAction {
   id: HistoryActionId;
@@ -37,6 +42,8 @@ export function historyCommitActions(hasCommitUrl: boolean): HistoryAction[] {
   const actions: HistoryAction[] = [
     { id: "copySha", label: "Copy SHA" },
     { id: "viewAtRev", label: "View File at Revision" },
+    { id: "diffWithPrevious", label: "Open Changes with Previous Revision" },
+    { id: "diffWithWorking", label: "Open Changes with Working Tree" },
   ];
   if (hasCommitUrl) {
     actions.push({ id: "openCommitUrl", label: "Open Commit on Remote" });

@@ -36,6 +36,11 @@
     "onCommand:gitspecs.blame.codeLensDetail",
     "onCommand:gitspecs.history.file",
     "onCommand:gitspecs.history.line",
+    "onCommand:gitspecs.revision.openAtRevision",
+    "onCommand:gitspecs.revision.diffWithPrevious",
+    "onCommand:gitspecs.revision.diffWithWorking",
+    "onCommand:gitspecs.revision.previous",
+    "onCommand:gitspecs.revision.next",
     "onCommand:gitspecs.compare",
     "onCommand:gitspecs.search.commits",
     "onView:gitspecs.stashes",
@@ -172,6 +177,31 @@
         "command": "gitspecs.history.line",
         "title": "GitSpecs: Line History",
         "icon": "$(git-commit)"
+      },
+      {
+        "command": "gitspecs.revision.openAtRevision",
+        "title": "GitSpecs: Open File at Revision\u2026",
+        "icon": "$(history)"
+      },
+      {
+        "command": "gitspecs.revision.diffWithPrevious",
+        "title": "GitSpecs: Open Changes with Previous Revision",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "gitspecs.revision.diffWithWorking",
+        "title": "GitSpecs: Open Changes with Working Tree",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "gitspecs.revision.previous",
+        "title": "GitSpecs: Open Previous Revision",
+        "icon": "$(arrow-left)"
+      },
+      {
+        "command": "gitspecs.revision.next",
+        "title": "GitSpecs: Open Next Revision",
+        "icon": "$(arrow-right)"
       },
       {
         "command": "gitspecs.compare",
@@ -763,6 +793,21 @@
           "command": "gitspecs.history.line",
           "when": "editorTextFocus && resourceScheme == file",
           "group": "gitspecs@4"
+        },
+        {
+          "command": "gitspecs.revision.openAtRevision",
+          "when": "editorTextFocus && resourceScheme == file",
+          "group": "gitspecs@5"
+        },
+        {
+          "command": "gitspecs.revision.diffWithPrevious",
+          "when": "editorTextFocus && (resourceScheme == file || resourceScheme == gitspecs)",
+          "group": "gitspecs@6"
+        },
+        {
+          "command": "gitspecs.revision.diffWithWorking",
+          "when": "editorTextFocus && (resourceScheme == file || resourceScheme == gitspecs)",
+          "group": "gitspecs@7"
         }
       ],
       "editor/title": [
@@ -775,6 +820,26 @@
           "command": "gitspecs.history.file",
           "when": "resourceScheme == file",
           "group": "navigation"
+        },
+        {
+          "command": "gitspecs.revision.previous",
+          "when": "resourceScheme == gitspecs && gitspecs.revision.hasPrevious",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitspecs.revision.next",
+          "when": "resourceScheme == gitspecs && gitspecs.revision.hasNext",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitspecs.revision.diffWithPrevious",
+          "when": "resourceScheme == gitspecs || resourceScheme == file",
+          "group": "navigation@3"
+        },
+        {
+          "command": "gitspecs.revision.diffWithWorking",
+          "when": "resourceScheme == gitspecs",
+          "group": "navigation@4"
         }
       ]
     },

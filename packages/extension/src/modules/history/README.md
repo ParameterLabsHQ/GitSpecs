@@ -13,7 +13,8 @@
 ## Actions (per commit)
 
 - Copy SHA
-- View File at Revision (`git show rev:path` in an untitled editor)
+- View File at Revision (`gitspecs:` revision document via `repo.history.showFile`)
+- Open Changes with Previous Revision / Working Tree (`vscode.diff` + revision documents)
 - Open Commit on Remote (URL-only via `@gitspecs/host-urls` when `origin` parses)
 
 ## Library

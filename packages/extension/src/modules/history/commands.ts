@@ -1,10 +1,13 @@
 import * as vscode from "vscode";
-import path from "node:path";
 import type { HistoryCommit } from "@gitspecs/git-core";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { bindCommand } from "../../shell/bindCommand.js";
 import { presentError } from "../../shell/errors.js";
+import {
+  openRevisionDiff,
+  openRevisionInEditor,
+} from "../revision/commands.js";
 import {
   DEFAULT_HISTORY_LIMIT,
   formatHistoryPickLabel,
@@ -185,9 +188,16 @@ async function runHistoryActions(
     case "viewAtRev":
       await viewFileAtRevision(repos, log, item);
       break;
+    case "diffWithPrevious":
+      await diffHistoryWithPrevious(repos, log, item);
+      break;
+    case "diffWithWorking":
+      await diffHistoryWithWorking(repos, log, item);
+      break;
   }
 }
 
+/** Open file at revision via `gitspecs:` content provider (not untitled). */
 async function viewFileAtRevision(
   repos: RepoContext,
   log: PlatformLog,
@@ -199,43 +209,56 @@ async function viewFileAtRevision(
     return;
   }
   try {
-    const content = await repo.history.showFile(item.filePath, item.sha);
-    const base = path.basename(item.filePath);
-    const short = item.sha.slice(0, 7);
-    const doc = await vscode.workspace.openTextDocument({
-      content,
-      language: guessLanguage(base),
-    });
-    await vscode.window.showTextDocument(doc, { preview: true, preserveFocus: false });
-    void vscode.window.setStatusBarMessage(
-      `GitSpecs: ${base} @ ${short}`,
-      3000,
-    );
+    await openRevisionInEditor(repo.root, item.filePath, item.sha);
     log.info(`View ${item.filePath} @ ${item.sha.slice(0, 7)}`);
   } catch (err) {
     await presentError(log, err, "View file at revision");
   }
 }
 
-/** Best-effort language id from filename for untitled preview docs. */
-function guessLanguage(fileName: string): string | undefined {
-  const ext = path.extname(fileName).toLowerCase();
-  const map: Record<string, string> = {
-    ".ts": "typescript",
-    ".tsx": "typescriptreact",
-    ".js": "javascript",
-    ".jsx": "javascriptreact",
-    ".json": "json",
-    ".md": "markdown",
-    ".py": "python",
-    ".rs": "rust",
-    ".go": "go",
-    ".css": "css",
-    ".html": "html",
-    ".yml": "yaml",
-    ".yaml": "yaml",
-    ".sh": "shellscript",
-    ".txt": "plaintext",
-  };
-  return map[ext];
+async function diffHistoryWithPrevious(
+  repos: RepoContext,
+  log: PlatformLog,
+  item: HistoryCommitItem,
+): Promise<void> {
+  const repo = repos.currentRepo;
+  if (!repo) {
+    void vscode.window.showInformationMessage("No Git repository selected");
+    return;
+  }
+  try {
+    const neighbors = await repo.history.revisionNeighbors(item.filePath, item.sha, {
+      limit: 500,
+    });
+    if (!neighbors.previous) {
+      void vscode.window.showInformationMessage("No previous revision for this file");
+      return;
+    }
+    const left = neighbors.previous.sha;
+    const right = neighbors.current?.sha ?? item.sha;
+    log.info(
+      `History diff previous: ${item.filePath} ${left.slice(0, 7)} → ${right.slice(0, 7)}`,
+    );
+    await openRevisionDiff(repo.root, item.filePath, left, right);
+  } catch (err) {
+    await presentError(log, err, "Diff with previous revision");
+  }
+}
+
+async function diffHistoryWithWorking(
+  repos: RepoContext,
+  log: PlatformLog,
+  item: HistoryCommitItem,
+): Promise<void> {
+  const repo = repos.currentRepo;
+  if (!repo) {
+    void vscode.window.showInformationMessage("No Git repository selected");
+    return;
+  }
+  try {
+    log.info(`History diff working: ${item.filePath} @ ${item.sha.slice(0, 7)}`);
+    await openRevisionDiff(repo.root, item.filePath, item.sha, "working");
+  } catch (err) {
+    await presentError(log, err, "Diff with working tree");
+  }
 }

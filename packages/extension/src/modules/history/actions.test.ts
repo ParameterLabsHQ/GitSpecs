@@ -26,10 +26,12 @@ describe("resolveCommitUrl", () => {
 });
 
 describe("historyCommitActions", () => {
-  it("always includes copySha and viewAtRev", () => {
+  it("always includes copySha, viewAtRev, and revision diffs", () => {
     const ids = historyCommitActions(false).map((a) => a.id);
     expect(ids).toContain("copySha");
     expect(ids).toContain("viewAtRev");
+    expect(ids).toContain("diffWithPrevious");
+    expect(ids).toContain("diffWithWorking");
     expect(ids).not.toContain("openCommitUrl");
   });
 

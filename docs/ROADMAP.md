@@ -54,7 +54,7 @@ Status is grounded in the monorepo as of this revision.
 | Interactive rebase / history rewrite UI | **Shipped** (guided, not full editor) | `rewrite.ts` status/abort/continue + guided rebase/cherry-pick | **P12** |
 | Hosting provider HTTP APIs (PRs, issues) | **Deferred** | Needs PAT/OAuth secrets; offline git must not block — see P13 note | **P13** optional |
 | Heatmaps / avatar CDN / always-on perf polish | **Shipped** (finite slice) | Blame heatmap setting; CONTRIBUTING; GitHub CI matrix; no avatar CDN | **P14** polish |
-| Revision navigation (prev/next revision, diff with previous/working) | **Not started** (one-shot view-at-revision only) | — | **P15** |
+| Revision navigation (prev/next revision, diff with previous/working) | **Shipped** | `history.revisionNeighbors` / rename-aware `showFile`; `modules/revision` (`gitspecs:` provider + prev/next/diff) | **P15** |
 | Changes annotations (working-tree / unpushed lines) | **Not started** | — | **P16** |
 | Symbol-level CodeLens | **Not started** (file-level shipped in P3) | — | **P16** |
 | Terminal links (SHAs/branches/tags in terminal) | **Not started** | — | **P16** |
@@ -278,6 +278,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Existing history / commits / stashes "view" actions upgraded to `vscode.diff` against the resolved base where one exists
 - Real-git tests for revision-sequence resolution (multi-commit fixtures incl. a rename); structural contrib tests for new commands/menus
 
+**Shipped:** `repo.history.revisionNeighbors` / `fileWithPaths` / rename-aware `showFile`; extension `modules/revision` with `gitspecs:` `TextDocumentContentProvider`; commands `gitspecs.revision.openAtRevision` / `diffWithPrevious` / `diffWithWorking` / `previous` / `next` (editor-title enablement via context keys); history view-at-rev + diffs use revision documents/`vscode.diff` (no untitled previews).
+
 **Out of P15:** annotations and link surfaces (P16), timeline webviews (P20).
 
 ### Phase P16 — Annotations & link surfaces
@@ -400,18 +402,18 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M3 Explore & compare** | P6–P10 | Browse commits/stashes/tags; rich compare/search (P6–P7 shipped) |
 | **M4 Graph** | P11 | Visual branch topology — **done** (high-density tree) |
 | **M5 Advanced** | P12–P14 | Rewrite UX shipped; P13 deferred → superseded by P21; P14 finite polish shipped |
-| **M6 Editor depth** | P15–P16 | Revision navigation/diffs; annotations, symbol CodeLens, terminal links, autolinks |
+| **M6 Editor depth** | P15–P16 | **P15 done** (revision docs + prev/next/diff); P16 annotations, symbol CodeLens, terminal links, autolinks |
 | **M7 Scale** | P17 | Every repo visible at once |
 | **M8 Webview surfaces** | P18–P20 | Commit Graph canvas, interactive rebase editor, Visual File History, dual-pane compare |
 | **M9 Connected** | P21–P22 | PRs/issues/avatars via platform auth; client-side work hub |
 | **M10 Assist** | P23 | Optional BYO-key AI, off by default |
 
-**Next implementation goal:** **P15 — Revision navigation & revision diffs.** Local-git parity (P0–P12) is shipped; P15–P23 is the ladder to full GitLens parity, free.
+**Next implementation goal:** **P16 — Annotations & link surfaces.** P15 revision navigation is shipped; P16–P23 remains the ladder to full GitLens parity, free.
 
 Recommended default sequence for agents:
 
 ```
-(P0–P12 done) → P15 → P16 → P17 → P18 → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
+(P0–P12, P15 done) → P16 → P17 → P18 → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
 ```
 
 Each phase: read this file + `AGENTS.md` → design note in `docs/superpowers/specs/` if the phase is large (P17, P18, P19, P21 are) → implementation plan → PR with tests → update Section 2 + changelog here. One phase per goal; keep phase N green before starting N+1.
@@ -475,3 +477,4 @@ Interactive rebase **UI** is a local parity target (**P19**); the P12 note preda
 | 2026-08-05 | Marked **P12** guided rewrite UX shipped; next **P13?** / **P14** |
 | 2026-08-05 | **P13 deferred** (no token storage); **P14** finite polish (heatmap + CONTRIBUTING + CI) |
 | 2026-08-05 | **Scope expanded to full GitLens parity, free.** Added **P15–P23** (revision navigation, annotations/links, multi-repo, webview platform + graph canvas, rebase editor, visual history/compare, hosting APIs superseding P13, work hub, BYO-key AI); re-scoped Section 5 non-goals; added clean-room rule + [gap analysis](./superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md). Next slice: **P15** |
+| 2026-08-05 | Marked **P15** Revision navigation shipped (`revisionNeighbors`, `gitspecs:` documents, prev/next/diff commands); next slice **P16** |

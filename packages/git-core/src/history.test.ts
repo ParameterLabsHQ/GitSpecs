@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { parseHistoryLog, HISTORY_LOG_FORMAT } from "./history.js";
+import {
+  parseHistoryLog,
+  parseFileHistoryWithPaths,
+  HISTORY_LOG_FORMAT,
+} from "./history.js";
 import { createFixtureRepo, commitFile } from "./test-utils.js";
 import type { GitRepository } from "./repository.js";
 import type { GitBinary } from "./git.js";
@@ -406,5 +410,175 @@ describe("history.recent (real git)", () => {
     const commits = await repo.history.recent({ limit: 0 });
     expect(commits.length).toBeGreaterThan(0);
     expect(commits[0]!.sha).toMatch(/^[0-9a-f]{40}$/i);
+  });
+});
+
+describe("parseFileHistoryWithPaths", () => {
+  it("pairs commit records with path lines (rename-aware)", () => {
+    const sha1 = "a".repeat(40);
+    const sha2 = "b".repeat(40);
+    const raw = [
+      [sha1, "Alice", "<a@x.com>", "100", "newest"].join("\0"),
+      "",
+      "new-name.txt",
+      "",
+      [sha2, "Bob", "<b@x.com>", "90", "older"].join("\0"),
+      "",
+      "old-name.txt",
+      "",
+    ].join("\n");
+
+    const rows = parseFileHistoryWithPaths(raw, "fallback.txt");
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      sha: sha1,
+      subject: "newest",
+      pathAtRev: "new-name.txt",
+    });
+    expect(rows[1]).toMatchObject({
+      sha: sha2,
+      subject: "older",
+      pathAtRev: "old-name.txt",
+    });
+  });
+
+  it("uses fallback path when name-only lines are missing", () => {
+    const sha = "c".repeat(40);
+    const raw = [[sha, "Dev", "<d@x.com>", "1", "solo"].join("\0"), ""].join("\n");
+    const rows = parseFileHistoryWithPaths(raw, "only.txt");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.pathAtRev).toBe("only.txt");
+  });
+});
+
+describe("history.revisionNeighbors + rename-aware showFile (real git)", () => {
+  let git: GitBinary;
+  let dir: string;
+  let repo: GitRepository;
+  let sha1: string;
+  let sha2: string;
+  let renameSha: string;
+  let sha4: string;
+
+  beforeAll(async () => {
+    const fixture = await createFixtureRepo();
+    git = fixture.git;
+    dir = fixture.dir;
+    repo = fixture.repo;
+
+    sha1 = await commitFile(dir, git, "rev-nav.txt", "v1\n", "revnav: add file");
+    sha2 = await commitFile(dir, git, "rev-nav.txt", "v2\n", "revnav: second");
+    await execGit(git.path, ["-C", dir, "mv", "rev-nav.txt", "rev-nav-renamed.txt"]);
+    await execGit(git.path, ["-C", dir, "commit", "-m", "revnav: rename"]);
+    renameSha = (
+      await execGit(git.path, ["-C", dir, "rev-parse", "HEAD"])
+    ).stdout.trim();
+    sha4 = await commitFile(
+      dir,
+      git,
+      "rev-nav-renamed.txt",
+      "v3\n",
+      "revnav: after rename",
+    );
+  });
+
+  it("fileWithPaths tracks pathAtRev across a rename", async () => {
+    const entries = await repo.history.fileWithPaths("rev-nav-renamed.txt", {
+      limit: 20,
+    });
+    expect(entries.length).toBeGreaterThanOrEqual(4);
+    expect(entries[0]!.sha).toBe(sha4);
+    expect(entries[0]!.pathAtRev).toBe("rev-nav-renamed.txt");
+
+    const atSha1 = entries.find((e) => e.sha === sha1);
+    expect(atSha1).toBeDefined();
+    expect(atSha1!.pathAtRev).toBe("rev-nav.txt");
+
+    const atRename = entries.find((e) => e.sha === renameSha);
+    expect(atRename).toBeDefined();
+    expect(atRename!.pathAtRev).toBe("rev-nav-renamed.txt");
+  });
+
+  it("revisionNeighbors: middle sha has previous (older) and next (newer)", async () => {
+    const neighbors = await repo.history.revisionNeighbors(
+      "rev-nav-renamed.txt",
+      sha2,
+      { limit: 20 },
+    );
+    expect(neighbors.index).toBeGreaterThanOrEqual(0);
+    expect(neighbors.current?.sha).toBe(sha2);
+    // previous = older → sha1
+    expect(neighbors.previous?.sha).toBe(sha1);
+    // next = newer → renameSha (or could be further depending on sequence)
+    expect(neighbors.next?.sha).toBe(renameSha);
+    expect(neighbors.sequence.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("revisionNeighbors: oldest has no previous; newest has no next", async () => {
+    const oldest = await repo.history.revisionNeighbors(
+      "rev-nav-renamed.txt",
+      sha1,
+      { limit: 20 },
+    );
+    expect(oldest.current?.sha).toBe(sha1);
+    expect(oldest.previous).toBeUndefined();
+    expect(oldest.next?.sha).toBe(sha2);
+
+    const newest = await repo.history.revisionNeighbors(
+      "rev-nav-renamed.txt",
+      sha4,
+      { limit: 20 },
+    );
+    expect(newest.current?.sha).toBe(sha4);
+    expect(newest.next).toBeUndefined();
+    expect(newest.previous?.sha).toBe(renameSha);
+  });
+
+  it("revisionNeighbors matches short SHA prefixes", async () => {
+    const neighbors = await repo.history.revisionNeighbors(
+      "rev-nav-renamed.txt",
+      sha2.slice(0, 7),
+      { limit: 20 },
+    );
+    expect(neighbors.current?.sha).toBe(sha2);
+    expect(neighbors.index).toBeGreaterThanOrEqual(0);
+  });
+
+  it("revisionNeighbors returns index -1 when sha is outside the file sequence", async () => {
+    // initial fixture README commit is not on rev-nav history
+    const initial = (
+      await execGit(git.path, ["-C", dir, "rev-list", "--max-parents=0", "HEAD"])
+    ).stdout.trim();
+    // If initial is sha1 for this file it might match — use a synthetic invalid sha
+    const neighbors = await repo.history.revisionNeighbors(
+      "rev-nav-renamed.txt",
+      "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+      { limit: 20 },
+    );
+    expect(neighbors.index).toBe(-1);
+    expect(neighbors.current).toBeUndefined();
+    expect(neighbors.previous).toBeUndefined();
+    expect(neighbors.next).toBeUndefined();
+    expect(neighbors.sequence.length).toBeGreaterThan(0);
+    void initial;
+  });
+
+  it("showFile resolves renamed paths at older revisions", async () => {
+    // Current path is rev-nav-renamed.txt; at sha1 the blob lived at rev-nav.txt
+    const content = await repo.history.showFile("rev-nav-renamed.txt", sha1);
+    expect(content).toBe("v1\n");
+
+    const content2 = await repo.history.showFile("rev-nav-renamed.txt", sha2);
+    expect(content2).toBe("v2\n");
+
+    const content4 = await repo.history.showFile("rev-nav-renamed.txt", sha4);
+    expect(content4).toBe("v3\n");
+  });
+
+  it("resolvePathAtRevision returns historical path", async () => {
+    const p1 = await repo.history.resolvePathAtRevision("rev-nav-renamed.txt", sha1);
+    expect(p1).toBe("rev-nav.txt");
+    const p4 = await repo.history.resolvePathAtRevision("rev-nav-renamed.txt", sha4);
+    expect(p4).toBe("rev-nav-renamed.txt");
   });
 });

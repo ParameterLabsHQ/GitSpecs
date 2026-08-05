@@ -31,12 +31,16 @@ export {
 export {
   HistoryApi,
   parseHistoryLog,
+  parseFileHistoryWithPaths,
   HISTORY_LOG_FORMAT,
   type HistoryCommit,
+  type FileHistoryEntry,
   type FileHistoryOptions,
   type LineHistoryOptions,
   type CommitSearchOptions,
   type RecentCommitsOptions,
+  type RevisionNeighbors,
+  type RevisionNeighborsOptions,
 } from "./history.js";
 export {
   StashesApi,

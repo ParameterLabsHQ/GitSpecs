@@ -60,6 +60,8 @@ describe("history package contributions (P4/P5)", () => {
     expect(actions).toContain("copySha");
     expect(actions).toContain("openCommitUrl");
     expect(actions).toContain("viewAtRev");
+    expect(actions).toContain("diffWithPrevious");
+    expect(actions).toContain("diffWithWorking");
   });
 
   it("does not spawn git ad hoc in history module", () => {

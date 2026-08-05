@@ -51,7 +51,12 @@
     "onView:gitspecs.contributors",
     "onCommand:gitspecs.contributors.refresh",
     "onView:gitspecs.graph",
-    "onCommand:gitspecs.graph.refresh"
+    "onCommand:gitspecs.graph.refresh",
+    "onCommand:gitspecs.rewrite.rebase",
+    "onCommand:gitspecs.rewrite.cherryPick",
+    "onCommand:gitspecs.rewrite.abort",
+    "onCommand:gitspecs.rewrite.continue",
+    "onCommand:gitspecs.rewrite.status"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -420,6 +425,26 @@
       {
         "command": "gitspecs.graph.openRemote",
         "title": "GitSpecs: Open Graph Commit on Remote"
+      },
+      {
+        "command": "gitspecs.rewrite.status",
+        "title": "GitSpecs: Rewrite Status"
+      },
+      {
+        "command": "gitspecs.rewrite.rebase",
+        "title": "GitSpecs: Guided Rebase\u2026"
+      },
+      {
+        "command": "gitspecs.rewrite.cherryPick",
+        "title": "GitSpecs: Guided Cherry-pick\u2026"
+      },
+      {
+        "command": "gitspecs.rewrite.abort",
+        "title": "GitSpecs: Abort Rewrite"
+      },
+      {
+        "command": "gitspecs.rewrite.continue",
+        "title": "GitSpecs: Continue Rewrite"
       }
     ],
     "menus": {

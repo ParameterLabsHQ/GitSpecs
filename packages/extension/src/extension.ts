@@ -19,6 +19,7 @@ import { ContributorsProvider } from "./modules/contributors/provider.js";
 import { registerContributorCommands } from "./modules/contributors/commands.js";
 import { GraphProvider } from "./modules/graph/provider.js";
 import { registerGraphCommands } from "./modules/graph/commands.js";
+import { registerRewriteCommands } from "./modules/rewrite/commands.js";
 import { BlameController } from "./modules/blame/controller.js";
 import { registerBlameCommands } from "./modules/blame/commands.js";
 import { BlameCodeLensProvider } from "./modules/blame/codeLens.js";
@@ -122,6 +123,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerRemoteCommands(context, repos, refresh, log);
   registerContributorCommands(context, repos, refresh, log);
   registerGraphCommands(context, repos, refresh, log);
+  registerRewriteCommands(context, repos, refresh, log);
   registerCompareCommands(context, repos, log);
   registerSearchCommands(context, repos, log);
 
@@ -148,7 +150,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
 
   log.info(
-    "GitSpecs activated (worktrees, branches, commits, stashes, tags, remotes, contributors, graph, blame, history, compare, search)",
+    "GitSpecs activated (worktrees, branches, commits, stashes, tags, remotes, contributors, graph, rewrite, blame, history, compare, search)",
   );
 }
 

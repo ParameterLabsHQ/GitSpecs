@@ -12,6 +12,7 @@ import { TagsApi } from "./tags.js";
 import { RemotesApi } from "./remotes.js";
 import { ContributorsApi } from "./contributors.js";
 import { GraphApi } from "./graph.js";
+import { RewriteApi } from "./rewrite.js";
 
 export interface RepoRoot {
   root: string;
@@ -28,6 +29,7 @@ export class GitRepository {
   readonly remotes: RemotesApi;
   readonly contributors: ContributorsApi;
   readonly graph: GraphApi;
+  readonly rewrite: RewriteApi;
 
   constructor(
     readonly root: string,
@@ -42,6 +44,7 @@ export class GitRepository {
     this.remotes = new RemotesApi(this);
     this.contributors = new ContributorsApi(this);
     this.graph = new GraphApi(this);
+    this.rewrite = new RewriteApi(this);
   }
 
   async exec(args: string[], options: ExecOptions = {}): Promise<ExecResult> {

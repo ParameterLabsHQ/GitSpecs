@@ -47,7 +47,7 @@ Status is grounded in the monorepo as of this revision.
 | Tags / remotes browser views | **Shipped** | `tags.ts` / `remotes.ts`; `modules/tags` + `modules/remotes` | **P9** |
 | Contributors view | **Shipped** | `contributors.ts` shortlog; `modules/contributors` | **P10** |
 | Commit Graph (visual DAG) | **Shipped** (high-density tree) | `graph.ts` parents+lanes; `modules/graph` (default 200 / max 500) | **P11** |
-| Interactive rebase / history rewrite UI | **Not started** | — | **P12** (parity-target, hard) |
+| Interactive rebase / history rewrite UI | **Shipped** (guided, not full editor) | `rewrite.ts` status/abort/continue + guided rebase/cherry-pick | **P12** |
 | Hosting provider HTTP APIs (PRs, issues) | **Not started** | Explicitly late / optional | **P13** optional |
 | Heatmaps / avatar CDN / always-on perf polish | **Not started** | Deferred polish | **P14** polish |
 
@@ -209,7 +209,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 **Shipped:** `repo.graph.log` (parents + `%D` refs + lane layout; default 200 / max 500); activity-bar high-density `gitspecs.graph` tree; checkout / create branch / compare / open remote / copy SHA.  
 
-### Phase P12 — History rewrite UX (parity-target, optional order)
+### Phase P12 — History rewrite UX (parity-target, optional order) *(done)*
 
 **Depends on:** P0 branches (merge/rebase/cherry-pick already non-interactive)  
 **Parity target:** GitLens interactive rebase editor / guided rewrite  
@@ -219,6 +219,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Safer guided flows for rebase/cherry-pick with conflict messaging (not a full custom mergetool)  
 - Optional: sequence editor integration via `GIT_SEQUENCE_EDITOR` helper script  
 - Explicitly **not** required for “daily driver” claim; schedule after P7–P11 unless users demand it earlier  
+
+**Shipped:** `repo.rewrite` (status / abort / continue / guidedRebase / guidedCherryPick with clean-tree preflight); commands `gitspecs.rewrite.*` with conflict guidance and Abort action. Sequence editor intentionally deferred.  
 
 ### Phase P13 — Hosting APIs *(optional parity track)*
 
@@ -253,15 +255,15 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M4 Graph** | P11 | Visual branch topology — **done** (high-density tree) |
 | **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
 
-**Next implementation goal after this roadmap:** **P12** (History rewrite UX), building on shipped P0–P11.
+**Next implementation goal after this roadmap:** **P14** polish (P13 hosting APIs deferred without secrets), building on shipped P0–P12.
 
-Recommended default sequence for agents (P0–P11 shipped):
+Recommended default sequence for agents (P0–P12 shipped):
 
 ```
-P12 → (P13?) → P14
+(P13 deferred?) → P14
 ```
 
-Rationale: rewrite UX then optional hosting APIs / polish.
+Rationale: optional hosting APIs need credentials; polish is a finite OSS slice.
 
 ---
 
@@ -315,3 +317,4 @@ Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud�
 | 2026-08-05 | Marked **P9** Tags & Remotes shipped; next slice **P10** |
 | 2026-08-05 | Marked **P10** Contributors shipped; next slice **P11** |
 | 2026-08-05 | Marked **P11** Commit Graph shipped (lane layout + high-density tree); next slice **P12** |
+| 2026-08-05 | Marked **P12** guided rewrite UX shipped; next **P13?** / **P14** |

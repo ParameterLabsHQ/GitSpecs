@@ -81,6 +81,14 @@ export {
   type GraphLogOptions,
 } from "./graph.js";
 export {
+  RewriteApi,
+  formatConflictGuidance,
+  type RewriteKind,
+  type RewriteStatus,
+  type GuidedRebaseOptions,
+  type GuidedCherryPickOptions,
+} from "./rewrite.js";
+export {
   GitNotFoundError,
   NotAGitRepositoryError,
   GitCommandError,

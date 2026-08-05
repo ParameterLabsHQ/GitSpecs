@@ -4,7 +4,12 @@ import type { RepoContext } from "../../shell/repoContext.js";
 import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
+import { bindCommand } from "../../shell/bindCommand.js";
 import type { WorktreeItem } from "./provider.js";
+import {
+  existingWorktreeBranchNames,
+  worktreeBranchRefFromPick,
+} from "./branchPick.js";
 
 function confirmDeletes(): boolean {
   return vscode.workspace.getConfiguration("gitPlatform").get<boolean>("confirmDelete", true);
@@ -23,14 +28,11 @@ export function registerWorktreeCommands(
   refresh: RefreshBus,
   log: PlatformLog,
 ): void {
-  const run = (fn: () => Promise<void>) => async () => {
-    try {
-      await fn();
-      refresh.fire();
-    } catch (err) {
-      await presentError(log, err);
-    }
-  };
+  const run = <TArgs extends unknown[]>(fn: (...args: TArgs) => Promise<void>) =>
+    bindCommand(fn, {
+      onSuccess: () => refresh.fire(),
+      onError: (err) => presentError(log, err),
+    });
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -59,23 +61,18 @@ export function registerWorktreeCommands(
         if (!mode) return;
 
         const branches = await repo.branches.list({ includeRemotes: true });
-        const branchNames = branches.map((b) => b.name);
+        const branchNames = existingWorktreeBranchNames(branches);
 
         let branch: string | undefined;
         let createBranch = false;
         let startPoint: string | undefined;
 
         if (mode.value === "existing") {
-          const pick = await vscode.window.showQuickPick(
-            branchNames.filter((n) => !n.includes("/") || n.startsWith("origin/")),
-            { title: "Branch to check out in worktree" },
-          );
+          const pick = await vscode.window.showQuickPick(branchNames, {
+            title: "Branch to check out in worktree",
+          });
           if (!pick) return;
-          branch = pick.includes("/") ? pick.split("/").slice(1).join("/") : pick;
-          // Prefer local name; if remote-only, create tracking via worktree add remote branch ref
-          if (pick.includes("/")) {
-            branch = pick;
-          }
+          branch = worktreeBranchRefFromPick(pick);
         } else {
           branch = await vscode.window.showInputBox({
             title: "New branch name",

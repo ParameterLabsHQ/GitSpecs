@@ -4,7 +4,9 @@ import type { RepoContext } from "../../shell/repoContext.js";
 import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
+import { bindCommand } from "../../shell/bindCommand.js";
 import type { BranchItem } from "./provider.js";
+import { resolvePublishRemote } from "./publishRemote.js";
 
 function confirmDeletes(): boolean {
   return vscode.workspace.getConfiguration("gitPlatform").get<boolean>("confirmDelete", true);
@@ -16,14 +18,11 @@ export function registerBranchCommands(
   refresh: RefreshBus,
   log: PlatformLog,
 ): void {
-  const run = (fn: () => Promise<void>) => async () => {
-    try {
-      await fn();
-      refresh.fire();
-    } catch (err) {
-      await presentError(log, err);
-    }
-  };
+  const run = <TArgs extends unknown[]>(fn: (...args: TArgs) => Promise<void>) =>
+    bindCommand(fn, {
+      onSuccess: () => refresh.fire(),
+      onError: (err) => presentError(log, err),
+    });
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -108,19 +107,21 @@ export function registerBranchCommands(
         const name = item?.info.name ?? (await pickLocalBranch(repos));
         if (!name) return;
         const remotes = await repo.branches.listRemotes();
-        const remote =
-          remotes.length === 1
-            ? remotes[0]
-            : (
-                await vscode.window.showQuickPick(remotes, { title: "Remote" })
-              ) ?? undefined;
-        if (!remote && remotes.length === 0) {
-          void vscode.window.showErrorMessage("No remotes configured");
+        const selected =
+          remotes.length > 1
+            ? await vscode.window.showQuickPick(remotes, { title: "Remote" })
+            : undefined;
+        const resolved = resolvePublishRemote(remotes, selected ?? undefined);
+        if (!resolved.ok) {
+          if (resolved.reason === "none") {
+            void vscode.window.showErrorMessage("No remotes configured");
+          }
+          // cancelled: silent no-op
           return;
         }
         await vscode.window.withProgress(
           { location: vscode.ProgressLocation.Notification, title: "Publishing…" },
-          async () => repo.branches.publish({ branch: name, remote: remote ?? "origin" }),
+          async () => repo.branches.publish({ branch: name, remote: resolved.remote }),
         );
       }),
     ),

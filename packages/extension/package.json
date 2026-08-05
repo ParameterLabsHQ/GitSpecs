@@ -311,6 +311,7 @@
   "scripts": {
     "build": "node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
+    "test": "vitest run",
     "package": "pnpm run build && vsce package --no-dependencies -o git-platform.vsix",
     "vscode:prepublish": "pnpm run build"
   },
@@ -323,6 +324,7 @@
     "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^3.2.1",
     "esbuild": "^0.24.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   }
 }

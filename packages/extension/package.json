@@ -1,13 +1,13 @@
 {
-  "name": "git-platform",
-  "displayName": "Git Platform",
-  "description": "Open-source worktree and branch management for VS Code and Cursor (GitLens-style shell)",
+  "name": "gitspecs",
+  "displayName": "GitSpecs",
+  "description": "Open-source worktree and branch management for VS Code and Cursor.",
   "version": "0.1.0",
-  "publisher": "gitplatform",
+  "publisher": "ParameterLabsHQ",
   "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tbone/gitlens-clone.git"
+    "url": "https://github.com/ParameterLabsHQ/GitSpecs.git"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -17,321 +17,325 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:gitPlatform.worktrees",
-    "onView:gitPlatform.branches",
-    "onView:gitPlatform.scm.worktrees",
-    "onView:gitPlatform.scm.branches",
-    "onCommand:gitPlatform.switchRepository",
-    "onCommand:gitPlatform.worktrees.refresh",
-    "onCommand:gitPlatform.branches.refresh"
+    "onView:gitspecs.worktrees",
+    "onView:gitspecs.branches",
+    "onView:gitspecs.scm.worktrees",
+    "onView:gitspecs.scm.branches",
+    "onCommand:gitspecs.switchRepository",
+    "onCommand:gitspecs.worktrees.refresh",
+    "onCommand:gitspecs.branches.refresh"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "gitPlatform",
-          "title": "Git Platform",
-          "icon": "media/git-platform.svg"
+          "id": "gitspecs",
+          "title": "GitSpecs",
+          "icon": "media/gitspecs.svg"
         }
       ]
     },
     "views": {
-      "gitPlatform": [
+      "gitspecs": [
         {
-          "id": "gitPlatform.worktrees",
+          "id": "gitspecs.worktrees",
           "name": "Worktrees"
         },
         {
-          "id": "gitPlatform.branches",
+          "id": "gitspecs.branches",
           "name": "Branches"
         }
       ],
       "scm": [
         {
-          "id": "gitPlatform.scm.worktrees",
+          "id": "gitspecs.scm.worktrees",
           "name": "Worktrees",
-          "contextualTitle": "Git Platform: Worktrees",
+          "contextualTitle": "GitSpecs: Worktrees",
           "visibility": "visible"
         },
         {
-          "id": "gitPlatform.scm.branches",
+          "id": "gitspecs.scm.branches",
           "name": "Branches",
-          "contextualTitle": "Git Platform: Branches",
+          "contextualTitle": "GitSpecs: Branches",
           "visibility": "visible"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "gitPlatform.scm.worktrees",
-        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [Git Platform](command:workbench.view.extension.gitPlatform) sidebar."
+        "view": "gitspecs.scm.worktrees",
+        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar."
       },
       {
-        "view": "gitPlatform.scm.branches",
-        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [Git Platform](command:workbench.view.extension.gitPlatform) sidebar."
+        "view": "gitspecs.scm.branches",
+        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar."
       }
     ],
     "commands": [
       {
-        "command": "gitPlatform.switchRepository",
-        "title": "Git Platform: Switch Repository…"
+        "command": "gitspecs.switchRepository",
+        "title": "GitSpecs: Switch Repository…"
       },
       {
-        "command": "gitPlatform.worktrees.refresh",
-        "title": "Git Platform: Refresh Worktrees",
+        "command": "gitspecs.worktrees.refresh",
+        "title": "GitSpecs: Refresh Worktrees",
         "icon": "$(refresh)"
       },
       {
-        "command": "gitPlatform.worktrees.create",
-        "title": "Git Platform: Create Worktree…",
+        "command": "gitspecs.worktrees.create",
+        "title": "GitSpecs: Create Worktree…",
         "icon": "$(add)"
       },
       {
-        "command": "gitPlatform.worktrees.openCurrentWindow",
-        "title": "Git Platform: Open Worktree in Current Window"
+        "command": "gitspecs.worktrees.openCurrentWindow",
+        "title": "GitSpecs: Open Worktree in Current Window"
       },
       {
-        "command": "gitPlatform.worktrees.openNewWindow",
-        "title": "Git Platform: Open Worktree in New Window"
+        "command": "gitspecs.worktrees.openNewWindow",
+        "title": "GitSpecs: Open Worktree in New Window"
       },
       {
-        "command": "gitPlatform.worktrees.reveal",
-        "title": "Git Platform: Reveal Worktree in File Explorer"
+        "command": "gitspecs.worktrees.reveal",
+        "title": "GitSpecs: Reveal Worktree in File Explorer"
       },
       {
-        "command": "gitPlatform.worktrees.copyPath",
-        "title": "Git Platform: Copy Worktree Path"
+        "command": "gitspecs.worktrees.copyPath",
+        "title": "GitSpecs: Copy Worktree Path"
       },
       {
-        "command": "gitPlatform.worktrees.remove",
-        "title": "Git Platform: Remove Worktree…"
+        "command": "gitspecs.worktrees.remove",
+        "title": "GitSpecs: Remove Worktree…"
       },
       {
-        "command": "gitPlatform.worktrees.prune",
-        "title": "Git Platform: Prune Worktrees"
+        "command": "gitspecs.worktrees.prune",
+        "title": "GitSpecs: Prune Worktrees"
       },
       {
-        "command": "gitPlatform.branches.refresh",
-        "title": "Git Platform: Refresh Branches",
+        "command": "gitspecs.branches.refresh",
+        "title": "GitSpecs: Refresh Branches",
         "icon": "$(refresh)"
       },
       {
-        "command": "gitPlatform.branches.create",
-        "title": "Git Platform: Create Branch…",
+        "command": "gitspecs.branches.create",
+        "title": "GitSpecs: Create Branch…",
         "icon": "$(add)"
       },
       {
-        "command": "gitPlatform.branches.rename",
-        "title": "Git Platform: Rename Branch…"
+        "command": "gitspecs.branches.rename",
+        "title": "GitSpecs: Rename Branch…"
       },
       {
-        "command": "gitPlatform.branches.delete",
-        "title": "Git Platform: Delete Branch…"
+        "command": "gitspecs.branches.delete",
+        "title": "GitSpecs: Delete Branch…"
       },
       {
-        "command": "gitPlatform.branches.deleteForce",
-        "title": "Git Platform: Delete Branch (Force)…"
+        "command": "gitspecs.branches.deleteForce",
+        "title": "GitSpecs: Delete Branch (Force)…"
       },
       {
-        "command": "gitPlatform.branches.checkout",
-        "title": "Git Platform: Checkout Branch"
+        "command": "gitspecs.branches.checkout",
+        "title": "GitSpecs: Checkout Branch"
       },
       {
-        "command": "gitPlatform.branches.publish",
-        "title": "Git Platform: Publish Branch…"
+        "command": "gitspecs.branches.publish",
+        "title": "GitSpecs: Publish Branch…"
       },
       {
-        "command": "gitPlatform.branches.push",
-        "title": "Git Platform: Push"
+        "command": "gitspecs.branches.push",
+        "title": "GitSpecs: Push"
       },
       {
-        "command": "gitPlatform.branches.pull",
-        "title": "Git Platform: Pull"
+        "command": "gitspecs.branches.pull",
+        "title": "GitSpecs: Pull"
       },
       {
-        "command": "gitPlatform.branches.fetch",
-        "title": "Git Platform: Fetch"
+        "command": "gitspecs.branches.fetch",
+        "title": "GitSpecs: Fetch"
       },
       {
-        "command": "gitPlatform.branches.setUpstream",
-        "title": "Git Platform: Set Upstream…"
+        "command": "gitspecs.branches.setUpstream",
+        "title": "GitSpecs: Set Upstream…"
       },
       {
-        "command": "gitPlatform.branches.deleteRemote",
-        "title": "Git Platform: Delete Remote Branch…"
+        "command": "gitspecs.branches.deleteRemote",
+        "title": "GitSpecs: Delete Remote Branch…"
       },
       {
-        "command": "gitPlatform.branches.merge",
-        "title": "Git Platform: Merge into Current…"
+        "command": "gitspecs.branches.merge",
+        "title": "GitSpecs: Merge into Current…"
       },
       {
-        "command": "gitPlatform.branches.rebase",
-        "title": "Git Platform: Rebase Current Onto…"
+        "command": "gitspecs.branches.rebase",
+        "title": "GitSpecs: Rebase Current Onto…"
       },
       {
-        "command": "gitPlatform.branches.cherryPick",
-        "title": "Git Platform: Cherry-pick…"
+        "command": "gitspecs.branches.cherryPick",
+        "title": "GitSpecs: Cherry-pick…"
       },
       {
-        "command": "gitPlatform.branches.createFromCommit",
-        "title": "Git Platform: Create Branch from Commit…"
+        "command": "gitspecs.branches.createFromCommit",
+        "title": "GitSpecs: Create Branch from Commit…"
       },
       {
-        "command": "gitPlatform.branches.compare",
-        "title": "Git Platform: Compare with…"
+        "command": "gitspecs.branches.compare",
+        "title": "GitSpecs: Compare with…"
       },
       {
-        "command": "gitPlatform.branches.copyName",
-        "title": "Git Platform: Copy Branch Name"
+        "command": "gitspecs.branches.copyName",
+        "title": "GitSpecs: Copy Branch Name"
       },
       {
-        "command": "gitPlatform.branches.openRemote",
-        "title": "Git Platform: Open on Remote"
+        "command": "gitspecs.branches.openRemote",
+        "title": "GitSpecs: Open on Remote"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "gitPlatform.worktrees.create",
-          "when": "view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees",
+          "command": "gitspecs.worktrees.create",
+          "when": "view == gitspecs.worktrees || view == gitspecs.scm.worktrees",
           "group": "navigation"
         },
         {
-          "command": "gitPlatform.worktrees.refresh",
-          "when": "view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees",
+          "command": "gitspecs.worktrees.refresh",
+          "when": "view == gitspecs.worktrees || view == gitspecs.scm.worktrees",
           "group": "navigation"
         },
         {
-          "command": "gitPlatform.branches.create",
-          "when": "view == gitPlatform.branches || view == gitPlatform.scm.branches",
+          "command": "gitspecs.branches.create",
+          "when": "view == gitspecs.branches || view == gitspecs.scm.branches",
           "group": "navigation"
         },
         {
-          "command": "gitPlatform.branches.refresh",
-          "when": "view == gitPlatform.branches || view == gitPlatform.scm.branches",
+          "command": "gitspecs.branches.refresh",
+          "when": "view == gitspecs.branches || view == gitspecs.scm.branches",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "gitPlatform.worktrees.openCurrentWindow",
-          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
+          "command": "gitspecs.worktrees.openCurrentWindow",
+          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
           "group": "1_open"
         },
         {
-          "command": "gitPlatform.worktrees.openNewWindow",
-          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
+          "command": "gitspecs.worktrees.openNewWindow",
+          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
           "group": "1_open"
         },
         {
-          "command": "gitPlatform.worktrees.reveal",
-          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
+          "command": "gitspecs.worktrees.reveal",
+          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
           "group": "2_path"
         },
         {
-          "command": "gitPlatform.worktrees.copyPath",
-          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
+          "command": "gitspecs.worktrees.copyPath",
+          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
           "group": "2_path"
         },
         {
-          "command": "gitPlatform.worktrees.remove",
-          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
+          "command": "gitspecs.worktrees.remove",
+          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
           "group": "3_danger"
         },
         {
-          "command": "gitPlatform.branches.checkout",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
+          "command": "gitspecs.branches.checkout",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
           "group": "1_nav"
         },
         {
-          "command": "gitPlatform.branches.copyName",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
+          "command": "gitspecs.branches.copyName",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
           "group": "2_copy"
         },
         {
-          "command": "gitPlatform.branches.openRemote",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
+          "command": "gitspecs.branches.openRemote",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
           "group": "2_copy"
         },
         {
-          "command": "gitPlatform.branches.rename",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem == branchLocal",
+          "command": "gitspecs.branches.rename",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem == branchLocal",
           "group": "3_mod"
         },
         {
-          "command": "gitPlatform.branches.delete",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem == branchLocal",
+          "command": "gitspecs.branches.delete",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem == branchLocal",
           "group": "4_danger"
         },
         {
-          "command": "gitPlatform.branches.deleteForce",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem == branchLocal",
+          "command": "gitspecs.branches.deleteForce",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem == branchLocal",
           "group": "4_danger"
         },
         {
-          "command": "gitPlatform.branches.deleteRemote",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem == branchRemote",
+          "command": "gitspecs.branches.deleteRemote",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem == branchRemote",
           "group": "4_danger"
         },
         {
-          "command": "gitPlatform.branches.merge",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
+          "command": "gitspecs.branches.merge",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
           "group": "5_hist"
         },
         {
-          "command": "gitPlatform.branches.rebase",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
+          "command": "gitspecs.branches.rebase",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
           "group": "5_hist"
         },
         {
-          "command": "gitPlatform.branches.compare",
-          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
+          "command": "gitspecs.branches.compare",
+          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
           "group": "5_hist"
         }
       ],
       "commandPalette": [
         {
-          "command": "gitPlatform.worktrees.openCurrentWindow",
+          "command": "gitspecs.worktrees.openCurrentWindow",
           "when": "false"
         },
         {
-          "command": "gitPlatform.worktrees.openNewWindow",
+          "command": "gitspecs.worktrees.openNewWindow",
           "when": "false"
         }
       ]
     },
     "configuration": {
-      "title": "Git Platform",
+      "title": "GitSpecs",
       "properties": {
-        "gitPlatform.git.path": {
+        "gitspecs.git.path": {
           "type": "string",
           "default": "",
           "description": "Path to the git executable. Empty uses PATH."
         },
-        "gitPlatform.worktrees.defaultLocation": {
+        "gitspecs.worktrees.defaultLocation": {
           "type": "string",
           "default": "",
           "description": "Base directory for new worktrees. Empty = parent of the repository root."
         },
-        "gitPlatform.worktrees.pathTemplate": {
+        "gitspecs.worktrees.pathTemplate": {
           "type": "string",
           "default": "${repoName}-${branch}",
           "description": "Leaf folder name template for new worktrees."
         },
-        "gitPlatform.worktrees.openInNewWindow": {
+        "gitspecs.worktrees.openInNewWindow": {
           "type": "boolean",
           "default": true,
           "description": "Default to opening a newly created worktree in a new window."
         },
-        "gitPlatform.confirmDelete": {
+        "gitspecs.confirmDelete": {
           "type": "boolean",
           "default": true,
           "description": "Confirm before deleting worktrees or branches."
         },
-        "gitPlatform.log.verbosity": {
+        "gitspecs.log.verbosity": {
           "type": "string",
-          "enum": ["error", "info", "debug"],
+          "enum": [
+            "error",
+            "info",
+            "debug"
+          ],
           "default": "info",
           "description": "Output channel verbosity."
         }
@@ -342,12 +346,12 @@
     "build": "node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
     "test": "vitest run",
-    "package": "pnpm run build && vsce package --no-dependencies -o git-platform.vsix",
+    "package": "pnpm run build && vsce package --no-dependencies -o gitspecs.vsix",
     "vscode:prepublish": "pnpm run build"
   },
   "dependencies": {
-    "@gitplatform/git-core": "workspace:*",
-    "@gitplatform/host-urls": "workspace:*"
+    "@gitspecs/git-core": "workspace:*",
+    "@gitspecs/host-urls": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

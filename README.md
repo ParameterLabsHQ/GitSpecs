@@ -1,4 +1,4 @@
-# Git Platform
+# GitSpecs
 
 Open-source **worktree** and **branch** management for **VS Code** and **Cursor** — a GitLens-style platform shell (GPL-3.0-only) focused on the workflows people often hit behind a paywall.
 
@@ -16,7 +16,7 @@ Open-source **worktree** and **branch** management for **VS Code** and **Cursor*
 
 ### Dedicated activity bar
 
-A **Git Platform** icon in the activity bar hosts the same Worktrees and Branches views full-height.
+A **GitSpecs** icon in the activity bar hosts the same Worktrees and Branches views full-height.
 
 ### Worktrees
 
@@ -30,9 +30,9 @@ Local + remote listing with upstream ahead/behind, create/rename/delete (safe + 
 
 | Package | Role |
 |---------|------|
-| `@gitplatform/git-core` | System `git` CLI ops (worktrees, branches) |
-| `@gitplatform/host-urls` | Remote URL → browser links (no network) |
-| `git-platform` (publisher `gitplatform`) | VS Code/Cursor extension |
+| `@gitspecs/git-core` | System `git` CLI ops (worktrees, branches) |
+| `@gitspecs/host-urls` | Remote URL → browser links (no network) |
+| `gitspecs` (publisher `ParameterLabsHQ`) | VS Code/Cursor extension |
 
 ## Run from source
 
@@ -51,7 +51,7 @@ pnpm consumer
 ### Debug the extension
 
 1. Open this repo in VS Code or Cursor.
-2. `pnpm --filter git-platform run build`
+2. `pnpm --filter gitspecs run build`
 3. Use **Run and Debug** → “Launch Extension” if you add a launch config, or press **F5** after adding `.vscode/launch.json` that points at `packages/extension`.
 
 Minimal launch config (create `.vscode/launch.json` at repo root):
@@ -76,12 +76,12 @@ Minimal launch config (create `.vscode/launch.json` at repo root):
 pnpm package
 ```
 
-This builds the extension and writes `packages/extension/git-platform.vsix`.
+This builds the extension and writes `packages/extension/gitspecs.vsix`.
 
 **Install in Cursor or VS Code:**
 
-- Command Palette → **Extensions: Install from VSIX…** → select `packages/extension/git-platform.vsix`
-- Or: `cursor --install-extension packages/extension/git-platform.vsix` / `code --install-extension …`
+- Command Palette → **Extensions: Install from VSIX…** → select `packages/extension/gitspecs.vsix`
+- Or: `cursor --install-extension packages/extension/gitspecs.vsix` / `code --install-extension …`
 
 ## License
 
@@ -89,4 +89,4 @@ This builds the extension and writes `packages/extension/git-platform.vsix`.
 
 ## Design
 
-See [docs/superpowers/specs/2026-08-04-git-platform-design.md](./docs/superpowers/specs/2026-08-04-git-platform-design.md).
+See [docs/superpowers/specs/2026-08-04-gitspecs-design.md](./docs/superpowers/specs/2026-08-04-gitspecs-design.md).

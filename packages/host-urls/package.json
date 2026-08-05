@@ -1,7 +1,7 @@
 {
-  "name": "@gitplatform/host-urls",
+  "name": "@gitspecs/host-urls",
   "version": "0.1.0",
-  "description": "Remote URL to browser link helpers for Git Platform",
+  "description": "Remote URL to browser link helpers for GitSpecs",
   "license": "GPL-3.0-only",
   "type": "module",
   "main": "./dist/index.js",

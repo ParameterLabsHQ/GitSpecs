@@ -12,12 +12,12 @@ import {
 } from "./branchPick.js";
 
 function confirmDeletes(): boolean {
-  return vscode.workspace.getConfiguration("gitPlatform").get<boolean>("confirmDelete", true);
+  return vscode.workspace.getConfiguration("gitspecs").get<boolean>("confirmDelete", true);
 }
 
 function pathTemplate(repoName: string, branch: string): string {
   const tpl = vscode.workspace
-    .getConfiguration("gitPlatform")
+    .getConfiguration("gitspecs")
     .get<string>("worktrees.pathTemplate", "${repoName}-${branch}");
   return tpl.replace(/\$\{repoName\}/g, repoName).replace(/\$\{branch\}/g, branch.replace(/\//g, "-"));
 }
@@ -36,14 +36,14 @@ export function registerWorktreeCommands(
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "gitPlatform.worktrees.refresh",
+      "gitspecs.worktrees.refresh",
       run(async () => {
         /* refresh bus */
       }),
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.worktrees.create",
+      "gitspecs.worktrees.create",
       run(async () => {
         const repo = repos.currentRepo;
         if (!repo) {
@@ -88,7 +88,7 @@ export function registerWorktreeCommands(
 
         const repoName = path.basename(repo.root);
         const baseSetting = vscode.workspace
-          .getConfiguration("gitPlatform")
+          .getConfiguration("gitspecs")
           .get<string>("worktrees.defaultLocation", "")
           .trim();
         const base = baseSetting || path.dirname(repo.root);
@@ -113,7 +113,7 @@ export function registerWorktreeCommands(
         );
 
         const openNew = vscode.workspace
-          .getConfiguration("gitPlatform")
+          .getConfiguration("gitspecs")
           .get<boolean>("worktrees.openInNewWindow", true);
         const choice = await vscode.window.showInformationMessage(
           `Worktree created at ${targetPath}`,
@@ -130,7 +130,7 @@ export function registerWorktreeCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.worktrees.openCurrentWindow",
+      "gitspecs.worktrees.openCurrentWindow",
       run(async (item?: WorktreeItem) => {
         const p = item?.info.path ?? (await pickWorktreePath(repos));
         if (!p) return;
@@ -139,7 +139,7 @@ export function registerWorktreeCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.worktrees.openNewWindow",
+      "gitspecs.worktrees.openNewWindow",
       run(async (item?: WorktreeItem) => {
         const p = item?.info.path ?? (await pickWorktreePath(repos));
         if (!p) return;
@@ -148,7 +148,7 @@ export function registerWorktreeCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.worktrees.reveal",
+      "gitspecs.worktrees.reveal",
       run(async (item?: WorktreeItem) => {
         const p = item?.info.path ?? (await pickWorktreePath(repos));
         if (!p) return;
@@ -157,7 +157,7 @@ export function registerWorktreeCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.worktrees.copyPath",
+      "gitspecs.worktrees.copyPath",
       run(async (item?: WorktreeItem) => {
         const p = item?.info.path ?? (await pickWorktreePath(repos));
         if (!p) return;
@@ -167,7 +167,7 @@ export function registerWorktreeCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.worktrees.remove",
+      "gitspecs.worktrees.remove",
       run(async (item?: WorktreeItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -190,7 +190,7 @@ export function registerWorktreeCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.worktrees.prune",
+      "gitspecs.worktrees.prune",
       run(async () => {
         const repo = repos.currentRepo;
         if (!repo) return;

@@ -1,9 +1,9 @@
-# Git Platform — Design Spec (v1)
+# GitSpecs — Design Spec (v1)
 
 **Date:** 2026-08-04  
 **Status:** Draft for implementation planning  
 **License:** GPL-3.0-only  
-**Working product name:** Git Platform (repo: `gitlens-clone`; branding can change without affecting architecture)
+**Product name:** GitSpecs · **Org / publisher:** ParameterLabsHQ · **Repo:** `ParameterLabsHQ/GitSpecs`
 
 ## 1. Intent
 
@@ -86,7 +86,7 @@ Cursor / VS Code
 1. **`git-core` owns every Git invocation.** The extension never calls `child_process` for git except through `git-core`.
 2. **Modules own UX.** Each feature module registers commands, views, and menus; the shell provides repo context and refresh only.
 3. **One current repository context.** Multi-root: current repo defaults to the git root of the active editor’s workspace folder, else the first discovered root; user can switch via command/status affordance.
-4. **System Git required.** Configurable `gitPlatform.git.path` (fallback: `git` on `PATH`). Document minimum Git version: **2.23+** (for `git switch` / modern worktree flows); prefer 2.25+ where needed.
+4. **System Git required.** Configurable `gitspecs.git.path` (fallback: `git` on `PATH`). Document minimum Git version: **2.23+** (for `git switch` / modern worktree flows); prefer 2.25+ where needed.
 5. **Native IDE UI for v1.** TreeView + QuickPick + InputBox + native confirms; no custom webview sidebars in v1 (compare results may use OutputChannel or a simple readonly webview/markdown panel if TreeView is insufficient).
 
 ### 3.4 Tech stack (recommended defaults)
@@ -167,9 +167,9 @@ Self-hosted GitLab/GitHub Enterprise: support when remote host is non-github.com
 | `RepoContext` | `repos[]`, `current`, `setCurrent`, `onDidChange` |
 | `RefreshBus` | Coalesce SCM + `.git` fs watches + manual refresh into view refresh |
 | Error presenter | Map typed errors → `window.showErrorMessage` / warning; “Show Output” action |
-| Output channel | Name: `Git Platform`; log argv + exit code + stderr (never tokens; we don’t store tokens in v1) |
+| Output channel | Name: `GitSpecs`; log argv + exit code + stderr (never tokens; we don’t store tokens in v1) |
 | Settings | See §6 |
-| Activity bar | Container **Git Platform** with views **Worktrees** and **Branches** |
+| Activity bar | Container **GitSpecs** with views **Worktrees** and **Branches** |
 
 ### 4.4 Module: Worktrees
 
@@ -192,7 +192,7 @@ Self-hosted GitLab/GitHub Enterprise: support when remote host is non-github.com
 | Refresh | emit RefreshBus |
 
 **Default path template (setting):** sibling directory pattern  
-`${repoName}-${branch}` under parent of repo root, overridable via `gitPlatform.worktrees.defaultLocation`.
+`${repoName}-${branch}` under parent of repo root, overridable via `gitspecs.worktrees.defaultLocation`.
 
 ### 4.5 Module: Branches
 
@@ -262,12 +262,12 @@ Destructive and history-rewriting operations always confirm. Merge/rebase/cherry
 
 | Setting | Type | Default | Purpose |
 |---------|------|---------|---------|
-| `gitPlatform.git.path` | string | `""` | Git binary override |
-| `gitPlatform.worktrees.defaultLocation` | string | `""` | Base dir for new worktrees; empty = parent of repo |
-| `gitPlatform.worktrees.pathTemplate` | string | `${repoName}-${branch}` | Path leaf template |
-| `gitPlatform.worktrees.openInNewWindow` | boolean | `true` | Default after create |
-| `gitPlatform.confirmDelete` | boolean | `true` | Confirm deletes |
-| `gitPlatform.log.verbosity` | enum | `info` | Output channel detail |
+| `gitspecs.git.path` | string | `""` | Git binary override |
+| `gitspecs.worktrees.defaultLocation` | string | `""` | Base dir for new worktrees; empty = parent of repo |
+| `gitspecs.worktrees.pathTemplate` | string | `${repoName}-${branch}` | Path leaf template |
+| `gitspecs.worktrees.openInNewWindow` | boolean | `true` | Default after create |
+| `gitspecs.confirmDelete` | boolean | `true` | Confirm deletes |
+| `gitspecs.log.verbosity` | enum | `info` | Output channel detail |
 
 ## 7. Data flow and refresh
 
@@ -298,7 +298,7 @@ User command
 
 ### 7.4 Multi-root
 
-- Command: **Git Platform: Switch Repository…**
+- Command: **GitSpecs: Switch Repository…**
 - Views’ title or description shows current repo name
 - Worktree “open” may open a folder that is already another workspace root — still call `openFolder` per user choice
 
@@ -335,8 +335,8 @@ Never block the extension host with unbounded git; default timeout (e.g. 60s) on
 
 ## 10. Packaging and developer UX
 
-- Extension package id: `gitplatform.git-platform` (publisher `gitplatform` until a real marketplace identity exists)
-- Display name: **Git Platform**
+- Extension package id: `ParameterLabsHQ.gitspecs` (publisher `ParameterLabsHQ`; repo `ParameterLabsHQ/GitSpecs`)
+- Display name: **GitSpecs**
 - Scripts: `build`, `test`, `watch`, `package` (`vsce package` / `@vscode/vsce`)
 - README: features, requirements (Git), run from source, install VSIX in Cursor, license
 - `LICENSE` GPL-3.0-only text at root; each package `"license": "GPL-3.0-only"`
@@ -368,7 +368,7 @@ Suggested build order (not a full task plan):
 | worktree lock/move | Implement lock/unlock if cheap; move deferred |
 | Cherry-pick commit picker | Recent log QuickPick (e.g. 50 commits), not full graph |
 | Activation events | `onView` for both views + `onCommand` prefix |
-| Branch name / product name | **Git Platform** until deliberate rename |
+| Branch name / product name | **GitSpecs** until deliberate rename |
 
 ## 14. Relicensing note
 

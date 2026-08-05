@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { parseRemoteUrl, branchUrl } from "@gitplatform/host-urls";
+import { parseRemoteUrl, branchUrl } from "@gitspecs/host-urls";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
@@ -9,7 +9,7 @@ import type { BranchItem } from "./provider.js";
 import { resolvePublishRemote } from "./publishRemote.js";
 
 function confirmDeletes(): boolean {
-  return vscode.workspace.getConfiguration("gitPlatform").get<boolean>("confirmDelete", true);
+  return vscode.workspace.getConfiguration("gitspecs").get<boolean>("confirmDelete", true);
 }
 
 export function registerBranchCommands(
@@ -26,12 +26,12 @@ export function registerBranchCommands(
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "gitPlatform.branches.refresh",
+      "gitspecs.branches.refresh",
       run(async () => {}),
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.create",
+      "gitspecs.branches.create",
       run(async () => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -49,7 +49,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.rename",
+      "gitspecs.branches.rename",
       run(async (item?: BranchItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -65,21 +65,21 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.delete",
+      "gitspecs.branches.delete",
       run(async (item?: BranchItem) => {
         await deleteBranch(repos, item, false);
       }),
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.deleteForce",
+      "gitspecs.branches.deleteForce",
       run(async (item?: BranchItem) => {
         await deleteBranch(repos, item, true);
       }),
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.checkout",
+      "gitspecs.branches.checkout",
       run(async (item?: BranchItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -100,7 +100,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.publish",
+      "gitspecs.branches.publish",
       run(async (item?: BranchItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -127,7 +127,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.push",
+      "gitspecs.branches.push",
       run(async () => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -139,7 +139,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.pull",
+      "gitspecs.branches.pull",
       run(async () => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -151,7 +151,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.fetch",
+      "gitspecs.branches.fetch",
       run(async () => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -163,7 +163,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.setUpstream",
+      "gitspecs.branches.setUpstream",
       run(async (item?: BranchItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -182,7 +182,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.deleteRemote",
+      "gitspecs.branches.deleteRemote",
       run(async (item?: BranchItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -213,7 +213,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.merge",
+      "gitspecs.branches.merge",
       run(async (item?: BranchItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -232,7 +232,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.rebase",
+      "gitspecs.branches.rebase",
       run(async (item?: BranchItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -251,7 +251,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.cherryPick",
+      "gitspecs.branches.cherryPick",
       run(async () => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -270,7 +270,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.createFromCommit",
+      "gitspecs.branches.createFromCommit",
       run(async () => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -291,7 +291,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.compare",
+      "gitspecs.branches.compare",
       run(async (item?: BranchItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;
@@ -309,7 +309,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.copyName",
+      "gitspecs.branches.copyName",
       run(async (item?: BranchItem) => {
         const name = item?.info.name ?? (await pickAnyBranch(repos));
         if (!name) return;
@@ -319,7 +319,7 @@ export function registerBranchCommands(
     ),
 
     vscode.commands.registerCommand(
-      "gitPlatform.branches.openRemote",
+      "gitspecs.branches.openRemote",
       run(async (item?: BranchItem) => {
         const repo = repos.currentRepo;
         if (!repo) return;

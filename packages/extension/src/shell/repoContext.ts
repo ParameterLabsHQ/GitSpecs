@@ -5,7 +5,7 @@ import {
   openRepository,
   type GitBinary,
   type GitRepository,
-} from "@gitplatform/git-core";
+} from "@gitspecs/git-core";
 import type { PlatformLog } from "./log.js";
 
 export class RepoContext implements vscode.Disposable {
@@ -33,7 +33,7 @@ export class RepoContext implements vscode.Disposable {
 
   async initialize(): Promise<void> {
     const pathOverride =
-      vscode.workspace.getConfiguration("gitPlatform").get<string>("git.path")?.trim() ||
+      vscode.workspace.getConfiguration("gitspecs").get<string>("git.path")?.trim() ||
       undefined;
     this.git = await findGit(pathOverride);
     this.log.info(`Using git ${this.git.version} at ${this.git.path}`);

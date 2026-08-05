@@ -18,7 +18,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   try {
     await repos.initialize();
   } catch (err) {
-    await presentError(log, err, "Git Platform activation");
+    await presentError(log, err, "GitSpecs activation");
   }
 
   const refresh = new RefreshBus(repos);
@@ -30,23 +30,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // Activity bar + Source Control (SCM) host the same providers (GitLens-style dual placement).
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider("gitPlatform.worktrees", worktreesProvider),
-    vscode.window.registerTreeDataProvider("gitPlatform.branches", branchesProvider),
-    vscode.window.registerTreeDataProvider("gitPlatform.scm.worktrees", worktreesProvider),
-    vscode.window.registerTreeDataProvider("gitPlatform.scm.branches", branchesProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.worktrees", worktreesProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.branches", branchesProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.scm.worktrees", worktreesProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.scm.branches", branchesProvider),
   );
 
   registerWorktreeCommands(context, repos, refresh, log);
   registerBranchCommands(context, repos, refresh, log);
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("gitPlatform.switchRepository", async () => {
+    vscode.commands.registerCommand("gitspecs.switchRepository", async () => {
       await repos.switchRepositoryInteractive();
       refresh.fire();
     }),
   );
 
-  log.info("Git Platform activated");
+  log.info("GitSpecs activated");
 }
 
 export function deactivate(): void {

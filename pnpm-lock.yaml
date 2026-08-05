@@ -10,10 +10,10 @@ importers:
 
   packages/extension:
     dependencies:
-      '@gitplatform/git-core':
+      '@gitspecs/git-core':
         specifier: workspace:*
         version: link:../git-core
-      '@gitplatform/host-urls':
+      '@gitspecs/host-urls':
         specifier: workspace:*
         version: link:../host-urls
     devDependencies:

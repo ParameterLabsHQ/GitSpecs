@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "node:path";
-import type { WorktreeInfo } from "@gitplatform/git-core";
+import type { WorktreeInfo } from "@gitspecs/git-core";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { RefreshBus } from "../../shell/refreshBus.js";
 import { presentError } from "../../shell/errors.js";

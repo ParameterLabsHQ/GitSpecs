@@ -1,15 +1,15 @@
 {
-  "name": "git-platform",
+  "name": "gitspecs",
   "private": true,
   "version": "0.1.0",
   "description": "Open-source GitLens-style worktrees and branches for VS Code and Cursor",
   "license": "GPL-3.0-only",
   "scripts": {
     "build": "pnpm -r run build",
-    "test": "pnpm --filter @gitplatform/git-core test && pnpm --filter @gitplatform/host-urls test && pnpm --filter git-platform test",
-    "watch": "pnpm --filter git-platform run watch",
-    "package": "pnpm --filter git-platform run package",
-    "consumer": "pnpm --filter @gitplatform/git-core run consumer"
+    "test": "pnpm --filter @gitspecs/git-core test && pnpm --filter @gitspecs/host-urls test && pnpm --filter gitspecs test",
+    "watch": "pnpm --filter gitspecs run watch",
+    "package": "pnpm --filter gitspecs run package",
+    "consumer": "pnpm --filter @gitspecs/git-core run consumer"
   },
   "engines": {
     "node": ">=18"

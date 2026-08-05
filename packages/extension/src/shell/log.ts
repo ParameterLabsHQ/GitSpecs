@@ -4,7 +4,7 @@ export class PlatformLog {
   private readonly channel: vscode.OutputChannel;
 
   constructor() {
-    this.channel = vscode.window.createOutputChannel("Git Platform");
+    this.channel = vscode.window.createOutputChannel("GitSpecs");
   }
 
   dispose(): void {
@@ -25,7 +25,7 @@ export class PlatformLog {
 
   debug(message: string): void {
     const verbosity = vscode.workspace
-      .getConfiguration("gitPlatform")
+      .getConfiguration("gitspecs")
       .get<string>("log.verbosity", "info");
     if (verbosity === "debug") {
       this.channel.appendLine(`[debug] ${message}`);

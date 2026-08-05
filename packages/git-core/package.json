@@ -1,7 +1,7 @@
 {
-  "name": "@gitplatform/git-core",
+  "name": "@gitspecs/git-core",
   "version": "0.1.0",
-  "description": "System-git worktree and branch operations for Git Platform",
+  "description": "System-git worktree and branch operations for GitSpecs",
   "license": "GPL-3.0-only",
   "type": "module",
   "main": "./dist/index.js",

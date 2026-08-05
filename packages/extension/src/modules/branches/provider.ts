@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import type { BranchInfo } from "@gitplatform/git-core";
+import type { BranchInfo } from "@gitspecs/git-core";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { RefreshBus } from "../../shell/refreshBus.js";
 import { presentError } from "../../shell/errors.js";

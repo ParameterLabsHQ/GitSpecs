@@ -21,38 +21,38 @@ describe("SCM Source Control contributions (GitLens-style)", () => {
     const scm = pkg.contributes.views.scm;
     expect(scm).toBeDefined();
     const ids = scm.map((v) => v.id);
-    expect(ids).toContain("gitPlatform.scm.worktrees");
-    expect(ids).toContain("gitPlatform.scm.branches");
-    expect(scm.find((v) => v.id === "gitPlatform.scm.worktrees")?.name).toBe("Worktrees");
-    expect(scm.find((v) => v.id === "gitPlatform.scm.branches")?.name).toBe("Branches");
+    expect(ids).toContain("gitspecs.scm.worktrees");
+    expect(ids).toContain("gitspecs.scm.branches");
+    expect(scm.find((v) => v.id === "gitspecs.scm.worktrees")?.name).toBe("Worktrees");
+    expect(scm.find((v) => v.id === "gitspecs.scm.branches")?.name).toBe("Branches");
   });
 
   it("keeps dedicated activity-bar views as well", () => {
-    const side = pkg.contributes.views.gitPlatform;
+    const side = pkg.contributes.views.gitspecs;
     expect(side.map((v) => v.id)).toEqual(
-      expect.arrayContaining(["gitPlatform.worktrees", "gitPlatform.branches"]),
+      expect.arrayContaining(["gitspecs.worktrees", "gitspecs.branches"]),
     );
   });
 
   it("activates when SCM views become visible", () => {
-    expect(pkg.activationEvents).toContain("onView:gitPlatform.scm.worktrees");
-    expect(pkg.activationEvents).toContain("onView:gitPlatform.scm.branches");
+    expect(pkg.activationEvents).toContain("onView:gitspecs.scm.worktrees");
+    expect(pkg.activationEvents).toContain("onView:gitspecs.scm.branches");
   });
 
   it("wires view title and context menus for SCM view ids", () => {
     const titleWhens = pkg.contributes.menus["view/title"].map((m) => m.when);
-    expect(titleWhens.some((w) => w.includes("gitPlatform.scm.worktrees"))).toBe(true);
-    expect(titleWhens.some((w) => w.includes("gitPlatform.scm.branches"))).toBe(true);
+    expect(titleWhens.some((w) => w.includes("gitspecs.scm.worktrees"))).toBe(true);
+    expect(titleWhens.some((w) => w.includes("gitspecs.scm.branches"))).toBe(true);
 
     const itemWhens = pkg.contributes.menus["view/item/context"].map((m) => m.when);
-    expect(itemWhens.every((w) => w.includes("gitPlatform.scm.") || w.includes("gitPlatform.worktrees") || w.includes("gitPlatform.branches"))).toBe(true);
+    expect(itemWhens.every((w) => w.includes("gitspecs.scm.") || w.includes("gitspecs.worktrees") || w.includes("gitspecs.branches"))).toBe(true);
     expect(itemWhens.some((w) => w.includes("scm.worktrees"))).toBe(true);
     expect(itemWhens.some((w) => w.includes("scm.branches"))).toBe(true);
   });
 
   it("registers SCM providers in the shipped extension entry source", () => {
     const src = readFileSync(path.join(root, "src/extension.ts"), "utf8");
-    expect(src).toContain('registerTreeDataProvider("gitPlatform.scm.worktrees"');
-    expect(src).toContain('registerTreeDataProvider("gitPlatform.scm.branches"');
+    expect(src).toContain('registerTreeDataProvider("gitspecs.scm.worktrees"');
+    expect(src).toContain('registerTreeDataProvider("gitspecs.scm.branches"');
   });
 });

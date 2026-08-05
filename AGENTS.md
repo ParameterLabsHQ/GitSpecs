@@ -11,7 +11,7 @@ Guidance for AI coding agents and humans working in this repository.
 | **Public repo** | [ParameterLabsHQ/GitSpecs](https://github.com/ParameterLabsHQ/GitSpecs) |
 | **Extension package name** | `gitspecs` (full id: `ParameterLabsHQ.gitspecs`) |
 | **Settings / commands prefix** | `gitspecs.*` |
-| **View ids** | `gitspecs.worktrees`, `gitspecs.branches`, `gitspecs.scm.worktrees`, `gitspecs.scm.branches` |
+| **View ids** | Activity bar: `gitspecs.worktrees`, `gitspecs.branches`; SCM: single consolidated `gitspecs.scm` (Worktrees/Branches tabs via `gitspecs.scm.tab`) |
 | **Libraries** | `@gitspecs/git-core`, `@gitspecs/host-urls` |
 | **License** | GPL-3.0-only |
 | **Editors** | VS Code 1.85+ and Cursor (VS Code Extension API) |
@@ -35,25 +35,20 @@ Local clone folder may still be named `gitlens-clone`; that is incidental filesy
 
 ## What this project is
 
-Open-source **GitLens-style** shell focused on **worktrees** and **branches** so users are not forced to pay for those workflows. v1 is a daily-driver extension for Cursor/VS Code, not a full GitLens clone.
+Open-source **GitLens-style** extension for VS Code/Cursor. **Worktrees, branches, and file blame** ship today; the long-term path to broader GitLens-style parity is the phased roadmap (not full GitKraken cloud parity).
 
-**In scope (v1):**
+**Shipped today (high level):**
 
-- Worktrees: list, create (existing or new branch), open current/new window, reveal, copy path, remove, prune
-- Branches: full local/remote toolkit (CRUD, checkout, upstream, push/pull/fetch, delete remote, merge/rebase/cherry-pick, create from commit, compare summary, copy name, open on remote)
-- Hosting links: **URL-only** (GitHub/GitLab/Bitbucket/Azure DevOps); no PATs/APIs
-- UI: dedicated activity-bar container **and** GitLens-style sections in the **Source Control** tab
-- System `git` only (2.23+, prefer 2.25+)
+- Worktrees + branches (library + activity bar + SCM)
+- File blame (toggle decorations, line, output)
+- Hosting links: **URL-only** (`host-urls`); system `git` only (2.23+)
 
-**Out of scope (v1):**
+**Product roadmap (order of implementation):**  
+→ **[docs/ROADMAP.md](./docs/ROADMAP.md)** — complete phases **P0–P14**, status inventory, milestones, and non-parity deferrals (Launchpad, AI, Cloud Patches, etc.).
 
-- Blame, CodeLens, heatmaps, commit graph, file/line history webviews
-- Hosting provider HTTP APIs / create-PR flows
-- Marketplace/Open VSX publish (local VSIX is enough)
-- Interactive rebase UI / custom merge conflict UI
-- Embedding Git or isomorphic-git
+**Next implementation slice (per roadmap):** **P2** status-bar / current-line blame, then file history **P4** (see recommended sequence in the roadmap).
 
-Design source of truth: `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
+Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 
 ## Session history (foundation work)
 
@@ -69,7 +64,7 @@ Work done in the initial build/rebrand session, in rough order:
    - Command handlers must use `bindCommand` so TreeView context items are forwarded (never `async () => fn()` with zero args).
    - Worktree “existing branch” pick must include slashy local names (`feature/foo`) and **all** remotes, not only `origin/*`.
    - Publish with multiple remotes: cancel must **not** fall back to `origin` (`resolvePublishRemote`).
-8. **SCM placement** — Contribute `gitspecs.scm.worktrees` / `gitspecs.scm.branches` under the `scm` view container; same providers + menus as the sidebar.
+8. **SCM placement** — Contribute one consolidated `gitspecs.scm` panel under Source Control with Worktrees/Branches title-bar tabs (`gitspecs.scm.showWorktrees` / `showBranches`); activity-bar keeps dual views.
 9. **Packaging** — `pnpm package` → `packages/extension/gitspecs.vsix` (or current vsix name from package script); `repository` field required so vsce does not warn.
 10. **Rebrand** — `6559e9f` to GitSpecs / ParameterLabsHQ (see above).
 
@@ -138,40 +133,29 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 ## Extension UX notes
 
 - **Activity bar:** container `gitspecs` — Worktrees + Branches.
-- **Source Control tab:** same data under `gitspecs.scm.*` views (GitLens-style sections next to Changes).
-- Menus `when` clauses must include **both** sidebar and SCM view ids.
+- **Source Control tab:** one collapsible **GitSpecs** panel (`gitspecs.scm`) with title-bar tabs for Worktrees/Branches (not dual accordion sections).
+- Menus `when` clauses must include activity-bar view ids and, for SCM, `view == gitspecs.scm` plus `gitspecs.scm.tab == worktrees|branches`.
 - Output channel name: **GitSpecs**.
 - Settings namespace: `gitspecs.git.path`, `gitspecs.worktrees.*`, `gitspecs.confirmDelete`, `gitspecs.log.verbosity`.
 
 ## Product roadmap
 
-See **[docs/ROADMAP.md](./docs/ROADMAP.md)** for must-have GitLens-clone phases:
+**Canonical:** [docs/ROADMAP.md](./docs/ROADMAP.md)
 
-| Phase | Focus | Status |
-|-------|--------|--------|
-| 0 | Worktrees + branches (+ basic compare) | Done |
-| 1 | Authorship / **blame** | **Shipped** (`repo.blame`, `gitspecs.blame.*`) |
-| 2 | File / line history | Next incomplete must-have after blame |
-| 3 | Comparison polish | Partial |
-| 4 | Commit graph | Later |
+| Milestone | Phases | Status (summary) |
+|-----------|--------|------------------|
+| M0 Daily git ops | P0 | Done |
+| M1 Authorship | P1–P3 | P1 done; **P2 next**; P3 CodeLens not started |
+| M2 History | P4–P5 | Not started (stubs only) |
+| M3 Explore & compare | P6–P10 | Compare partial; views not started |
+| M4 Graph | P11 | Not started (stub) |
+| M5 Advanced | P12–P14 | Optional / polish / non-cloud |
 
-### Blame module notes
+### Blame module notes (P1)
 
 - Library: `@gitspecs/git-core` → `repo.blame.blame` / `blameLine` (`git blame --line-porcelain`).
-- Extension: `BlameController` decorations + commands `gitspecs.blame.toggleFile` / `showLine` / `fileToOutput`.
+- Extension: `BlameController` + `gitspecs.blame.toggleFile` / `showLine` / `fileToOutput`.
 - Format via shipped `formatBlameAnnotation` (do not reimplement in tests).
-
-## Implementation phases (historical)
-
-1. ~~Scaffold + license + empty activate~~
-2. ~~git-core exec + discovery + worktrees~~
-3. ~~branch toolkit~~
-4. ~~host-urls~~
-5. ~~extension shell + modules + SCM~~
-6. ~~Phase 1 blame~~
-7. Polish: refresh edge cases, multi-root UX, Windows/Linux verification
-8. Phase 2+ history / compare polish / graph (roadmap first)
-9. Public launch: CONTRIBUTING, CI, Open VSX / Marketplace under GPL-3.0
 
 ## Coding conventions
 
@@ -192,6 +176,6 @@ GPL-3.0-only. Relicensing future versions is only possible for code under copyri
 - [ ] Tree commands use `bindCommand` (args forwarded)
 - [ ] Worktree branch pick keeps `feature/*` and non-`origin` remotes
 - [ ] Multi-remote publish cancel does not push to `origin`
-- [ ] SCM + activity bar view ids stay registered and menu-wired
+- [ ] SCM single panel (`gitspecs.scm`) + activity-bar dual views stay registered and menu-wired
 - [ ] `repository.url` in extension `package.json` points at `https://github.com/ParameterLabsHQ/GitSpecs.git`
 - [ ] `pnpm test` and `pnpm package` stay green

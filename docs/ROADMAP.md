@@ -1,84 +1,300 @@
-# GitSpecs product roadmap — GitLens-clone must-haves
+# GitSpecs roadmap — GitLens-style feature parity
 
-**Product:** GitSpecs (ParameterLabsHQ)  
-**Date:** 2026-08-04  
+**Product:** GitSpecs · **Org:** ParameterLabsHQ · **Repo:** [ParameterLabsHQ/GitSpecs](https://github.com/ParameterLabsHQ/GitSpecs)  
 **License:** GPL-3.0-only  
+**Updated:** 2026-08-04  
 **Audience:** maintainers and coding agents
 
-This roadmap defines **must-have** feature areas for an open-source GitLens-style experience in VS Code/Cursor, maps what GitSpecs already ships, and orders remaining work. It is **not** full GitLens parity.
+This is the **single product contract** for how GitSpecs approaches open-source **GitLens-style** parity in VS Code/Cursor. It orders work into **shippable phases**, records honest **current status**, and separates **local system-git parity** from **cloud/Pro non-goals**.
 
-## Must-have feature map
+> **Do not implement every phase in one goal.** Each incomplete phase should become its own design note (if large) → implementation plan → PR. Keep Phase N green before starting N+1 unless the phase explicitly allows parallel polish.
 
-| Area | GitLens role | GitSpecs status | Roadmap phase |
-|------|----------------|-----------------|---------------|
-| **Worktree management** | Create/switch/remove worktrees | **Shipped** (library + activity bar + SCM views + commands) | Phase 0 (done) |
-| **Branch management** | Local/remote toolkit, publish, merge/rebase | **Shipped** (full toolkit in `git-core` + Branches UI) | Phase 0 (done) |
-| **Comparison** | Compare refs / revisions | **Partial** — `branches.compare` + command summary in Output; no dedicated compare UI | Phase 0 partial → polish in Phase 3 |
-| **Authorship / blame** | Inline blame, hover/context, CodeLens-class line history of authorship | **Shipped** (`repo.blame`, toggle decorations, line/file commands) | Phase 1 (done) |
-| **File / line history** | Navigate commits that touched a file or line | **Not shipped** (module stub only) | **Phase 2 (next)** |
-| **Commit graph** | Visual DAG of branches/commits | **Not shipped** (module stub only) | Phase 4 |
+---
 
-### Explicitly deferred (not must-haves for this clone track)
+## 1. Parity principles
 
-- Launchpad / work-item hubs  
-- AI commit messages / Code Suggest  
-- Cloud Patches  
-- Hosting HTTP APIs, PR creation, multi-account auth beyond URL-open  
-- Interactive rebase editor UI / custom merge-conflict UI  
-- Marketplace/Open VSX marketing polish (packaging already works locally)  
-- Heatmaps, avatars-as-service, Pro paywalls  
+1. **System `git` only** for repository truth (`@gitspecs/git-core`). No isomorphic-git, no embedded binary.
+2. **Library before UI.** Porcelain parsers and ops live in pure packages; the extension binds TreeViews, commands, decorations, CodeLens, webviews.
+3. **URL remotes before hosting APIs.** `host-urls` stays network-free until a late optional phase.
+4. **One current repo context** (multi-root switcher) for all views/commands.
+5. **Branding:** `GitSpecs` / `ParameterLabsHQ` / `gitspecs.*` only (see `AGENTS.md`).
+6. **Open-source local parity ≠ GitKraken cloud.** Launchpad, Cloud Patches, AI Commit Composer, Code Suggest, paywalls are **non-parity** (Section 5).
 
-## Phase 0 — Worktrees & branches platform (done)
+---
 
-**Done means:** Users manage worktrees and branches from GitSpecs without GitLens; system-git library ops tested; dual UI (activity bar + Source Control).
+## 2. Current status vs GitLens surface (inventory)
 
-| Deliverable | Status |
-|-------------|--------|
-| `@gitspecs/git-core` worktrees + branches | Done |
-| `@gitspecs/host-urls` open-on-remote (URL-only) | Done |
-| Extension shell, settings, refresh | Done |
-| SCM + sidebar views/commands | Done |
-| Compare summary (ahead/behind + shortstat) | Done (basic) |
+Status is grounded in the monorepo as of this revision.
 
-## Phase 1 — Authorship / blame (done)
+| GitLens-style area | GitSpecs status | Evidence (code) | Phase |
+|--------------------|-----------------|-----------------|-------|
+| Platform shell (activation, settings, refresh, multi-root) | **Shipped** | `packages/extension/src/shell/*` | P0 |
+| Worktree management | **Shipped** | `git-core` `worktrees.ts`; module `modules/worktrees` | P0 |
+| Branch management (local/remote toolkit) | **Shipped** | `git-core` `branches.ts`; module `modules/branches` | P0 |
+| Open / copy remote URLs | **Shipped** (URL-only) | `packages/host-urls`; `gitspecs.branches.openRemote` | P0 |
+| Compare (ahead/behind + shortstat) | **Partial** | `branches.compare` + command → Output | P0 / **P6** polish |
+| Activity-bar Worktrees + Branches | **Shipped** | `views.gitspecs` | P0 |
+| SCM integration | **Shipped** (consolidated panel + tabs) | `gitspecs.scm`, `scmTabs.ts`, `scmGroupedProvider.ts` | P0 |
+| File blame (toggle decorations, line, output) | **Shipped** | `git-core` `blame.ts`; `modules/blame` | P1 |
+| Status-bar blame (current line) | **Not started** | — | **P2** |
+| CodeLens (recent change / authors on symbols) | **Not started** | — | **P3** |
+| Hover / rich authorship peek | **Partial** | Blame decoration `hoverMessage` only | P1 / **P3** enrich |
+| File history | **Not started** | Stub `modules/history/README.md` only | **P4** |
+| Line history | **Not started** | Stub only | **P5** |
+| Search & compare UI (commits, files, lines) | **Not started** | Basic branch compare only | **P6** |
+| Commits sidebar / SCM commits browser | **Not started** | — | **P7** |
+| Stashes view + actions | **Not started** | — | **P8** |
+| Tags / remotes browser views | **Partial** | Remotes appear under Branches tree; no dedicated Tags/Remotes modules | **P9** |
+| Contributors view | **Not started** | — | **P10** |
+| Commit Graph (visual DAG) | **Not started** | Stub `modules/graph/README.md` only | **P11** |
+| Interactive rebase / history rewrite UI | **Not started** | — | **P12** (parity-target, hard) |
+| Hosting provider HTTP APIs (PRs, issues) | **Not started** | Explicitly late / optional | **P13** optional |
+| Heatmaps / avatar CDN / always-on perf polish | **Not started** | Deferred polish | **P14** polish |
 
-**Goal:** Line-level authorship context from system git, usable from the editor.
+---
 
-**Done means (met):**
+## 3. Implementation order (phases)
 
-- Library: `repo.blame.blame` / `blameLine` via real `git blame --line-porcelain`; structured rows with `sha`, `author`, `authorTime`, `summary`, `lineNumber`, content.
-- Extension: `gitspecs.blame.toggleFile` (end-of-line decorations + hover), `showLine`, `fileToOutput`; editor context/title menus.
-- Tests: real-git fixtures + consumer smoke on shipped dist.
+Phases are **sequential dependencies** unless noted. Each phase is a slice a future agent can plan and ship alone.
 
-**Out of Phase 1:** Full GitLens-style always-on heatmaps, avatar CDN, blame-on-every-keystroke performance tuning beyond debounce.
+### Phase P0 — Foundation: worktrees, branches, shell, remotes URLs *(done)*
 
-## Phase 2 — File & line history
+**Depends on:** nothing  
+**Done means:**
 
-**Done means:** For a path (and optionally a line range), list commits newest-first with sha/subject/author/date; command or view to open/compare a historical revision; library uses `git log`/`git log -L` as appropriate with real-git tests.
+- `git-core` worktree + branch ops with real-git tests  
+- Extension shell: `RepoContext`, `RefreshBus`, errors, settings  
+- Worktrees + Branches UI (activity bar + SCM)  
+- Open on remote via `host-urls` (no network I/O)  
+- Basic `branches.compare` available to commands  
 
-## Phase 3 — Comparison polish
+### Phase P1 — Authorship: file blame *(done)*
 
-**Done means:** Beyond Output summary: pick two refs (or working tree vs ref), show ahead/behind + shortstat in a dedicated panel or tree; optional open host compare URL via `host-urls`. Reuses `branches.compare`.
+**Depends on:** P0  
+**Done means:**
 
-## Phase 4 — Commit graph
+- `repo.blame` / `blameLine` via `git blame --line-porcelain`  
+- Toggle file annotations, show line blame, blame file to Output  
+- Real-git tests + consumer smoke  
 
-**Done means:** Visual or structured graph of recent commits/branches (native tree or webview); navigate checkout/create-branch-from-commit. Large UI investment — after history/blame are useful daily.
+**Out of P1:** status-bar line blame, CodeLens, heatmaps (see P2–P3, P14).
 
-## Implementation order (agents)
+### Phase P2 — Authorship: status-bar & current-line blame *(next)*
 
-1. Keep Phase 0–1 green (`pnpm test`, `pnpm package`).  
-2. **Ship Phase 2 file/line history** next.  
-3. New phases get a short design note under `docs/superpowers/specs/` when they grow beyond a single PR.  
-4. Branding stays **GitSpecs** / **ParameterLabsHQ** / `gitspecs.*` (see `AGENTS.md`).
+**Depends on:** P1  
+**Parity target:** GitLens current-line blame in the status bar  
 
-## Success criteria for “must-have clone” (long term)
+**Done means:**
 
-A user can, without GitLens Pro:
+- Status bar item shows annotation for the line under the cursor (author • relative/absolute date • short sha)  
+- Click opens detail (message / copy sha / open commit URL when remote parseable)  
+- Debounced refresh on cursor move; respects enabled setting `gitspecs.blame.statusBar`  
+- Unit tests for pure formatters; structural tests for status-bar contribution if declared in package.json  
 
-1. Manage worktrees and branches (Phase 0)  
-2. See who last changed a line and when (Phase 1)  
-3. Walk file/line history (Phase 2)  
-4. Compare revisions clearly (Phase 3)  
-5. Orient in branch topology via a graph (Phase 4)  
+### Phase P3 — Authorship: CodeLens & richer hovers
 
-Roadmap + Phase 1 implementation are complete; next agent work should start at **Phase 2**.
+**Depends on:** P1 (P2 optional but preferred first)  
+**Parity target:** GitLens CodeLens recent change / authors on code  
+
+**Done means:**
+
+- CodeLens provider on text documents: at least “N authors” or “last change: subject (author, date)” for current file or top-level symbols (start with **file-level** CodeLens, then symbol-range if cheap)  
+- Command from CodeLens → file history (P4) or blame detail  
+- Hover enrichment reuses blame/history data without blocking the extension host (cache + debounce)  
+- Setting to disable CodeLens  
+
+### Phase P4 — Revision navigation: file history
+
+**Depends on:** P0; benefits from P1  
+**Parity target:** GitLens File History  
+
+**Done means:**
+
+- Library: `repo.history.file(path, { limit })` → ordered commits (`sha`, `subject`, `author`, `authorTime`) via `git log --follow` (or documented follow policy)  
+- Tree view or QuickPick: history for active file  
+- Actions: copy sha, open commit on remote (URL), compare with working tree / parent (hooks P6), checkout file at revision (optional show content in editor)  
+- Real-git tests on multi-commit fixtures  
+
+### Phase P5 — Revision navigation: line history
+
+**Depends on:** P4  
+**Parity target:** GitLens Line History  
+
+**Done means:**
+
+- Library: line-range history via `git log -L` (or equivalent documented fallback when `-L` fails on renames)  
+- Command: history for selection / current line  
+- Results list with same actions as file history  
+- Real-git tests with known line evolution  
+
+### Phase P6 — Compare & search
+
+**Depends on:** P0 (`branches.compare`); P4 recommended for file-level compare  
+**Parity target:** GitLens Compare / Search & Compare  
+
+**Done means:**
+
+- UI beyond Output: QuickPick or tree to pick **two refs** (or ref vs working tree)  
+- Show ahead/behind + shortstat; list changed files (`git diff --name-status`)  
+- Open host compare URL via `host-urls.compareUrl` when remotes known  
+- Search commits by message/author (library `git log --grep` / `--author`) from a command palette entry  
+- Real-git tests for compare file list + search  
+
+### Phase P7 — Sidebar: Commits browser
+
+**Depends on:** P0  
+**Parity target:** GitLens Commits view  
+
+**Done means:**
+
+- Library helpers for recent commits on current branch (`git log`)  
+- Activity-bar and/or SCM section: Commits tree (graph-lite list is fine)  
+- Actions: copy sha, checkout, create branch from commit (reuse branches API), open on remote  
+- Refresh via existing `RefreshBus`  
+
+### Phase P8 — Sidebar: Stashes
+
+**Depends on:** P0  
+**Parity target:** GitLens Stashes  
+
+**Done means:**
+
+- Library: list / push / apply / pop / drop / show stash (`git stash`)  
+- Stashes tree view + commands with confirms on destructive ops  
+- Real-git tests  
+
+### Phase P9 — Sidebar: Tags & remotes browser
+
+**Depends on:** P0  
+**Parity target:** GitLens Tags / Remotes views  
+
+**Done means:**
+
+- Library: list tags; create/delete tag; list remotes; fetch remote (push/delete remote branch already partial via branches)  
+- Tags view + Remotes view (or grouped under GitSpecs container)  
+- Open remote URL remains URL-only unless P13 lands  
+
+### Phase P10 — Sidebar: Contributors
+
+**Depends on:** P0  
+**Parity target:** GitLens Contributors  
+
+**Done means:**
+
+- Library: shortlog / contribution counts (`git shortlog` or log aggregation)  
+- Contributors tree with commit counts; optional “open file history by author” later  
+- Real-git tests on multi-author fixtures  
+
+### Phase P11 — Commit Graph
+
+**Depends on:** P7 (commits data); P0 branches  
+**Parity target:** GitLens Commit Graph (often Pro) — still a **clone must-have**, last large local UI slice  
+
+**Done means:**
+
+- Data: enough graph model for recent N commits + branch tips (library parse of `git log --graph` **or** structured parent list + layout)  
+- UI: webview or high-density tree showing topology; select commit → details  
+- Actions: checkout, create branch, compare, open remote  
+- Performance bounds documented (e.g. last 200–500 commits default)  
+
+### Phase P12 — History rewrite UX (parity-target, optional order)
+
+**Depends on:** P0 branches (merge/rebase/cherry-pick already non-interactive)  
+**Parity target:** GitLens interactive rebase editor / guided rewrite  
+
+**Done means:**
+
+- Safer guided flows for rebase/cherry-pick with conflict messaging (not a full custom mergetool)  
+- Optional: sequence editor integration via `GIT_SEQUENCE_EDITOR` helper script  
+- Explicitly **not** required for “daily driver” claim; schedule after P7–P11 unless users demand it earlier  
+
+### Phase P13 — Hosting APIs *(optional parity track)*
+
+**Depends on:** P0 host-urls  
+**Type:** optional — **not** required for local OSS parity  
+
+**Done means (if pursued):**
+
+- Optional PAT/OAuth settings for GitHub/GitLab  
+- Create PR / view PR for branch when credentials exist  
+- Never block offline git workflows  
+
+### Phase P14 — Polish *(continuous, after core daily-driver)*
+
+**Depends on:** P1+  
+**Done means (incremental):**
+
+- Blame heatmaps, avatar providers, animation/perf, accessibility  
+- Windows/Linux CI matrix  
+- CONTRIBUTING, release automation, Open VSX/Marketplace publish  
+
+---
+
+## 4. Suggested milestone groups
+
+| Milestone | Phases | User-visible outcome |
+|-----------|--------|----------------------|
+| **M0 Daily git ops** | P0 | Replace GitLens for worktrees/branches |
+| **M1 Authorship** | P1–P3 | See who changed lines without leaving the editor |
+| **M2 History** | P4–P5 | Walk file/line revision history |
+| **M3 Explore & compare** | P6–P10 | Browse commits/stashes/tags; rich compare/search |
+| **M4 Graph** | P11 | Visual branch topology |
+| **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
+
+**Next implementation goal after this roadmap:** **P2** (status-bar / current-line blame), then **P3** or **P4** (CodeLens vs file history—prefer **P4 file history** if authorship P2 is small, or **P2 then P4** for daily-driver value).
+
+Recommended default sequence for agents:
+
+```
+P2 → P4 → P5 → P3 → P6 → P7 → P8 → P9 → P10 → P11 → P12 → (P13?) → P14
+```
+
+Rationale: status-bar blame is a small win on P1; file/line history unlock more navigation than CodeLens; CodeLens after history can deep-link into it; graph after commits list exists; hosting APIs last.
+
+---
+
+## 5. Explicitly out of open-source parity (non-goals)
+
+These GitKraken/GitLens **cloud or Pro-adjacent** products are **not** success criteria for GitSpecs OSS parity:
+
+| Item | Why deferred |
+|------|----------------|
+| Launchpad / work-item hub | Cloud product surface |
+| Cloud Patches | SaaS collaboration |
+| Code Suggest / AI commit composer | Vendor AI services |
+| GitLens+ paywall / paid feature gates | We stay fully free/OSS |
+| Avatar CDN / identity services | Optional polish only (P14) |
+| Multi-org enterprise hosting matrices | Beyond URL + optional P13 |
+| Pixel-perfect GitLens UI clones | Functional parity first |
+
+Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud—still optional ordering.
+
+---
+
+## 6. Agent checklist for any new phase
+
+1. Read this roadmap + `AGENTS.md` branding rules.  
+2. Add/adjust library ops in `@gitspecs/git-core` (or pure sibling package) with **real-git** tests.  
+3. Wire extension contributions (`gitspecs.*` commands/views) via `bindCommand` for TreeItem args.  
+4. Keep activity-bar / SCM dual placement consistent when adding views.  
+5. Update **Section 2 status table** in this file when a phase ships.  
+6. `pnpm test` and `pnpm package` green before claiming done.  
+
+---
+
+## 7. Related docs
+
+| Doc | Role |
+|-----|------|
+| [AGENTS.md](../AGENTS.md) | Agent conventions, branding, architecture rules |
+| [README.md](../README.md) | User-facing install and feature summary |
+| [Design v1](./superpowers/specs/2026-08-04-gitspecs-design.md) | Original v1 design (worktrees/branches shell) |
+
+---
+
+## 8. Changelog of this roadmap
+
+| Date | Change |
+|------|--------|
+| 2026-08-04 | Initial must-have Phases 0–4 sketch |
+| 2026-08-04 | Expanded to full GitLens-style parity order **P0–P14**, status inventory, milestones, non-parity deferrals; next slice **P2** |

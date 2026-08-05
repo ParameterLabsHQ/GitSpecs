@@ -1,6 +1,8 @@
 # GitSpecs
 
-Open-source **worktree** and **branch** management for **VS Code** and **Cursor** — a GitLens-style platform shell (GPL-3.0-only) focused on the workflows people often hit behind a paywall.
+Open-source **GitLens-style** tooling for **VS Code** and **Cursor** (GPL-3.0-only): worktrees, branches, and file blame today, with a phased path toward broader local feature parity.
+
+**Roadmap (implementation order):** [docs/ROADMAP.md](./docs/ROADMAP.md) — phases P0–P14, status inventory, and what is deliberately *not* parity (cloud/AI).
 
 ## Requirements
 
@@ -32,13 +34,15 @@ Local + remote listing with upstream ahead/behind, create/rename/delete (safe + 
 - **GitSpecs: Show Line Blame** — message for the current line  
 - **GitSpecs: Blame File to Output** — full file dump in the GitSpecs output channel  
 
-Product roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md).
+### What’s next
+
+See the full phased plan in **[docs/ROADMAP.md](./docs/ROADMAP.md)**. Next slice: **P2** status-bar / current-line blame, then file/line history, compare UI, sidebar views (commits/stashes/tags), commit graph.
 
 ## Monorepo layout
 
 | Package | Role |
 |---------|------|
-| `@gitspecs/git-core` | System `git` CLI ops (worktrees, branches) |
+| `@gitspecs/git-core` | System `git` CLI ops (worktrees, branches, blame, …) |
 | `@gitspecs/host-urls` | Remote URL → browser links (no network) |
 | `gitspecs` (publisher `ParameterLabsHQ`) | VS Code/Cursor extension |
 

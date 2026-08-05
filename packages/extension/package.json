@@ -825,6 +825,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show file-level blame CodeLens (author count and last change). Click for blame detail."
+        },
+        "gitspecs.blame.heatmap": {
+          "type": "boolean",
+          "default": false,
+          "description": "When file blame is on, color the overview ruler by author age (newer = warmer). Polish heatmap; off by default."
         }
       }
     }

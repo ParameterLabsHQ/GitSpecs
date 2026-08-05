@@ -17,6 +17,7 @@ import {
   toDetailPayload,
   type BlameDetailPayload,
 } from "./detail.js";
+import { heatmapColorForAuthorTime } from "./heatmap.js";
 
 const STATUS_BAR_DEBOUNCE_MS = 200;
 const DECORATION_DEBOUNCE_MS = 400;
@@ -361,13 +362,16 @@ export class BlameController implements vscode.Disposable {
         byLine.set(r.lineNumber, r);
       }
 
+      const heatmap = vscode.workspace
+        .getConfiguration("gitspecs.blame")
+        .get<boolean>("heatmap", false);
       const decorations: vscode.DecorationOptions[] = [];
       for (let i = 0; i < editor.document.lineCount; i++) {
         const lineNo = i + 1;
         const blame = byLine.get(lineNo);
         if (!blame) continue;
         const range = editor.document.lineAt(i).range;
-        decorations.push({
+        const deco: vscode.DecorationOptions = {
           range,
           renderOptions: {
             after: {
@@ -375,7 +379,12 @@ export class BlameController implements vscode.Disposable {
             },
           },
           hoverMessage: new vscode.MarkdownString(formatEnrichedBlameHover(blame)),
-        });
+        };
+        if (heatmap) {
+          // Overview ruler age heat (accessibility: visual density of recent edits).
+          deco.overviewRulerColor = heatmapColorForAuthorTime(blame.authorTime);
+        }
+        decorations.push(deco);
       }
       editor.setDecorations(this.decorationType, decorations);
     } catch (err) {

@@ -48,7 +48,7 @@ Local + remote listing with upstream ahead/behind, create/rename/delete (safe + 
 
 ### What’s next
 
-See the full phased plan in **[docs/ROADMAP.md](./docs/ROADMAP.md)**. Next slice: **P8** Stashes, then tags/remotes/contributors views, commit graph.
+Local OSS parity phases **P0–P12** are shipped; **P13** hosting HTTP APIs are deferred (credentials); **P14** has a finite polish slice (blame heatmap option, CONTRIBUTING, CI). See **[docs/ROADMAP.md](./docs/ROADMAP.md)** and **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
 
 ## Monorepo layout
 

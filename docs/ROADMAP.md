@@ -48,8 +48,8 @@ Status is grounded in the monorepo as of this revision.
 | Contributors view | **Shipped** | `contributors.ts` shortlog; `modules/contributors` | **P10** |
 | Commit Graph (visual DAG) | **Shipped** (high-density tree) | `graph.ts` parents+lanes; `modules/graph` (default 200 / max 500) | **P11** |
 | Interactive rebase / history rewrite UI | **Shipped** (guided, not full editor) | `rewrite.ts` status/abort/continue + guided rebase/cherry-pick | **P12** |
-| Hosting provider HTTP APIs (PRs, issues) | **Not started** | Explicitly late / optional | **P13** optional |
-| Heatmaps / avatar CDN / always-on perf polish | **Not started** | Deferred polish | **P14** polish |
+| Hosting provider HTTP APIs (PRs, issues) | **Deferred** | Needs PAT/OAuth secrets; offline git must not block — see P13 note | **P13** optional |
+| Heatmaps / avatar CDN / always-on perf polish | **Shipped** (finite slice) | Blame heatmap setting; CONTRIBUTING; GitHub CI matrix; no avatar CDN | **P14** polish |
 
 ---
 
@@ -222,7 +222,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 **Shipped:** `repo.rewrite` (status / abort / continue / guidedRebase / guidedCherryPick with clean-tree preflight); commands `gitspecs.rewrite.*` with conflict guidance and Abort action. Sequence editor intentionally deferred.  
 
-### Phase P13 — Hosting APIs *(optional parity track)*
+### Phase P13 — Hosting APIs *(optional parity track)* — **deferred**
 
 **Depends on:** P0 host-urls  
 **Type:** optional — **not** required for local OSS parity  
@@ -233,7 +233,9 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Create PR / view PR for branch when credentials exist  
 - Never block offline git workflows  
 
-### Phase P14 — Polish *(continuous, after core daily-driver)*
+**Deferred reason (2026-08-05):** Full Done means require stored credentials (PAT/OAuth). AGENTS.md forbids inventing token storage for v1; no secrets/network credentials are available in agent goals. URL-only remote open remains shipped via `host-urls`. Revisit when a deliberate secrets design + user-facing auth UX lands.
+
+### Phase P14 — Polish *(continuous, after core daily-driver)* *(finite slice shipped)*
 
 **Depends on:** P1+  
 **Done means (incremental):**
@@ -241,6 +243,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Blame heatmaps, avatar providers, animation/perf, accessibility  
 - Windows/Linux CI matrix  
 - CONTRIBUTING, release automation, Open VSX/Marketplace publish  
+
+**Shipped (finite slice):** optional `gitspecs.blame.heatmap` overview-ruler age colors; [CONTRIBUTING.md](../CONTRIBUTING.md); GitHub Actions CI on `ubuntu-latest` + `macos-latest` (build/test/package/consumer). Avatar CDN, Open VSX publish automation, and Windows CI matrix remain follow-ups.  
 
 ---
 
@@ -253,17 +257,15 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M2 History** | P4–P5 | Walk file/line revision history — **done** |
 | **M3 Explore & compare** | P6–P10 | Browse commits/stashes/tags; rich compare/search (P6–P7 shipped) |
 | **M4 Graph** | P11 | Visual branch topology — **done** (high-density tree) |
-| **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
+| **M5 Advanced** | P12–P14 | Rewrite UX shipped; P13 deferred; P14 finite polish shipped |
 
-**Next implementation goal after this roadmap:** **P14** polish (P13 hosting APIs deferred without secrets), building on shipped P0–P12.
+**Next implementation goal after this roadmap:** none for local OSS parity phases — **P0–P12 shipped**, **P13 deferred** (credentials), **P14 finite polish shipped**. Further work is incremental polish, hosting auth design, or user-reported fixes.
 
-Recommended default sequence for agents (P0–P12 shipped):
+Recommended default sequence for agents (complete):
 
 ```
-(P13 deferred?) → P14
+(P0–P12 done) → (P13 only with secrets design) → ongoing P14 polish
 ```
-
-Rationale: optional hosting APIs need credentials; polish is a finite OSS slice.
 
 ---
 
@@ -318,3 +320,4 @@ Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud�
 | 2026-08-05 | Marked **P10** Contributors shipped; next slice **P11** |
 | 2026-08-05 | Marked **P11** Commit Graph shipped (lane layout + high-density tree); next slice **P12** |
 | 2026-08-05 | Marked **P12** guided rewrite UX shipped; next **P13?** / **P14** |
+| 2026-08-05 | **P13 deferred** (no token storage); **P14** finite polish (heatmap + CONTRIBUTING + CI) |

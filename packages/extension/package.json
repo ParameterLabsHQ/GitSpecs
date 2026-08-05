@@ -17,6 +17,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onStartupFinished",
     "onView:gitspecs.worktrees",
     "onView:gitspecs.branches",
     "onView:gitspecs.scm",
@@ -27,7 +28,9 @@
     "onCommand:gitspecs.branches.refresh",
     "onCommand:gitspecs.blame.toggleFile",
     "onCommand:gitspecs.blame.showLine",
-    "onCommand:gitspecs.blame.fileToOutput"
+    "onCommand:gitspecs.blame.fileToOutput",
+    "onCommand:gitspecs.blame.statusBarDetails",
+    "onCommand:gitspecs.blame.codeLensDetail"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -95,6 +98,14 @@
       {
         "command": "gitspecs.blame.fileToOutput",
         "title": "GitSpecs: Blame File to Output"
+      },
+      {
+        "command": "gitspecs.blame.statusBarDetails",
+        "title": "GitSpecs: Status Bar Blame Details"
+      },
+      {
+        "command": "gitspecs.blame.codeLensDetail",
+        "title": "GitSpecs: CodeLens Blame Details"
       },
       {
         "command": "gitspecs.worktrees.refresh",
@@ -394,6 +405,16 @@
           ],
           "default": "info",
           "description": "Output channel verbosity."
+        },
+        "gitspecs.blame.statusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show current-line blame in the status bar (author • date • short SHA). Click for detail actions."
+        },
+        "gitspecs.blame.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show file-level blame CodeLens (author count and last change). Click for blame detail."
         }
       }
     }

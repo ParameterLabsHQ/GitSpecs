@@ -36,9 +36,9 @@ Status is grounded in the monorepo as of this revision.
 | Activity-bar Worktrees + Branches | **Shipped** | `views.gitspecs` | P0 |
 | SCM integration | **Shipped** (consolidated panel + tabs) | `gitspecs.scm`, `scmTabs.ts`, `scmGroupedProvider.ts` | P0 |
 | File blame (toggle decorations, line, output) | **Shipped** | `git-core` `blame.ts`; `modules/blame` | P1 |
-| Status-bar blame (current line) | **Not started** | — | **P2** |
-| CodeLens (recent change / authors on symbols) | **Not started** | — | **P3** |
-| Hover / rich authorship peek | **Partial** | Blame decoration `hoverMessage` only | P1 / **P3** enrich |
+| Status-bar blame (current line) | **Shipped** | `modules/blame` status bar + `gitspecs.blame.statusBar` | **P2** |
+| CodeLens (recent change / authors on symbols) | **Shipped** (file-level) | `modules/blame/codeLens.ts` + `gitspecs.blame.codeLens` | **P3** |
+| Hover / rich authorship peek | **Shipped** (enriched) | Enriched decoration hover + shared blame cache | P1 / **P3** |
 | File history | **Not started** | Stub `modules/history/README.md` only | **P4** |
 | Line history | **Not started** | Stub only | **P5** |
 | Search & compare UI (commits, files, lines) | **Not started** | Basic branch compare only | **P6** |
@@ -79,7 +79,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 **Out of P1:** status-bar line blame, CodeLens, heatmaps (see P2–P3, P14).
 
-### Phase P2 — Authorship: status-bar & current-line blame *(next)*
+### Phase P2 — Authorship: status-bar & current-line blame *(done)*
 
 **Depends on:** P1  
 **Parity target:** GitLens current-line blame in the status bar  
@@ -91,7 +91,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Debounced refresh on cursor move; respects enabled setting `gitspecs.blame.statusBar`  
 - Unit tests for pure formatters; structural tests for status-bar contribution if declared in package.json  
 
-### Phase P3 — Authorship: CodeLens & richer hovers
+### Phase P3 — Authorship: CodeLens & richer hovers *(done)*
 
 **Depends on:** P1 (P2 optional but preferred first)  
 **Parity target:** GitLens CodeLens recent change / authors on code  
@@ -103,7 +103,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Hover enrichment reuses blame/history data without blocking the extension host (cache + debounce)  
 - Setting to disable CodeLens  
 
-### Phase P4 — Revision navigation: file history
+### Phase P4 — Revision navigation: file history *(next)*
 
 **Depends on:** P0; benefits from P1  
 **Parity target:** GitLens File History  

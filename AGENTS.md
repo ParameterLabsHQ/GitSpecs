@@ -46,7 +46,7 @@ Open-source **GitLens-style** extension for VS Code/Cursor. **Worktrees, branche
 **Product roadmap (order of implementation):**  
 → **[docs/ROADMAP.md](./docs/ROADMAP.md)** — complete phases **P0–P14**, status inventory, milestones, and non-parity deferrals (Launchpad, AI, Cloud Patches, etc.).
 
-**Next implementation slice (per roadmap):** **P2** status-bar / current-line blame, then file history **P4** (see recommended sequence in the roadmap).
+**Next implementation slice (per roadmap):** **P4** file history (P2 status-bar blame and P3 CodeLens are shipped; see recommended sequence in the roadmap).
 
 Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 
@@ -145,17 +145,19 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 | Milestone | Phases | Status (summary) |
 |-----------|--------|------------------|
 | M0 Daily git ops | P0 | Done |
-| M1 Authorship | P1–P3 | P1 done; **P2 next**; P3 CodeLens not started |
-| M2 History | P4–P5 | Not started (stubs only) |
+| M1 Authorship | P1–P3 | **Done** (file blame, status-bar, CodeLens) |
+| M2 History | P4–P5 | Not started (stubs only); **P4 next** |
 | M3 Explore & compare | P6–P10 | Compare partial; views not started |
 | M4 Graph | P11 | Not started (stub) |
 | M5 Advanced | P12–P14 | Optional / polish / non-cloud |
 
-### Blame module notes (P1)
+### Blame module notes (P1–P3)
 
 - Library: `@gitspecs/git-core` → `repo.blame.blame` / `blameLine` (`git blame --line-porcelain`).
-- Extension: `BlameController` + `gitspecs.blame.toggleFile` / `showLine` / `fileToOutput`.
-- Format via shipped `formatBlameAnnotation` (do not reimplement in tests).
+- Extension: `BlameController` (decorations + status bar), `BlameCodeLensProvider`, shared `BlameCache`.
+- Commands: `gitspecs.blame.toggleFile` / `showLine` / `fileToOutput` / `statusBarDetails` / `codeLensDetail`.
+- Settings: `gitspecs.blame.statusBar`, `gitspecs.blame.codeLens` (both default true).
+- Format via shipped `formatBlameAnnotation` + pure helpers in `modules/blame/format.ts` / `detail.ts` (do not reimplement in tests).
 
 ## Coding conventions
 

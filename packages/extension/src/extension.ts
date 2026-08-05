@@ -9,6 +9,7 @@ import { BranchesProvider } from "./modules/branches/provider.js";
 import { registerBranchCommands } from "./modules/branches/commands.js";
 import { BlameController } from "./modules/blame/controller.js";
 import { registerBlameCommands } from "./modules/blame/commands.js";
+import { BlameCodeLensProvider } from "./modules/blame/codeLens.js";
 import {
   DEFAULT_SCM_TAB,
   SCM_CONSOLIDATED_VIEW_ID,
@@ -73,6 +74,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const blameController = new BlameController(repos, log);
   context.subscriptions.push(blameController);
   registerBlameCommands(context, repos, log, blameController);
+
+  const blameCodeLens = new BlameCodeLensProvider(
+    repos,
+    blameController.blameCache,
+    log,
+  );
+  context.subscriptions.push(
+    blameCodeLens,
+    vscode.languages.registerCodeLensProvider({ scheme: "file" }, blameCodeLens),
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand("gitspecs.switchRepository", async () => {

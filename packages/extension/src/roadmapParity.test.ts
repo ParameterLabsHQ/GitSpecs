@@ -152,8 +152,8 @@ describe("AGENTS.md / README point at complete roadmap", () => {
     expect(readme).toMatch(/docs\/ROADMAP\.md/);
     expect(agents).toMatch(/P0–P23|P0-P23/);
     // AGENTS.md must name the current next slice and the clean-room rule.
-    // After P18 ships, next incomplete phase is P19.
-    expect(agents).toMatch(/Next implementation slice[\s\S]{0,120}P19/);
+    // After P19 ships, next incomplete phase is P20.
+    expect(agents).toMatch(/Next implementation slice[\s\S]{0,120}P20/);
     expect(agents).toMatch(/clean-room/i);
   });
 });

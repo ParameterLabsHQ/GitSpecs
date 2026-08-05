@@ -8,6 +8,10 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
+import {
+  openRebaseTodoDocument,
+  startInteractiveRebase,
+} from "./rebaseEditor.js";
 
 export function registerRewriteCommands(
   context: vscode.ExtensionContext,
@@ -22,6 +26,34 @@ export function registerRewriteCommands(
     });
 
   context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "gitspecs.rewrite.interactiveRebase",
+      run(async () => {
+        await startInteractiveRebase(context, repos, log);
+      }),
+    ),
+
+    vscode.commands.registerCommand(
+      "gitspecs.rewrite.editTodo",
+      run(async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+          void vscode.window.showInformationMessage(
+            "Open a git-rebase-todo file to edit the sequence",
+          );
+          return;
+        }
+        const name = editor.document.fileName.replace(/\\/g, "/");
+        if (!name.endsWith("git-rebase-todo")) {
+          void vscode.window.showInformationMessage(
+            "Active file is not git-rebase-todo",
+          );
+          return;
+        }
+        await openRebaseTodoDocument(context, editor.document, log);
+      }),
+    ),
+
     vscode.commands.registerCommand(
       "gitspecs.rewrite.status",
       run(async () => {

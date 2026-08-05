@@ -63,7 +63,9 @@
     "onCommand:gitspecs.rewrite.cherryPick",
     "onCommand:gitspecs.rewrite.abort",
     "onCommand:gitspecs.rewrite.continue",
-    "onCommand:gitspecs.rewrite.status"
+    "onCommand:gitspecs.rewrite.status",
+    "onCommand:gitspecs.rewrite.interactiveRebase",
+    "onCommand:gitspecs.rewrite.editTodo"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -124,6 +126,19 @@
       {
         "view": "gitspecs.scm",
         "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar.\n\nUse the title-bar icons to switch between Worktrees, Branches, Commits, and Stashes."
+      }
+    ],
+    "languages": [
+      {
+        "id": "git-rebase",
+        "aliases": [
+          "Git Rebase Todo",
+          "git-rebase-todo"
+        ],
+        "filenames": [
+          "git-rebase-todo"
+        ],
+        "configuration": "./media/git-rebase-language-configuration.json"
       }
     ],
     "commands": [
@@ -471,6 +486,15 @@
       {
         "command": "gitspecs.rewrite.status",
         "title": "GitSpecs: Rewrite Status"
+      },
+      {
+        "command": "gitspecs.rewrite.interactiveRebase",
+        "title": "GitSpecs: Interactive Rebase\u2026",
+        "icon": "$(list-ordered)"
+      },
+      {
+        "command": "gitspecs.rewrite.editTodo",
+        "title": "GitSpecs: Edit Rebase Sequence\u2026"
       },
       {
         "command": "gitspecs.rewrite.rebase",

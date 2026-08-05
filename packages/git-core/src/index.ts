@@ -92,7 +92,16 @@ export {
   type RewriteStatus,
   type GuidedRebaseOptions,
   type GuidedCherryPickOptions,
+  type InteractiveRebaseOptions,
 } from "./rewrite.js";
+export {
+  parseRebaseTodo,
+  serializeRebaseTodo,
+  applyTodoActions,
+  actionableEntries,
+  type RebaseTodoAction,
+  type RebaseTodoEntry,
+} from "./rebaseTodo.js";
 export {
   ChangesApi,
   parseUnifiedDiffHunks,

@@ -61,7 +61,7 @@ Status is grounded in the monorepo as of this revision.
 | Autolinks (issue keys → URLs, config-driven) | **Shipped** | `modules/autolinks`; blame/history/graph wiring | **P16** |
 | Multi-repo simultaneous views | **Shipped** | `RepoRootItem` grouping; item `repoRoot` + `resolveRepoForItem` | **P17** |
 | Commit Graph webview (DAG canvas, search/filter, WIP row) | **Shipped** | webview platform + `gitspecs.graphView` / `graph.openView`; `logPage` | **P18** |
-| Interactive rebase sequence editor | **Not started** (guided flows shipped in P12) | — | **P19** |
+| Interactive rebase sequence editor | **Shipped** | `rebaseTodo` + `interactiveRebase`; webview sequence editor | **P19** |
 | Visual File History (timeline chart) | **Not started** | — | **P20** |
 | Dual-pane Search & Compare | **Not started** (QuickPick shipped in P6) | — | **P20** |
 | Hosting APIs: PRs / issues / avatars | **Not started** — supersedes P13 via `vscode.authentication` + `SecretStorage` | — | **P21** |
@@ -345,6 +345,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Conflict handling remains the P12 guided flow (status / continue / abort)
 - Real-git end-to-end test driving a scripted sequence edit through the helper (non-interactive); pure round-trip parser tests for the todo file
 
+**Shipped:** `parseRebaseTodo` / `serializeRebaseTodo`; `repo.rewrite.interactiveRebase` with `GIT_SEQUENCE_EDITOR` helper; webview sequence editor (`gitspecs.rewrite.interactiveRebase` / `editTodo`); `git-rebase-todo` language contribution; real-git drop-tip e2e test.
+
 ### Phase P20 — Visual File History & dual-pane Search & Compare
 
 **Depends on:** P18 (webview platform); P4 / P6 (data)  
@@ -410,16 +412,16 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M5 Advanced** | P12–P14 | Rewrite UX shipped; P13 deferred → superseded by P21; P14 finite polish shipped |
 | **M6 Editor depth** | P15–P16 | **Done** (revision nav + annotations/links) |
 | **M7 Scale** | P17 | **Done** — every repo visible under roots |
-| **M8 Webview surfaces** | P18–P20 | **P18 done** (platform + graph canvas); P19–P20 next |
+| **M8 Webview surfaces** | P18–P20 | P18–P19 done; P20 Visual File History + dual-pane compare |
 | **M9 Connected** | P21–P22 | PRs/issues/avatars via platform auth; client-side work hub |
 | **M10 Assist** | P23 | Optional BYO-key AI, off by default |
 
-**Next implementation goal:** **P19 — Interactive rebase sequence editor.** P15–P18 shipped; P19–P23 remains the ladder to full GitLens parity, free.
+**Next implementation goal:** **P20 — Visual File History & dual-pane Search & Compare.** P15–P19 shipped; P20–P23 remains the ladder to full GitLens parity, free.
 
 Recommended default sequence for agents:
 
 ```
-(P0–P12, P15–P18 done) → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
+(P0–P12, P15–P19 done) → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
 ```
 
 Each phase: read this file + `AGENTS.md` → design note in `docs/superpowers/specs/` if the phase is large (P17, P18, P19, P21 are) → implementation plan → PR with tests → update Section 2 + changelog here. One phase per goal; keep phase N green before starting N+1.
@@ -487,3 +489,4 @@ Interactive rebase **UI** is a local parity target (**P19**); the P12 note preda
 | 2026-08-05 | Marked **P16** Annotations & link surfaces shipped (changes decorations, symbol CodeLens, terminal links, autolinks); next slice **P17** |
 | 2026-08-05 | Marked **P17** Multi-repo views shipped (per-repo tree roots, item repo resolution, principle 4 amended); next slice **P18** |
 | 2026-08-05 | Marked **P18** Webview platform + Commit Graph canvas shipped (`docs/WEBVIEWS.md`, `logPage`, `gitspecs.graph.openView`); next slice **P19** |
+| 2026-08-05 | Marked **P19** Interactive rebase sequence editor shipped (`interactiveRebase`, todo parser, webview editor); next slice **P20** |

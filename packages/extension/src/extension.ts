@@ -129,6 +129,26 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerContributorCommands(context, repos, refresh, log);
   registerGraphCommands(context, repos, refresh, log);
   registerRewriteCommands(context, repos, refresh, log);
+
+  // Open sequence editor when a git-rebase-todo is opened (terminal-driven rebase -i).
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument((doc) => {
+      const name = doc.fileName.replace(/\\/g, "/");
+      if (!name.endsWith("git-rebase-todo")) return;
+      // Soft prompt — do not auto-steal focus every time
+      void vscode.window
+        .showInformationMessage(
+          "GitSpecs: edit this rebase sequence?",
+          "Open Sequence Editor",
+        )
+        .then((choice) => {
+          if (choice === "Open Sequence Editor") {
+            return vscode.commands.executeCommand("gitspecs.rewrite.editTodo");
+          }
+          return undefined;
+        });
+    }),
+  );
   registerCompareCommands(context, repos, log);
   registerSearchCommands(context, repos, log);
 

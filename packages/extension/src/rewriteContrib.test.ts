@@ -20,6 +20,8 @@ describe("rewrite contributions (P12)", () => {
       "gitspecs.rewrite.abort",
       "gitspecs.rewrite.continue",
       "gitspecs.rewrite.status",
+      "gitspecs.rewrite.interactiveRebase",
+      "gitspecs.rewrite.editTodo",
     ]) {
       expect(cmds).toContain(id);
       expect(pkg.activationEvents).toContain(`onCommand:${id}`);
@@ -33,6 +35,20 @@ describe("rewrite contributions (P12)", () => {
     expect(cmd).toContain("bindCommand");
     expect(cmd).toContain("guidedRebase");
     expect(cmd).toContain("formatConflictGuidance");
+    expect(cmd).toContain("startInteractiveRebase");
     expect(existsSync(path.join(repoRoot, "packages/git-core/src/rewrite.ts"))).toBe(true);
+    expect(existsSync(path.join(repoRoot, "packages/git-core/src/rebaseTodo.ts"))).toBe(true);
+    expect(existsSync(path.join(root, "src/webviews/rebase/main.ts"))).toBe(true);
+    expect(existsSync(path.join(root, "src/modules/rewrite/rebaseEditor.ts"))).toBe(true);
+  });
+
+  it("registers git-rebase-todo language contribution", () => {
+    const pkgFull = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as {
+      contributes?: { languages?: { filenames?: string[] }[] };
+    };
+    const langs = pkgFull.contributes?.languages ?? [];
+    expect(
+      langs.some((l) => (l.filenames ?? []).includes("git-rebase-todo")),
+    ).toBe(true);
   });
 });

@@ -1,15 +1,25 @@
 import * as vscode from "vscode";
 import { parseRemoteUrl } from "@gitspecs/host-urls";
-import { GitHubClient } from "@gitspecs/host-api";
+import { GitHubClient, type IssueSummary, type PullRequestSummary } from "@gitspecs/host-api";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { RefreshBus } from "../../shell/refreshBus.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { getGitHubToken, hostingEnabled, githubApiBaseUrl } from "../hosting/auth.js";
-import { aggregateHub, type HubGroups, type HubPrItem } from "./aggregate.js";
+import {
+  aggregateHub,
+  type HubGroups,
+  type HubIssueItem,
+  type HubPrItem,
+} from "./aggregate.js";
 
-type HubNode = HubGroupItem | HubPrTreeItem | HubWipItem | vscode.TreeItem;
+export type HubNode =
+  | HubGroupItem
+  | HubPrTreeItem
+  | HubIssueTreeItem
+  | HubWipItem
+  | vscode.TreeItem;
 
-class HubGroupItem extends vscode.TreeItem {
+export class HubGroupItem extends vscode.TreeItem {
   constructor(
     label: string,
     readonly children: HubNode[],
@@ -19,25 +29,51 @@ class HubGroupItem extends vscode.TreeItem {
   }
 }
 
-class HubPrTreeItem extends vscode.TreeItem {
+export class HubPrTreeItem extends vscode.TreeItem {
+  readonly hubKind = "pr" as const;
+
   constructor(readonly item: HubPrItem) {
     super(`#${item.pr.number} ${item.pr.title}`, vscode.TreeItemCollapsibleState.None);
     this.description = `${item.repoLabel} · ${item.reason}`;
-    this.tooltip = item.pr.url;
+    this.tooltip = [
+      item.pr.url,
+      item.pr.ciStatus ? `CI: ${item.pr.ciStatus}` : undefined,
+      item.pr.headRef ? `branch: ${item.pr.headRef}` : undefined,
+    ]
+      .filter(Boolean)
+      .join("\n");
     this.contextValue = "hubPr";
-    this.iconPath = new vscode.ThemeIcon("git-pull-request");
-    this.command = {
-      command: "vscode.open",
-      title: "Open PR",
-      arguments: [vscode.Uri.parse(item.pr.url)],
-    };
+    if (item.pr.authorAvatarUrl) {
+      try {
+        this.iconPath = vscode.Uri.parse(item.pr.authorAvatarUrl);
+      } catch {
+        this.iconPath = new vscode.ThemeIcon("git-pull-request");
+      }
+    } else {
+      this.iconPath = new vscode.ThemeIcon("git-pull-request");
+    }
   }
 }
 
-class HubWipItem extends vscode.TreeItem {
+export class HubIssueTreeItem extends vscode.TreeItem {
+  readonly hubKind = "issue" as const;
+
+  constructor(readonly item: HubIssueItem) {
+    super(`#${item.issue.number} ${item.issue.title}`, vscode.TreeItemCollapsibleState.None);
+    this.description = item.repoLabel;
+    this.tooltip = item.issue.url;
+    this.contextValue = "hubIssue";
+    this.iconPath = new vscode.ThemeIcon("issues");
+  }
+}
+
+export class HubWipItem extends vscode.TreeItem {
+  readonly hubKind = "wip" as const;
+
   constructor(
     readonly branch: string,
     readonly repoLabel: string,
+    readonly repoRoot: string,
     ahead: number,
     behind: number,
   ) {
@@ -109,12 +145,30 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
         ),
       );
     }
+    if (groups.assignedIssues.length) {
+      nodes.push(
+        new HubGroupItem(
+          "Assigned issues",
+          groups.assignedIssues.map((i) => new HubIssueTreeItem(i)),
+        ),
+      );
+    }
     if (groups.wip.length) {
       nodes.push(
         new HubGroupItem(
           "WIP branches",
           groups.wip.map(
-            (b) => new HubWipItem(b.name, b.repoLabel, b.ahead, b.behind),
+            (b) =>
+              new HubWipItem(
+                b.name,
+                b.repoLabel,
+                // repoRoot resolved later via label match is imperfect; store label only for checkout from current
+                this.repos.allRepos.find((r) =>
+                  (r.root.split(/[/\\]/).pop() ?? r.root) === b.repoLabel,
+                )?.root ?? "",
+                b.ahead,
+                b.behind,
+              ),
           ),
         ),
       );
@@ -132,10 +186,31 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
   private async load(): Promise<HubGroups> {
     if (this.cache) return this.cache;
     const token = await getGitHubToken();
-    const myOpenPrs: Array<import("@gitspecs/host-api").PullRequestSummary & { repoLabel: string }> =
-      [];
+    const myOpenPrs: Array<PullRequestSummary & { repoLabel: string }> = [];
     const reviewRequested: typeof myOpenPrs = [];
+    const assignedIssues: Array<IssueSummary & { repoLabel: string }> = [];
     const wipBranches: HubGroups["wip"] = [];
+    let currentLogin: string | undefined;
+
+    if (token) {
+      try {
+        const client = new GitHubClient({ token, baseUrl: githubApiBaseUrl() });
+        const user = await client.getAuthenticatedUser();
+        currentLogin = user?.login;
+        const reviews = await client.listReviewRequested(currentLogin ?? "");
+        for (const p of reviews) {
+          reviewRequested.push({ ...p, repoLabel: "github" });
+        }
+        const issues = await client.listAssignedIssues(currentLogin);
+        for (const i of issues) {
+          assignedIssues.push({ ...i, repoLabel: "github" });
+        }
+      } catch (err) {
+        this.log.debug(
+          `Hub user lists: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
 
     for (const repo of this.repos.allRepos) {
       const label = repo.root.split(/[/\\]/).pop() ?? repo.root;
@@ -151,13 +226,20 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
             });
           }
         }
-        if (!token) continue;
+        if (!token || !currentLogin) continue;
         const remoteUrl = await repo.branches.getRemoteUrl("origin").catch(() => undefined);
         const id = remoteUrl ? parseRemoteUrl(remoteUrl) : undefined;
         if (!id || id.provider !== "github") continue;
         const client = new GitHubClient({ token, baseUrl: githubApiBaseUrl() });
-        const prs = await client.listOpenPullRequests(id.owner, id.repo);
+        const prs = await client.listMyOpenPullRequests(id.owner, id.repo, currentLogin);
         for (const p of prs) {
+          if (p.headRef) {
+            try {
+              p.ciStatus = await client.getCiStatus(id.owner, id.repo, p.headRef);
+            } catch {
+              // ignore
+            }
+          }
           myOpenPrs.push({ ...p, repoLabel: label });
         }
       } catch (err) {
@@ -167,7 +249,13 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
       }
     }
 
-    this.cache = aggregateHub({ myOpenPrs, reviewRequested, wipBranches });
+    this.cache = aggregateHub({
+      myOpenPrs,
+      reviewRequested,
+      assignedIssues,
+      wipBranches,
+      currentLogin,
+    });
     return this.cache;
   }
 

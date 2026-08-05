@@ -64,9 +64,9 @@ Status is grounded in the monorepo as of this revision.
 | Interactive rebase sequence editor | **Shipped** | `rebaseTodo` + `interactiveRebase`; webview sequence editor | **P19** |
 | Visual File History (timeline chart) | **Shipped** | `history.fileChurn`; `gitspecs.history.visualFile` webview | **P20** |
 | Dual-pane Search & Compare | **Shipped** | `gitspecs.compare.dualPane` webview | **P20** |
-| Hosting APIs: PRs / issues / avatars | **Shipped** | `@gitspecs/host-api`; hosting module + platform auth | **P21** |
-| Work hub (client-side Launchpad-style) | **Shipped** | `gitspecs.hub` + `aggregateHub` | **P22** |
-| AI assist (BYO key, optional, off by default) | **Shipped** | `modules/ai` (SecretStorage key, consent, prompts) | **P23** |
+| Hosting APIs: PRs / issues / avatars | **Shipped** | `@gitspecs/host-api` (PR create/API, getIssue, cache, CI); branch PR badges; avatar URLs; platform auth + PAT sign-out | **P21** |
+| Work hub (client-side Launchpad-style) | **Shipped** | `gitspecs.hub` (my PRs, review-requested, assigned issues, CI, checkout/worktree actions) | **P22** |
+| AI assist (BYO key, optional, off by default) | **Shipped** | `modules/ai` (enablement when configured; OpenAI + Anthropic; consent; SecretStorage) | **P23** |
 
 ---
 
@@ -375,7 +375,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Resilience: cached last-known data, rate-limit aware, never blocks or delays local git commands
 - Update AGENTS.md token rule ("no invented token storage" → "platform auth APIs only") in the same PR
 
-**Shipped:** `@gitspecs/host-api` (GitHub/GitLab clients, injected fetch); `gitspecs.hosting.*` auth + PR-for-branch + create-PR URL; settings `hosting.enabled` / base URLs; AGENTS platform-auth rule.
+**Shipped:** `@gitspecs/host-api` (GitHub/GitLab, injected fetch, rate-limit + last-known cache, getIssue, createPullRequest, CI status, review-requested, assigned issues); default-branch-aware create-PR (API when session); branch-view PR badges; issue title enrichment in blame hovers; provider avatar URLs in contributors/hub; GitHub session + GitLab/Bitbucket/Azure PAT SecretStorage with sign-out; settings `hosting.enabled` / base URLs.
 
 ### Phase P22 — Work hub (client-side Launchpad-style)
 
@@ -389,7 +389,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Data via `@gitspecs/host-api` only; poll-on-refresh (RefreshBus + manual) — no push/webhook infrastructure
 - Pure unit tests for aggregation/grouping over `host-api` fixtures; contrib structural tests
 
-**Shipped:** Hub activity-bar view; pure `aggregateHub` grouping; poll-on-refresh via host-api + WIP branches.
+**Shipped:** Hub activity-bar view; pure `aggregateHub` (needs action / blocked / waiting / assigned issues / WIP); review-requested + my-open-PRs + CI; commands open/checkout/create-worktree; item menus.
 
 ### Phase P23 — AI assist *(optional, BYO key, off by default)*
 
@@ -403,6 +403,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Privacy: first-use consent dialog stating exactly what is sent (diff text, file names); prompt-size caps; no telemetry
 - Explicit non-goals stay: hosted AI service, token quotas, accounts (Section 5)
 - Pure unit tests for prompt assembly + diff truncation; stubbed-client tests for response handling
+
+**Shipped:** Configure AI command always available; generate/explain use `enablement: gitspecs.ai.configured` (context set when key+endpoint present); OpenAI-compatible + native Anthropic Messages; first-use consent; SecretStorage key; prompt size caps.
 
 ---
 

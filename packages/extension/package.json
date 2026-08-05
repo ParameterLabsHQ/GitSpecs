@@ -70,9 +70,14 @@
     "onCommand:gitspecs.rewrite.editTodo",
     "onView:gitspecs.hub",
     "onCommand:gitspecs.hosting.signInGitHub",
+    "onCommand:gitspecs.hosting.signOutGitHub",
     "onCommand:gitspecs.hosting.prForBranch",
     "onCommand:gitspecs.hosting.createPr",
     "onCommand:gitspecs.hosting.setGitLabPat",
+    "onCommand:gitspecs.hosting.setBitbucketPat",
+    "onCommand:gitspecs.hosting.setAzurePat",
+    "onCommand:gitspecs.hosting.signOutPats",
+    "onCommand:gitspecs.hub.refresh",
     "onCommand:gitspecs.ai.configure",
     "onCommand:gitspecs.ai.generateCommitMessage",
     "onCommand:gitspecs.ai.explainCommit"
@@ -525,8 +530,24 @@
         "title": "GitSpecs: Sign In to GitHub\u2026"
       },
       {
+        "command": "gitspecs.hosting.signOutGitHub",
+        "title": "GitSpecs: Sign Out of GitHub"
+      },
+      {
         "command": "gitspecs.hosting.setGitLabPat",
         "title": "GitSpecs: Set GitLab PAT\u2026"
+      },
+      {
+        "command": "gitspecs.hosting.setBitbucketPat",
+        "title": "GitSpecs: Set Bitbucket PAT\u2026"
+      },
+      {
+        "command": "gitspecs.hosting.setAzurePat",
+        "title": "GitSpecs: Set Azure DevOps PAT\u2026"
+      },
+      {
+        "command": "gitspecs.hosting.signOutPats",
+        "title": "GitSpecs: Clear Hosting PATs"
       },
       {
         "command": "gitspecs.hosting.prForBranch",
@@ -537,16 +558,35 @@
         "title": "GitSpecs: Create Pull Request\u2026"
       },
       {
+        "command": "gitspecs.hub.refresh",
+        "title": "GitSpecs: Refresh Hub",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitspecs.hub.open",
+        "title": "GitSpecs: Open Hub Item"
+      },
+      {
+        "command": "gitspecs.hub.checkout",
+        "title": "GitSpecs: Checkout Hub Branch"
+      },
+      {
+        "command": "gitspecs.hub.createWorktree",
+        "title": "GitSpecs: Create Worktree for PR Branch"
+      },
+      {
         "command": "gitspecs.ai.configure",
         "title": "GitSpecs: Configure AI Provider\u2026"
       },
       {
         "command": "gitspecs.ai.generateCommitMessage",
-        "title": "GitSpecs: Generate Commit Message (AI)"
+        "title": "GitSpecs: Generate Commit Message (AI)",
+        "enablement": "gitspecs.ai.configured"
       },
       {
         "command": "gitspecs.ai.explainCommit",
-        "title": "GitSpecs: Explain Commit (AI)\u2026"
+        "title": "GitSpecs: Explain Commit (AI)\u2026",
+        "enablement": "gitspecs.ai.configured"
       },
       {
         "command": "gitspecs.rewrite.rebase",
@@ -656,9 +696,29 @@
           "command": "gitspecs.graph.openView",
           "when": "view == gitspecs.graph",
           "group": "navigation@2"
+        },
+        {
+          "command": "gitspecs.hub.refresh",
+          "when": "view == gitspecs.hub",
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
+        {
+          "command": "gitspecs.hub.open",
+          "when": "view == gitspecs.hub && (viewItem == hubPr || viewItem == hubIssue)",
+          "group": "1_open"
+        },
+        {
+          "command": "gitspecs.hub.checkout",
+          "when": "view == gitspecs.hub && (viewItem == hubPr || viewItem == hubWip)",
+          "group": "2_git"
+        },
+        {
+          "command": "gitspecs.hub.createWorktree",
+          "when": "view == gitspecs.hub && viewItem == hubPr",
+          "group": "2_git"
+        },
         {
           "command": "gitspecs.worktrees.openCurrentWindow",
           "when": "(view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)) && viewItem == worktree",
@@ -1039,12 +1099,21 @@
         "gitspecs.ai.endpoint": {
           "type": "string",
           "default": "",
-          "description": "OpenAI-compatible API base URL (e.g. https://api.openai.com/v1). Empty disables AI commands until Configure AI is used."
+          "description": "AI API base URL. OpenAI-compatible (e.g. https://api.openai.com/v1) or Anthropic (https://api.anthropic.com). Empty until Configure AI is used."
         },
         "gitspecs.ai.model": {
           "type": "string",
           "default": "gpt-4o-mini",
           "description": "Model id for BYO-key AI assist (off until configured)."
+        },
+        "gitspecs.ai.provider": {
+          "type": "string",
+          "enum": [
+            "openai-compatible",
+            "anthropic"
+          ],
+          "default": "openai-compatible",
+          "description": "AI provider protocol. Anthropic uses the native Messages API; others use OpenAI-compatible chat completions."
         }
       }
     }

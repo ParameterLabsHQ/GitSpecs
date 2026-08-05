@@ -4,10 +4,11 @@ import type { PlatformLog } from "../../shell/log.js";
 import { bindCommand } from "../../shell/bindCommand.js";
 import { presentError } from "../../shell/errors.js";
 import { buildCommitMessagePrompt, buildExplainCommitPrompt } from "./prompts.js";
-import { chatCompletion } from "./client.js";
+import { chatCompletion, detectProvider, type AiProviderKind } from "./client.js";
 
 const AI_KEY = "gitspecs.ai.apiKey";
 const CONSENT_KEY = "gitspecs.ai.consent";
+export const AI_CONFIGURED_CONTEXT = "gitspecs.ai.configured";
 
 export function registerAiCommands(
   context: vscode.ExtensionContext,
@@ -20,15 +21,42 @@ export function registerAiCommands(
       onError: (err) => presentError(log, err),
     });
 
+  const refreshConfiguredContext = async () => {
+    const configured = await isAiConfigured(context);
+    await vscode.commands.executeCommand("setContext", AI_CONFIGURED_CONTEXT, configured);
+  };
+  void refreshConfiguredContext();
+
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "gitspecs.ai.configure",
       run(async () => {
+        const providerPick = await vscode.window.showQuickPick(
+          [
+            {
+              label: "OpenAI-compatible",
+              description: "OpenAI, Azure OpenAI, local proxies",
+              provider: "openai-compatible" as AiProviderKind,
+              defaultEndpoint: "https://api.openai.com/v1",
+              defaultModel: "gpt-4o-mini",
+            },
+            {
+              label: "Anthropic",
+              description: "Native Messages API (api.anthropic.com)",
+              provider: "anthropic" as AiProviderKind,
+              defaultEndpoint: "https://api.anthropic.com",
+              defaultModel: "claude-3-5-sonnet-latest",
+            },
+          ],
+          { title: "AI provider" },
+        );
+        if (!providerPick) return;
+
         const endpoint = await vscode.window.showInputBox({
-          title: "AI endpoint (OpenAI-compatible)",
+          title: "AI endpoint",
           value:
             vscode.workspace.getConfiguration("gitspecs").get<string>("ai.endpoint") ||
-            "https://api.openai.com/v1",
+            providerPick.defaultEndpoint,
           ignoreFocusOut: true,
         });
         if (!endpoint) return;
@@ -36,7 +64,7 @@ export function registerAiCommands(
           title: "Model id",
           value:
             vscode.workspace.getConfiguration("gitspecs").get<string>("ai.model") ||
-            "gpt-4o-mini",
+            providerPick.defaultModel,
           ignoreFocusOut: true,
         });
         if (!model) return;
@@ -52,8 +80,12 @@ export function registerAiCommands(
         await vscode.workspace
           .getConfiguration("gitspecs")
           .update("ai.model", model.trim(), vscode.ConfigurationTarget.Global);
+        await vscode.workspace
+          .getConfiguration("gitspecs")
+          .update("ai.provider", providerPick.provider, vscode.ConfigurationTarget.Global);
         if (key.trim()) await context.secrets.store(AI_KEY, key.trim());
         else await context.secrets.delete(AI_KEY);
+        await refreshConfiguredContext();
         void vscode.window.showInformationMessage("GitSpecs: AI provider configured");
       }),
     ),
@@ -125,16 +157,18 @@ export function registerAiCommands(
   );
 }
 
-async function ensureConfigured(context: vscode.ExtensionContext): Promise<boolean> {
+export async function isAiConfigured(context: vscode.ExtensionContext): Promise<boolean> {
   const key = await context.secrets.get(AI_KEY);
   const endpoint = vscode.workspace.getConfiguration("gitspecs").get<string>("ai.endpoint");
-  if (!key || !endpoint) {
-    void vscode.window.showInformationMessage(
-      "Configure AI first (GitSpecs: Configure AI Provider…)",
-    );
-    return false;
-  }
-  return true;
+  return Boolean(key && endpoint?.trim());
+}
+
+async function ensureConfigured(context: vscode.ExtensionContext): Promise<boolean> {
+  if (await isAiConfigured(context)) return true;
+  void vscode.window.showInformationMessage(
+    "Configure AI first (GitSpecs: Configure AI Provider…)",
+  );
+  return false;
 }
 
 async function ensureConsent(context: vscode.ExtensionContext): Promise<boolean> {
@@ -157,5 +191,9 @@ async function loadConfig(context: vscode.ExtensionContext) {
     "https://api.openai.com/v1";
   const model =
     vscode.workspace.getConfiguration("gitspecs").get<string>("ai.model") || "gpt-4o-mini";
-  return { endpoint, model, apiKey };
+  const configuredProvider = vscode.workspace
+    .getConfiguration("gitspecs")
+    .get<string>("ai.provider") as AiProviderKind | undefined;
+  const provider = configuredProvider || detectProvider(endpoint);
+  return { endpoint, model, apiKey, provider };
 }

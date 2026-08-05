@@ -1,4 +1,15 @@
-export type HostProvider = "github" | "gitlab";
+export type HostProvider = "github" | "gitlab" | "bitbucket" | "azuredevops";
+
+export type CheckConclusion =
+  | "success"
+  | "failure"
+  | "neutral"
+  | "cancelled"
+  | "skipped"
+  | "timed_out"
+  | "action_required"
+  | "pending"
+  | "unknown";
 
 export interface PullRequestSummary {
   id: string;
@@ -7,10 +18,14 @@ export interface PullRequestSummary {
   url: string;
   state: "open" | "closed" | "merged" | "unknown";
   authorLogin?: string;
+  authorAvatarUrl?: string;
   headRef?: string;
   baseRef?: string;
   draft?: boolean;
   updatedAt?: string;
+  /** CI / check-suite rollup when fetched. */
+  ciStatus?: CheckConclusion;
+  mergeable?: boolean | null;
 }
 
 export interface IssueSummary {
@@ -20,6 +35,24 @@ export interface IssueSummary {
   url: string;
   state: "open" | "closed" | "unknown";
   authorLogin?: string;
+  authorAvatarUrl?: string;
+  body?: string;
+}
+
+export interface HostUser {
+  login: string;
+  name?: string;
+  avatarUrl?: string;
+}
+
+export interface CreatePullRequestInput {
+  owner: string;
+  repo: string;
+  title: string;
+  head: string;
+  base: string;
+  body?: string;
+  draft?: boolean;
 }
 
 export interface HostClientOptions {
@@ -29,4 +62,22 @@ export interface HostClientOptions {
   token?: string;
   /** API base URL override for self-hosted. */
   baseUrl?: string;
+}
+
+export class RateLimitError extends Error {
+  readonly status = 403;
+  readonly resetAt?: number;
+
+  constructor(message: string, resetAt?: number) {
+    super(message);
+    this.name = "RateLimitError";
+    this.resetAt = resetAt;
+  }
+}
+
+/** Last-known cache entry used when rate-limited or offline. */
+export interface CachedValue<T> {
+  value: T;
+  fetchedAt: number;
+  key: string;
 }

@@ -5,6 +5,7 @@ import type { RefreshBus } from "../../shell/refreshBus.js";
 import { presentError } from "../../shell/errors.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { RepoRootItem, shouldGroupByRepo } from "../../shell/repoTree.js";
+import { branchPrBadges } from "../hosting/prCache.js";
 
 export type BranchNode = RepoRootItem | BranchGroupItem | BranchItem;
 
@@ -25,7 +26,11 @@ export class BranchGroupItem extends vscode.TreeItem {
 export class BranchItem extends vscode.TreeItem {
   readonly repoRoot: string;
 
-  constructor(readonly info: BranchInfo, repoRoot: string) {
+  constructor(
+    readonly info: BranchInfo,
+    repoRoot: string,
+    options?: { prNumber?: number; prTooltip?: string },
+  ) {
     super(info.name, vscode.TreeItemCollapsibleState.None);
     this.repoRoot = repoRoot;
     this.contextValue = info.remote ? "branchRemote" : "branchLocal";
@@ -35,9 +40,14 @@ export class BranchItem extends vscode.TreeItem {
       if (info.ahead) track.push(`↑${info.ahead}`);
       if (info.behind) track.push(`↓${info.behind}`);
     }
+    if (options?.prNumber != null) {
+      track.push(`PR #${options.prNumber}`);
+    }
     this.description = track.join(" ");
     this.iconPath = new vscode.ThemeIcon(info.current ? "circle-filled" : "git-branch");
-    this.tooltip = info.refName;
+    this.tooltip = options?.prTooltip
+      ? `${info.refName}\n${options.prTooltip}`
+      : info.refName;
   }
 }
 
@@ -94,11 +104,17 @@ export class BranchesProvider implements vscode.TreeDataProvider<BranchNode>, vs
       const root = repo.root;
 
       const groups: BranchGroupItem[] = [];
+      const toItem = (b: BranchInfo) =>
+        new BranchItem(b, root, {
+          prNumber: branchPrBadges.getNumber(root, b.name),
+          prTooltip: branchPrBadges.getTooltip(root, b.name),
+        });
+
       if (current.length) {
         groups.push(
           new BranchGroupItem(
             "Current",
-            current.map((b) => new BranchItem(b, root)),
+            current.map(toItem),
             root,
           ),
         );
@@ -106,7 +122,7 @@ export class BranchesProvider implements vscode.TreeDataProvider<BranchNode>, vs
       groups.push(
         new BranchGroupItem(
           "Local",
-          local.map((b) => new BranchItem(b, root)),
+          local.map(toItem),
           root,
         ),
       );
@@ -122,7 +138,7 @@ export class BranchesProvider implements vscode.TreeDataProvider<BranchNode>, vs
         groups.push(
           new BranchGroupItem(
             `Remote: ${remote}`,
-            branches.map((b) => new BranchItem(b, root)),
+            branches.map(toItem),
             root,
           ),
         );

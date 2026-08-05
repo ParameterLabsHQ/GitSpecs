@@ -148,6 +148,8 @@ export function formatEnrichedBlameHover(
   options: {
     nowMs?: number;
     autolinkRules?: AutolinkRule[];
+    /** Extra markdown (e.g. issue titles from hosting APIs). */
+    enrichedBlock?: string;
   } = {},
 ): string {
   const relative =
@@ -163,11 +165,14 @@ export function formatEnrichedBlameHover(
     const linked = applyAutolinksMarkdown(line.summary, options.autolinkRules);
     summary = `*${linked}*`;
   }
+  // Optional P21 enrichment block (issue titles already expanded by caller).
+  const extra = options.enrichedBlock?.trim();
   return [
     `**${line.author || "unknown"}** \`${line.sha.slice(0, 7)}\``,
     summary,
     relative ? `${relative} (${absolute})` : absolute,
     line.authorMail ? line.authorMail : undefined,
+    extra || undefined,
   ]
     .filter(Boolean)
     .join("\n\n");

@@ -6,20 +6,34 @@ import { presentError } from "../../shell/errors.js";
 import type { PlatformLog } from "../../shell/log.js";
 import { DEFAULT_CONTRIBUTORS_LIMIT, formatContributorTreeRow } from "./format.js";
 import { RepoRootItem, shouldGroupByRepo } from "../../shell/repoTree.js";
+import { GitHubClient } from "@gitspecs/host-api";
 
 export type ContributorNode = RepoRootItem | ContributorItem;
 
 export class ContributorItem extends vscode.TreeItem {
   readonly repoRoot: string;
 
-  constructor(readonly contributor: ContributorInfo, repoRoot: string) {
+  constructor(
+    readonly contributor: ContributorInfo,
+    repoRoot: string,
+    options?: { avatarUrl?: string },
+  ) {
     const row = formatContributorTreeRow(contributor);
     super(row.label, vscode.TreeItemCollapsibleState.None);
     this.repoRoot = repoRoot;
     this.contextValue = "contributor";
     this.description = row.description;
     this.tooltip = row.tooltip;
-    this.iconPath = new vscode.ThemeIcon("person");
+    // Provider avatar URL when known (P21); no third-party CDN.
+    if (options?.avatarUrl) {
+      try {
+        this.iconPath = vscode.Uri.parse(options.avatarUrl);
+      } catch {
+        this.iconPath = new vscode.ThemeIcon("person");
+      }
+    } else {
+      this.iconPath = new vscode.ThemeIcon("person");
+    }
   }
 }
 
@@ -65,7 +79,13 @@ export class ContributorsProvider
   private async listContributors(repo: GitRepository): Promise<ContributorItem[]> {
     try {
       const list = await repo.contributors.list({ limit: DEFAULT_CONTRIBUTORS_LIMIT });
-      return list.map((c) => new ContributorItem(c, repo.root));
+      // Best-effort GitHub avatar URLs from author name/email login heuristics.
+      const gh = new GitHubClient();
+      return list.map((c) => {
+        const loginGuess = guessGithubLogin(c.email, c.name);
+        const avatarUrl = loginGuess ? gh.avatarUrl(loginGuess) : undefined;
+        return new ContributorItem(c, repo.root, { avatarUrl });
+      });
     } catch (err) {
       await presentError(this.log, err, "Contributors");
       return [];
@@ -76,4 +96,16 @@ export class ContributorsProvider
     for (const d of this.disposables) d.dispose();
     this._onDidChangeTreeData.dispose();
   }
+}
+
+/** Prefer email local-part when it looks like a GH noreply login. */
+function guessGithubLogin(email?: string, name?: string): string | undefined {
+  if (email) {
+    const m = email.match(/^(\d+\+)?([^@]+)@users\.noreply\.github\.com$/i);
+    if (m?.[2]) return m[2];
+    const local = email.split("@")[0]?.trim();
+    if (local && /^[a-zA-Z0-9-]{1,39}$/.test(local)) return local;
+  }
+  if (name && /^[a-zA-Z0-9-]{1,39}$/.test(name.trim())) return name.trim();
+  return undefined;
 }

@@ -33,6 +33,7 @@ import { registerAnnotationCommands } from "./modules/annotations/commands.js";
 import { registerTerminalLinks } from "./modules/terminalLinks/provider.js";
 import { registerHostingCommands } from "./modules/hosting/commands.js";
 import { HubProvider } from "./modules/hub/provider.js";
+import { registerHubCommands } from "./modules/hub/commands.js";
 import { registerAiCommands } from "./modules/ai/commands.js";
 import {
   DEFAULT_SCM_TAB,
@@ -169,7 +170,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   context.subscriptions.push(changesAnnotations);
   registerAnnotationCommands(context, repos, log, changesAnnotations);
   registerTerminalLinks(context, repos, log);
-  registerHostingCommands(context, repos, log);
+  registerHostingCommands(context, repos, log, refresh);
+  registerHubCommands(context, repos, refresh, log);
   registerAiCommands(context, repos, log);
 
   const blameCodeLens = new BlameCodeLensProvider(

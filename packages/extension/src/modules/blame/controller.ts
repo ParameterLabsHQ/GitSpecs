@@ -23,6 +23,7 @@ import {
   heatmapDecorationTypeOptions,
 } from "./heatmap.js";
 import { readAutolinkRules } from "../autolinks/settings.js";
+import { enrichTextWithIssues } from "../hosting/commands.js";
 
 const STATUS_BAR_DEBOUNCE_MS = 200;
 const DECORATION_DEBOUNCE_MS = 400;
@@ -347,8 +348,19 @@ export class BlameController implements vscode.Disposable {
       }
       this.lastStatusPayload = toDetailPayload(line);
       this.statusBar.text = `$(git-commit) ${formatStatusBarBlame(line)}`;
+      const rules = readAutolinkRules();
+      let enrichedBlock: string | undefined;
+      if (line.summary) {
+        try {
+          const full = await enrichTextWithIssues(this.repos, line.summary, this.log);
+          if (full !== line.summary) enrichedBlock = full;
+        } catch {
+          // offline
+        }
+      }
       this.statusBar.tooltip = formatEnrichedBlameHover(line, {
-        autolinkRules: readAutolinkRules(),
+        autolinkRules: rules,
+        enrichedBlock,
       });
       this.statusBar.show();
     } catch (err) {
@@ -401,6 +413,28 @@ export class BlameController implements vscode.Disposable {
         () => [],
       );
 
+      // Enrich unique commit summaries once (P21 issue titles in hovers).
+      const rules = readAutolinkRules();
+      const enrichedBySha = new Map<string, string>();
+      const uniqueSummaries = new Map<string, string>();
+      for (const blame of byLine.values()) {
+        if (blame.summary && !uniqueSummaries.has(blame.sha)) {
+          uniqueSummaries.set(blame.sha, blame.summary);
+        }
+      }
+      // Cap network: at most 8 unique commits per refresh.
+      let n = 0;
+      for (const [sha, summary] of uniqueSummaries) {
+        if (n++ >= 8) break;
+        try {
+          const full = await enrichTextWithIssues(this.repos, summary, this.log);
+          if (full !== summary) enrichedBySha.set(sha, full);
+        } catch {
+          // offline
+        }
+      }
+      if (seq !== this.decorationSeq) return;
+
       for (let i = 0; i < editor.document.lineCount; i++) {
         const lineNo = i + 1;
         const blame = byLine.get(lineNo);
@@ -415,7 +449,10 @@ export class BlameController implements vscode.Disposable {
             },
           },
           hoverMessage: new vscode.MarkdownString(
-            formatEnrichedBlameHover(blame, { autolinkRules: readAutolinkRules() }),
+            formatEnrichedBlameHover(blame, {
+              autolinkRules: rules,
+              enrichedBlock: enrichedBySha.get(blame.sha),
+            }),
           ),
         });
         if (heatmap) {

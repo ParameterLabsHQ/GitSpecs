@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeAll } from "vitest";
+import { writeFile } from "node:fs/promises";
+import path from "node:path";
 import { parseHistoryLog, HISTORY_LOG_FORMAT } from "./history.js";
 import { createFixtureRepo, commitFile } from "./test-utils.js";
 import type { GitRepository } from "./repository.js";
@@ -244,5 +246,89 @@ describe("history.line (real git)", () => {
 describe("HISTORY_LOG_FORMAT constant", () => {
   it("matches the documented field order", () => {
     expect(HISTORY_LOG_FORMAT).toBe("%H%x00%an%x00%ae%x00%at%x00%s");
+  });
+});
+
+describe("history.search (real git)", () => {
+  let git: GitBinary;
+  let dir: string;
+  let repo: GitRepository;
+  let grepSha: string;
+  let authorSha: string;
+
+  beforeAll(async () => {
+    const fixture = await createFixtureRepo();
+    git = fixture.git;
+    dir = fixture.dir;
+    repo = fixture.repo;
+
+    grepSha = await commitFile(
+      dir,
+      git,
+      "search-a.txt",
+      "a\n",
+      "unique-needle-xyz: message search target",
+    );
+
+    // Commit with a distinct author for --author filter
+    await writeFile(path.join(dir, "search-b.txt"), "b\n", "utf8");
+    await execGit(git.path, ["-C", dir, "add", "search-b.txt"]);
+    await execGit(git.path, [
+      "-C",
+      dir,
+      "-c",
+      "user.name=SearchAuthor",
+      "-c",
+      "user.email=search-author@example.com",
+      "commit",
+      "-m",
+      "ordinary subject for author filter",
+    ]);
+    authorSha = (
+      await execGit(git.path, ["-C", dir, "rev-parse", "HEAD"])
+    ).stdout.trim();
+  });
+
+  it("finds commits by message grep via shipped search API", async () => {
+    const hits = await repo.history.search({ grep: "unique-needle-xyz", limit: 20 });
+    expect(hits.length).toBeGreaterThanOrEqual(1);
+    expect(hits.some((c) => c.sha === grepSha)).toBe(true);
+    const match = hits.find((c) => c.sha === grepSha)!;
+    expect(match.subject).toContain("unique-needle-xyz");
+    expect(match.author).toBeTruthy();
+    expect(match.authorTime).toBeGreaterThan(0);
+  });
+
+  it("finds commits by author via shipped search API", async () => {
+    const hits = await repo.history.search({ author: "SearchAuthor", limit: 20 });
+    expect(hits.some((c) => c.sha === authorSha)).toBe(true);
+    const match = hits.find((c) => c.sha === authorSha)!;
+    expect(match.author).toContain("SearchAuthor");
+    expect(match.subject).toContain("ordinary subject");
+  });
+
+  it("combines grep and author filters", async () => {
+    const hits = await repo.history.search({
+      grep: "ordinary subject",
+      author: "SearchAuthor",
+      limit: 10,
+    });
+    expect(hits.some((c) => c.sha === authorSha)).toBe(true);
+    expect(hits.every((c) => c.author.includes("SearchAuthor"))).toBe(true);
+  });
+
+  it("returns empty array when nothing matches", async () => {
+    const hits = await repo.history.search({
+      grep: "definitely-not-in-any-commit-zzzz",
+      limit: 5,
+    });
+    expect(hits).toEqual([]);
+  });
+
+  it("throws when neither grep nor author is provided", async () => {
+    await expect(repo.history.search({})).rejects.toThrow(/grep|author/i);
+    await expect(repo.history.search({ grep: "  ", author: "" })).rejects.toThrow(
+      /grep|author/i,
+    );
   });
 });

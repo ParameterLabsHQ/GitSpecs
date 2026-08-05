@@ -11,6 +11,8 @@ import { BlameController } from "./modules/blame/controller.js";
 import { registerBlameCommands } from "./modules/blame/commands.js";
 import { BlameCodeLensProvider } from "./modules/blame/codeLens.js";
 import { registerHistoryCommands } from "./modules/history/commands.js";
+import { registerCompareCommands } from "./modules/compare/commands.js";
+import { registerSearchCommands } from "./modules/search/commands.js";
 import {
   DEFAULT_SCM_TAB,
   SCM_CONSOLIDATED_VIEW_ID,
@@ -71,6 +73,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   registerWorktreeCommands(context, repos, refresh, log);
   registerBranchCommands(context, repos, refresh, log);
+  registerCompareCommands(context, repos, log);
+  registerSearchCommands(context, repos, log);
 
   const blameController = new BlameController(repos, log);
   context.subscriptions.push(blameController);
@@ -94,7 +98,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
   );
 
-  log.info("GitSpecs activated");
+  log.info("GitSpecs activated (worktrees, branches, blame, history, compare, search)");
 }
 
 export function deactivate(): void {

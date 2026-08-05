@@ -1,7 +1,7 @@
 {
   "name": "gitspecs",
   "displayName": "GitSpecs",
-  "description": "Open-source GitLens-style worktrees, branches, blame, and history for VS Code and Cursor.",
+  "description": "Open-source GitLens-style worktrees, branches, blame, history, compare, and search for VS Code and Cursor.",
   "version": "0.1.0",
   "publisher": "ParameterLabsHQ",
   "license": "GPL-3.0-only",
@@ -32,7 +32,9 @@
     "onCommand:gitspecs.blame.statusBarDetails",
     "onCommand:gitspecs.blame.codeLensDetail",
     "onCommand:gitspecs.history.file",
-    "onCommand:gitspecs.history.line"
+    "onCommand:gitspecs.history.line",
+    "onCommand:gitspecs.compare",
+    "onCommand:gitspecs.search.commits"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -118,6 +120,16 @@
         "command": "gitspecs.history.line",
         "title": "GitSpecs: Line History",
         "icon": "$(git-commit)"
+      },
+      {
+        "command": "gitspecs.compare",
+        "title": "GitSpecs: Compare References…",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "gitspecs.search.commits",
+        "title": "GitSpecs: Search Commits…",
+        "icon": "$(search)"
       },
       {
         "command": "gitspecs.worktrees.refresh",
@@ -221,7 +233,8 @@
       },
       {
         "command": "gitspecs.branches.compare",
-        "title": "GitSpecs: Compare with…"
+        "title": "GitSpecs: Compare with…",
+        "icon": "$(git-compare)"
       },
       {
         "command": "gitspecs.branches.copyName",

@@ -14,8 +14,11 @@ export {
 } from "./worktrees.js";
 export {
   BranchesApi,
+  parseNameStatus,
   type BranchInfo,
   type CompareResult,
+  type CompareOptions,
+  type NameStatusEntry,
 } from "./branches.js";
 export {
   BlameApi,
@@ -32,6 +35,7 @@ export {
   type HistoryCommit,
   type FileHistoryOptions,
   type LineHistoryOptions,
+  type CommitSearchOptions,
 } from "./history.js";
 export {
   GitNotFoundError,

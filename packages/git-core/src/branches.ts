@@ -14,12 +14,45 @@ export interface BranchInfo {
   commit?: string;
 }
 
+/** One path from `git diff --name-status` (and rename/copy variants). */
+export interface NameStatusEntry {
+  /** Status letter(s): A/M/D/T/U or R###/C### for rename/copy. */
+  status: string;
+  /** Path after the change (new path for renames). */
+  path: string;
+  /** Previous path when status is rename/copy. */
+  oldPath?: string;
+}
+
 export interface CompareResult {
   ahead: number;
   behind: number;
   shortstat: string;
   base: string;
+  /** Head ref name, or the literal `"WORKING_TREE"` when comparing against the worktree. */
   head: string;
+  /** Changed paths from `git diff --name-status` (same range as shortstat). */
+  files: NameStatusEntry[];
+  /** True when `head` is the working tree (not a commit). */
+  againstWorkingTree: boolean;
+}
+
+export interface CompareOptions {
+  base: string;
+  /**
+   * Tip ref to compare. Ignored when `againstWorkingTree` is true.
+   * Required when not comparing to the working tree.
+   */
+  head?: string;
+  /**
+   * When true, compare `base` tree → working tree (index + unstaged).
+   *
+   * **Semantics:** uses `git diff base` (two-dot / worktree), not triple-dot.
+   * Ahead/behind still report `base...HEAD` commit divergence so the UI can
+   * show branch drift; file list + shortstat reflect uncommitted + committed
+   * changes from `base` to the working tree.
+   */
+  againstWorkingTree?: boolean;
 }
 
 export class BranchesApi {
@@ -256,28 +289,57 @@ export class BranchesApi {
     await this.repo.exec(["branch", options.name, options.commit]);
   }
 
-  async compare(options: { base: string; head: string }): Promise<CompareResult> {
+  /**
+   * Compare two refs (triple-dot merge-base style) or a ref vs the working tree.
+   *
+   * **Two-ref:** `base...head` for ahead/behind, shortstat, and name-status.
+   * **Working tree:** shortstat + name-status via `git diff base` (worktree);
+   * ahead/behind from `base...HEAD` (committed divergence only).
+   */
+  async compare(options: CompareOptions): Promise<CompareResult> {
+    const againstWorkingTree = Boolean(options.againstWorkingTree);
+    const base = options.base;
+    if (!base) {
+      throw new Error("compare requires a base ref");
+    }
+    if (!againstWorkingTree && !options.head) {
+      throw new Error("compare requires head ref when not against working tree");
+    }
+
+    const headLabel = againstWorkingTree ? "WORKING_TREE" : options.head!;
+
+    // Ahead/behind always uses commits (base...HEAD or base...head).
+    const tipForCounts = againstWorkingTree ? "HEAD" : options.head!;
     const revList = await this.repo.exec([
       "rev-list",
       "--left-right",
       "--count",
-      `${options.base}...${options.head}`,
+      `${base}...${tipForCounts}`,
     ]);
     const counts = revList.stdout.trim().split(/\s+/);
     const behind = Number(counts[0] ?? 0);
     const ahead = Number(counts[1] ?? 0);
 
-    const stat = await this.repo.exec(
-      ["diff", "--shortstat", `${options.base}...${options.head}`],
+    // Diff range: triple-dot for two commits; plain base for working tree.
+    const diffRange = againstWorkingTree ? base : `${base}...${options.head!}`;
+
+    const stat = await this.repo.exec(["diff", "--shortstat", diffRange], {
+      allowFailure: true,
+    });
+
+    const nameStatus = await this.repo.exec(
+      ["diff", "--name-status", "-z", diffRange],
       { allowFailure: true },
     );
 
     return {
-      ahead,
-      behind,
+      ahead: Number.isFinite(ahead) ? ahead : 0,
+      behind: Number.isFinite(behind) ? behind : 0,
       shortstat: (stat.stdout || "").trim(),
-      base: options.base,
-      head: options.head,
+      base,
+      head: headLabel,
+      files: parseNameStatus(nameStatus.stdout || ""),
+      againstWorkingTree,
     };
   }
 
@@ -318,4 +380,53 @@ function parseTrack(track: string): { ahead: number; behind: number } {
   if (aheadMatch) ahead = Number(aheadMatch[1]);
   if (behindMatch) behind = Number(behindMatch[1]);
   return { ahead, behind };
+}
+
+/**
+ * Parse `git diff --name-status -z` stdout.
+ *
+ * Records are NUL-delimited. Status-only fields (A/M/D/…) are followed by one
+ * path; rename/copy (`R###` / `C###`) are followed by old path then new path.
+ * Empty / whitespace-only stdout → empty array (no throw).
+ */
+export function parseNameStatus(stdout: string): NameStatusEntry[] {
+  if (!stdout || !stdout.replace(/\0/g, "").trim()) return [];
+
+  // Split on NUL; trailing empty segment from final NUL is fine.
+  const parts = stdout.split("\0");
+  const entries: NameStatusEntry[] = [];
+  let i = 0;
+  while (i < parts.length) {
+    const status = parts[i];
+    if (status == null || status === "") {
+      i += 1;
+      continue;
+    }
+    // Rename/copy: R100\0old\0new  or status may be "R100" as one field
+    if (/^[RC]\d*/.test(status)) {
+      const oldPath = parts[i + 1] ?? "";
+      const newPath = parts[i + 2] ?? "";
+      if (oldPath || newPath) {
+        entries.push({
+          status,
+          path: newPath || oldPath,
+          oldPath: oldPath || undefined,
+        });
+      }
+      i += 3;
+      continue;
+    }
+    // Single-path statuses: A, M, D, T, U, typechange, etc.
+    if (/^[A-Z]/.test(status)) {
+      const path = parts[i + 1] ?? "";
+      if (path) {
+        entries.push({ status, path });
+      }
+      i += 2;
+      continue;
+    }
+    // Unrecognized token — skip to avoid infinite loop
+    i += 1;
+  }
+  return entries;
 }

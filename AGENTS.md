@@ -47,7 +47,7 @@ Open-source **GitLens-style** extension for VS Code/Cursor. **Worktrees, branche
 **Product roadmap (order of implementation):**  
 → **[docs/ROADMAP.md](./docs/ROADMAP.md)** — complete phases **P0–P14**, status inventory, milestones, and non-parity deferrals (Launchpad, AI, Cloud Patches, etc.).
 
-**Next implementation slice (per roadmap):** **P6** compare & search (P4 file history and P5 line history are shipped; see recommended sequence in the roadmap).
+**Next implementation slice (per roadmap):** **P7** Commits sidebar (P6 compare & search is shipped; see recommended sequence in the roadmap).
 
 Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 
@@ -83,6 +83,8 @@ Work done in the initial build/rebrand session, in rough order:
 │           │   ├── worktrees/
 │           │   ├── branches/
 │           │   ├── history/     # file + line history (P4–P5)
+│           │   ├── compare/     # two-ref / working-tree compare (P6)
+│           │   ├── search/      # commit message/author search (P6)
 │           │   ├── blame/       # file blame, status bar, CodeLens (P1–P3)
 │           │   └── graph/       # stub only
 │           └── extension.ts
@@ -148,7 +150,7 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 | M0 Daily git ops | P0 | Done |
 | M1 Authorship | P1–P3 | **Done** (file blame, status-bar, CodeLens) |
 | M2 History | P4–P5 | **Done** (file + line history) |
-| M3 Explore & compare | P6–P10 | Compare partial; views not started |
+| M3 Explore & compare | P6–P10 | P6 compare/search done; P7–P10 views not started |
 | M4 Graph | P11 | Not started (stub) |
 | M5 Advanced | P12–P14 | Optional / polish / non-cloud |
 
@@ -166,6 +168,13 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 - Extension: `modules/history` QuickPick UX; pure helpers in `actions.ts`.
 - Commands: `gitspecs.history.file` / `gitspecs.history.line`.
 - Actions: copy SHA, open commit URL (`@gitspecs/host-urls`), view file at revision (untitled editor).
+
+### Compare & search notes (P6)
+
+- Library: `repo.branches.compare` → ahead/behind + shortstat + `files` (`git diff --name-status -z`); optional `againstWorkingTree`. `repo.history.search` → `git log --grep` / `--author`.
+- Extension: `modules/compare` + `modules/search`; pure helpers in `format.ts`.
+- Commands: `gitspecs.compare`, upgraded `gitspecs.branches.compare`, `gitspecs.search.commits`.
+- Host compare URL via `@gitspecs/host-urls` `compareUrl` when origin remote parses.
 
 ## Coding conventions
 

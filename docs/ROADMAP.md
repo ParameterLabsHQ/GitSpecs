@@ -32,7 +32,7 @@ Status is grounded in the monorepo as of this revision.
 | Worktree management | **Shipped** | `git-core` `worktrees.ts`; module `modules/worktrees` | P0 |
 | Branch management (local/remote toolkit) | **Shipped** | `git-core` `branches.ts`; module `modules/branches` | P0 |
 | Open / copy remote URLs | **Shipped** (URL-only) | `packages/host-urls`; `gitspecs.branches.openRemote` | P0 |
-| Compare (ahead/behind + shortstat) | **Partial** | `branches.compare` + command → Output | P0 / **P6** polish |
+| Compare (ahead/behind + shortstat + name-status + host URL) | **Shipped** | `branches.compare` (+ files); `modules/compare`; `gitspecs.compare` / `gitspecs.branches.compare` | **P6** |
 | Activity-bar Worktrees + Branches | **Shipped** | `views.gitspecs` | P0 |
 | SCM integration | **Shipped** (consolidated panel + tabs) | `gitspecs.scm`, `scmTabs.ts`, `scmGroupedProvider.ts` | P0 |
 | File blame (toggle decorations, line, output) | **Shipped** | `git-core` `blame.ts`; `modules/blame` | P1 |
@@ -41,7 +41,7 @@ Status is grounded in the monorepo as of this revision.
 | Hover / rich authorship peek | **Shipped** (enriched) | Enriched decoration hover + shared blame cache | P1 / **P3** |
 | File history | **Shipped** | `git-core` `history.ts` `repo.history.file`; `modules/history` (`gitspecs.history.file`) | **P4** |
 | Line history | **Shipped** | `repo.history.line` (`git log -L` + file-history fallback); `gitspecs.history.line` | **P5** |
-| Search & compare UI (commits, files, lines) | **Not started** | Basic branch compare only | **P6** |
+| Search & compare UI (commits, files) | **Shipped** (QuickPick; no dual-pane webview) | `history.search`; `modules/search` (`gitspecs.search.commits`); compare file list | **P6** |
 | Commits sidebar / SCM commits browser | **Not started** | — | **P7** |
 | Stashes view + actions | **Not started** | — | **P8** |
 | Tags / remotes browser views | **Partial** | Remotes appear under Branches tree; no dedicated Tags/Remotes modules | **P9** |
@@ -127,7 +127,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Results list with same actions as file history  
 - Real-git tests with known line evolution  
 
-### Phase P6 — Compare & search
+### Phase P6 — Compare & search *(done)*
 
 **Depends on:** P0 (`branches.compare`); P4 recommended for file-level compare  
 **Parity target:** GitLens Compare / Search & Compare  
@@ -139,6 +139,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Open host compare URL via `host-urls.compareUrl` when remotes known  
 - Search commits by message/author (library `git log --grep` / `--author`) from a command palette entry  
 - Real-git tests for compare file list + search  
+
+**Shipped:** `repo.branches.compare` returns `files` (name-status) + working-tree mode; `repo.history.search`; extension `gitspecs.compare` / upgraded `gitspecs.branches.compare` QuickPick (actions + file list + host URL); `gitspecs.search.commits` pick-and-act (copy SHA / open remote).  
 
 ### Phase P7 — Sidebar: Commits browser
 
@@ -241,7 +243,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M4 Graph** | P11 | Visual branch topology |
 | **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
 
-**Next implementation goal after this roadmap:** **P6** (compare & search UI), building on shipped P4 file history and P0 `branches.compare`.
+**Next implementation goal after this roadmap:** **P7** (Commits sidebar), building on shipped P0 branches and P6 compare/search.
 
 Recommended default sequence for agents (P0–P5 shipped):
 

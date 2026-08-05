@@ -30,6 +30,26 @@ export interface LineHistoryOptions {
   rev?: string;
 }
 
+export interface CommitSearchOptions {
+  /** Match commit message (`git log --grep`). Fixed-string via `--fixed-strings` when set. */
+  grep?: string;
+  /** Match author name/email (`git log --author`). */
+  author?: string;
+  /** Max commits to return (default 100). */
+  limit?: number;
+  /**
+   * When true (default), treat `grep` as a fixed string (`--fixed-strings`) so
+   * user input is not interpreted as a regex. Author always uses git's basic
+   * pattern match for `--author`.
+   */
+  fixedStrings?: boolean;
+  /**
+   * When true (default), search all refs (`git log --all`) so hits on other
+   * branches are included. Set false to walk only the current HEAD ancestry.
+   */
+  all?: boolean;
+}
+
 /**
  * Machine-readable log format:
  *   sha \0 author \0 author-mail \0 author-time \0 subject
@@ -104,6 +124,38 @@ export class HistoryApi {
     const rel = toRepoRelative(this.repo.root, path);
     const result = await this.repo.exec(["show", `${rev}:${rel}`]);
     return result.stdout;
+  }
+
+  /**
+   * Search commits by message and/or author via `git log --grep` / `--author`.
+   * Requires at least one of `grep` or `author` (non-empty after trim).
+   * Results are newest-first `HistoryCommit[]`.
+   */
+  async search(options: CommitSearchOptions): Promise<HistoryCommit[]> {
+    const grep = options.grep?.trim() ?? "";
+    const author = options.author?.trim() ?? "";
+    if (!grep && !author) {
+      throw new Error("search requires grep and/or author");
+    }
+
+    const limit = clampLimit(options.limit);
+    const fixedStrings = options.fixedStrings !== false;
+    const allRefs = options.all !== false;
+    const args = ["log", `-n${limit}`, `--format=${HISTORY_LOG_FORMAT}`];
+    if (allRefs) {
+      args.push("--all");
+    }
+
+    if (grep) {
+      if (fixedStrings) args.push("--fixed-strings");
+      args.push(`--grep=${grep}`);
+    }
+    if (author) {
+      args.push(`--author=${author}`);
+    }
+
+    const result = await this.repo.exec(args);
+    return parseHistoryLog(result.stdout);
   }
 }
 

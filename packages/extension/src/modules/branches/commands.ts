@@ -7,6 +7,7 @@ import { presentError } from "../../shell/errors.js";
 import { bindCommand } from "../../shell/bindCommand.js";
 import type { BranchItem } from "./provider.js";
 import { resolvePublishRemote } from "./publishRemote.js";
+import { runCompareInteractive } from "../compare/commands.js";
 
 function confirmDeletes(): boolean {
   return vscode.workspace.getConfiguration("gitspecs").get<boolean>("confirmDelete", true);
@@ -293,18 +294,9 @@ export function registerBranchCommands(
     vscode.commands.registerCommand(
       "gitspecs.branches.compare",
       run(async (item?: BranchItem) => {
-        const repo = repos.currentRepo;
-        if (!repo) return;
-        const head = item?.info.name ?? (await pickAnyBranch(repos));
-        if (!head) return;
-        const base = await pickAnyBranch(repos, "Compare base");
-        if (!base) return;
-        const result = await repo.branches.compare({ base, head });
-        const msg = `Compare ${base}...${head}: ahead ${result.ahead}, behind ${result.behind}${result.shortstat ? ` — ${result.shortstat}` : ""}`;
-        log.info(msg);
-        void vscode.window.showInformationMessage(msg, "Show Output").then((a) => {
-          if (a === "Show Output") log.show();
-        });
+        // Tree item provides head; otherwise full interactive pick (incl. working tree).
+        // Rich UX: ahead/behind, shortstat, name-status files, host compare URL.
+        await runCompareInteractive(repos, log, item?.info.name);
       }),
     ),
 

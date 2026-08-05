@@ -109,6 +109,48 @@ console.log(
   ),
 );
 
+// P6: compare name-status + commit search on shipped dist
+await repo.branches.create({ name: "p6-feature", startPoint: "main" });
+await repo.branches.switchTo("p6-feature");
+await writeFile(path.join(dir, "p6-only.txt"), "p6\n");
+await execGit(git.path, ["-C", dir, "add", "p6-only.txt"]);
+await execGit(git.path, ["-C", dir, "commit", "-m", "p6-unique-search-needle"]);
+const p6Sha = (await execGit(git.path, ["-C", dir, "rev-parse", "HEAD"])).stdout.trim();
+await repo.branches.switchTo("main");
+
+const compare = await repo.branches.compare({ base: "main", head: "p6-feature" });
+const compareOk =
+  Array.isArray(compare.files) &&
+  compare.files.some((f) => f.path === "p6-only.txt") &&
+  typeof compare.ahead === "number" &&
+  typeof compare.shortstat === "string" &&
+  compare.againstWorkingTree === false;
+
+const searchHits = await repo.history.search({
+  grep: "p6-unique-search-needle",
+  limit: 10,
+});
+const searchOk = searchHits.some((c) => c.sha === p6Sha && c.subject.includes("p6-unique"));
+
+if (!compareOk || !searchOk) {
+  console.error("P6 compare/search consumer failed", { compare, searchHits, p6Sha });
+  process.exitCode = 1;
+}
+console.log(
+  JSON.stringify(
+    {
+      compareFilePaths: compare.files.map((f) => f.path),
+      compareAhead: compare.ahead,
+      compareShortstat: compare.shortstat,
+      searchHitCount: searchHits.length,
+      searchOk,
+      compareOk,
+    },
+    null,
+    2,
+  ),
+);
+
 const branches = await repo.branches.list({ includeRemotes: false });
 await repo.branches.create({ name: "consumer-branch" });
 const after = await repo.branches.list({ includeRemotes: false });

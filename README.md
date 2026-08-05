@@ -1,6 +1,6 @@
 # GitSpecs
 
-Open-source **GitLens-style** tooling for **VS Code** and **Cursor** (GPL-3.0-only): worktrees, branches, and file blame today, with a phased path toward broader local feature parity.
+Open-source **GitLens-style** tooling for **VS Code** and **Cursor** (GPL-3.0-only): worktrees, branches, blame, history, compare, and commit search today, with a phased path toward broader local feature parity.
 
 **Roadmap (implementation order):** [docs/ROADMAP.md](./docs/ROADMAP.md) — phases P0–P14, status inventory, and what is deliberately *not* parity (cloud/AI).
 
@@ -26,17 +26,24 @@ List, create (existing branch or new branch from ref), open in current/new windo
 
 ### Branches
 
-Local + remote listing with upstream ahead/behind, create/rename/delete (safe + force), checkout/switch, publish/push/pull/fetch, set upstream, delete remote branch, merge, rebase, cherry-pick, create from commit, compare summary, copy name, **Open on Remote** (URL-only for GitHub/GitLab/Bitbucket/Azure DevOps — no API tokens).
+Local + remote listing with upstream ahead/behind, create/rename/delete (safe + force), checkout/switch, publish/push/pull/fetch, set upstream, delete remote branch, merge, rebase, cherry-pick, create from commit, **Compare** (ahead/behind, shortstat, changed files, host URL), copy name, **Open on Remote** (URL-only for GitHub/GitLab/Bitbucket/Azure DevOps — no API tokens).
 
-### File blame (Phase 1)
+### File blame
 
 - **GitSpecs: Toggle File Blame** — end-of-line annotations (author • date • sha • summary) with hover detail  
 - **GitSpecs: Show Line Blame** — message for the current line  
 - **GitSpecs: Blame File to Output** — full file dump in the GitSpecs output channel  
+- Status-bar current-line blame and file-level CodeLens (settings to disable)
+
+### History, compare & search
+
+- **GitSpecs: File History** / **Line History** — QuickPick commits; copy SHA, open on remote, view file at revision  
+- **GitSpecs: Compare References…** — two refs or ref vs working tree; file list + host compare URL  
+- **GitSpecs: Search Commits…** — message and/or author; copy SHA / open on remote  
 
 ### What’s next
 
-See the full phased plan in **[docs/ROADMAP.md](./docs/ROADMAP.md)**. Next slice: **P2** status-bar / current-line blame, then file/line history, compare UI, sidebar views (commits/stashes/tags), commit graph.
+See the full phased plan in **[docs/ROADMAP.md](./docs/ROADMAP.md)**. Next slice: **P7** Commits sidebar, then stashes/tags/remotes views, commit graph.
 
 ## Monorepo layout
 

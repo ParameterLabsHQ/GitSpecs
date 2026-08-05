@@ -1,7 +1,7 @@
 {
   "name": "gitspecs",
   "displayName": "GitSpecs",
-  "description": "Open-source GitLens-style worktrees, branches, commits, stashes, blame, history, compare, and search for VS Code and Cursor.",
+  "description": "Open-source GitLens-style worktrees, branches, commits, stashes, tags, remotes, blame, history, compare, and search for VS Code and Cursor.",
   "version": "0.1.0",
   "publisher": "ParameterLabsHQ",
   "license": "GPL-3.0-only",
@@ -41,7 +41,13 @@
     "onView:gitspecs.stashes",
     "onCommand:gitspecs.scm.showStashes",
     "onCommand:gitspecs.stashes.refresh",
-    "onCommand:gitspecs.stashes.push"
+    "onCommand:gitspecs.stashes.push",
+    "onView:gitspecs.tags",
+    "onView:gitspecs.remotes",
+    "onCommand:gitspecs.tags.refresh",
+    "onCommand:gitspecs.tags.create",
+    "onCommand:gitspecs.remotes.refresh",
+    "onCommand:gitspecs.remotes.fetch"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -71,6 +77,14 @@
         {
           "id": "gitspecs.stashes",
           "name": "Stashes"
+        },
+        {
+          "id": "gitspecs.tags",
+          "name": "Tags"
+        },
+        {
+          "id": "gitspecs.remotes",
+          "name": "Remotes"
         }
       ],
       "scm": [
@@ -317,6 +331,45 @@
       {
         "command": "gitspecs.stashes.show",
         "title": "GitSpecs: Show Stash"
+      },
+      {
+        "command": "gitspecs.tags.refresh",
+        "title": "GitSpecs: Refresh Tags",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitspecs.tags.create",
+        "title": "GitSpecs: Create Tag\u2026",
+        "icon": "$(add)"
+      },
+      {
+        "command": "gitspecs.tags.delete",
+        "title": "GitSpecs: Delete Tag\u2026"
+      },
+      {
+        "command": "gitspecs.tags.copyName",
+        "title": "GitSpecs: Copy Tag Name"
+      },
+      {
+        "command": "gitspecs.tags.checkout",
+        "title": "GitSpecs: Checkout Tag"
+      },
+      {
+        "command": "gitspecs.remotes.refresh",
+        "title": "GitSpecs: Refresh Remotes",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitspecs.remotes.fetch",
+        "title": "GitSpecs: Fetch Remote"
+      },
+      {
+        "command": "gitspecs.remotes.copyUrl",
+        "title": "GitSpecs: Copy Remote URL"
+      },
+      {
+        "command": "gitspecs.remotes.open",
+        "title": "GitSpecs: Open Remote in Browser"
       }
     ],
     "menus": {
@@ -375,6 +428,26 @@
           "command": "gitspecs.stashes.refresh",
           "when": "view == gitspecs.stashes || (view == gitspecs.scm && gitspecs.scm.tab == stashes)",
           "group": "navigation@6"
+        },
+        {
+          "command": "gitspecs.tags.create",
+          "when": "view == gitspecs.tags",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitspecs.tags.refresh",
+          "when": "view == gitspecs.tags",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitspecs.remotes.refresh",
+          "when": "view == gitspecs.remotes",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitspecs.remotes.fetch",
+          "when": "view == gitspecs.remotes",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
@@ -492,6 +565,36 @@
           "command": "gitspecs.stashes.drop",
           "when": "(view == gitspecs.stashes || (view == gitspecs.scm && gitspecs.scm.tab == stashes)) && viewItem == stash",
           "group": "3_danger"
+        },
+        {
+          "command": "gitspecs.tags.checkout",
+          "when": "view == gitspecs.tags && viewItem == tag",
+          "group": "1_nav"
+        },
+        {
+          "command": "gitspecs.tags.copyName",
+          "when": "view == gitspecs.tags && viewItem == tag",
+          "group": "2_copy"
+        },
+        {
+          "command": "gitspecs.tags.delete",
+          "when": "view == gitspecs.tags && viewItem == tag",
+          "group": "3_danger"
+        },
+        {
+          "command": "gitspecs.remotes.fetch",
+          "when": "view == gitspecs.remotes && viewItem == remote",
+          "group": "1_nav"
+        },
+        {
+          "command": "gitspecs.remotes.copyUrl",
+          "when": "view == gitspecs.remotes && viewItem == remote",
+          "group": "2_copy"
+        },
+        {
+          "command": "gitspecs.remotes.open",
+          "when": "view == gitspecs.remotes && viewItem == remote",
+          "group": "2_copy"
         }
       ],
       "commandPalette": [

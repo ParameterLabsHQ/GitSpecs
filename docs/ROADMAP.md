@@ -44,7 +44,7 @@ Status is grounded in the monorepo as of this revision.
 | Search & compare UI (commits, files) | **Shipped** (QuickPick; no dual-pane webview) | `history.search`; `modules/search` (`gitspecs.search.commits`); compare file list | **P6** |
 | Commits sidebar / SCM commits browser | **Shipped** | `history.recent`; `modules/commits`; activity-bar `gitspecs.commits` + SCM tab | **P7** |
 | Stashes view + actions | **Shipped** | `stashes.ts`; `modules/stashes`; activity-bar + SCM tab | **P8** |
-| Tags / remotes browser views | **Partial** | Remotes appear under Branches tree; no dedicated Tags/Remotes modules | **P9** |
+| Tags / remotes browser views | **Shipped** | `tags.ts` / `remotes.ts`; `modules/tags` + `modules/remotes` | **P9** |
 | Contributors view | **Not started** | — | **P10** |
 | Commit Graph (visual DAG) | **Not started** | Stub `modules/graph/README.md` only | **P11** |
 | Interactive rebase / history rewrite UI | **Not started** | — | **P12** (parity-target, hard) |
@@ -169,7 +169,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 **Shipped:** `repo.stashes` (`list` / `push` / `apply` / `pop` / `drop` / `show`); extension `modules/stashes`; activity-bar `gitspecs.stashes` + SCM tab; pop/drop honor `gitspecs.confirmDelete`.  
 
-### Phase P9 — Sidebar: Tags & remotes browser
+### Phase P9 — Sidebar: Tags & remotes browser *(done)*
 
 **Depends on:** P0  
 **Parity target:** GitLens Tags / Remotes views  
@@ -179,6 +179,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Library: list tags; create/delete tag; list remotes; fetch remote (push/delete remote branch already partial via branches)  
 - Tags view + Remotes view (or grouped under GitSpecs container)  
 - Open remote URL remains URL-only unless P13 lands  
+
+**Shipped:** `repo.tags` (list/create/delete) + `repo.remotes` (list/fetch/getUrl); activity-bar Tags & Remotes views; create/delete/checkout tag; fetch/copy/open remote (URL-only via host-urls).  
 
 ### Phase P10 — Sidebar: Contributors
 
@@ -247,15 +249,15 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M4 Graph** | P11 | Visual branch topology |
 | **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
 
-**Next implementation goal after this roadmap:** **P9** (Tags & remotes browser), building on shipped P0–P8.
+**Next implementation goal after this roadmap:** **P10** (Contributors), building on shipped P0–P9.
 
-Recommended default sequence for agents (P0–P8 shipped):
+Recommended default sequence for agents (P0–P9 shipped):
 
 ```
-P9 → P10 → P11 → P12 → (P13?) → P14
+P10 → P11 → P12 → (P13?) → P14
 ```
 
-Rationale: tags/remotes/contributors next; graph after; hosting APIs last.
+Rationale: contributors then graph; rewrite UX; hosting APIs last.
 
 ---
 
@@ -306,3 +308,4 @@ Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud�
 | 2026-08-04 | Expanded to full GitLens-style parity order **P0–P14**, status inventory, milestones, non-parity deferrals; next slice **P2** |
 | 2026-08-05 | Marked **P7** Commits sidebar shipped (`history.recent` + activity-bar/SCM commits browser); next slice **P8** |
 | 2026-08-05 | Marked **P8** Stashes shipped (`repo.stashes` + activity-bar/SCM); next slice **P9** |
+| 2026-08-05 | Marked **P9** Tags & Remotes shipped; next slice **P10** |

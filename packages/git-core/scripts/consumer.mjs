@@ -225,6 +225,23 @@ console.log(
   ),
 );
 
+// P9: tags + remotes on shipped dist
+await repo.tags.create({ name: "consumer-v0", message: "consumer tag" });
+const tags = await repo.tags.list();
+const tagsOk = tags.some((t) => t.name === "consumer-v0" && t.annotated);
+await repo.tags.delete({ name: "consumer-v0" });
+const tagsAfter = await repo.tags.list();
+const tagsDeleted = !tagsAfter.some((t) => t.name === "consumer-v0");
+const remotesList = await repo.remotes.list();
+const remotesOk = Array.isArray(remotesList);
+if (!tagsOk || !tagsDeleted || !remotesOk) {
+  console.error("P9 tags/remotes consumer failed", { tags, tagsAfter, remotesList });
+  process.exitCode = 1;
+}
+console.log(
+  JSON.stringify({ tagsOk, tagsDeleted, remotesOk, remoteCount: remotesList.length }, null, 2),
+);
+
 const branches = await repo.branches.list({ includeRemotes: false });
 await repo.branches.create({ name: "consumer-branch" });
 const after = await repo.branches.list({ includeRemotes: false });

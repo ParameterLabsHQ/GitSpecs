@@ -48,6 +48,19 @@ export {
   type StashRefOptions,
 } from "./stashes.js";
 export {
+  TagsApi,
+  parseTagList,
+  TAG_LIST_FORMAT,
+  type TagInfo,
+  type TagCreateOptions,
+  type TagDeleteOptions,
+} from "./tags.js";
+export {
+  RemotesApi,
+  parseRemoteVerbose,
+  type RemoteInfo,
+} from "./remotes.js";
+export {
   GitNotFoundError,
   NotAGitRepositoryError,
   GitCommandError,

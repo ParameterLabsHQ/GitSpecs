@@ -22,7 +22,10 @@ describe("formatDetailsHoverMarkdown", () => {
   it("includes author, short sha, summary, and multi-action command links", () => {
     const md = formatDetailsHoverMarkdown(sample, {
       nowMs: 1_700_000_000 * 1000 + 60_000,
-      actions: defaultBlameHoverActions({ hasRemoteUrl: true }),
+      actions: defaultBlameHoverActions({
+        sha: sample.sha,
+        commitUrl: "https://example.com/commit/abcdef0123456789",
+      }),
       autolinkRules: [{ prefix: "#", url: "https://example.com/issues/<num>" }],
     });
     expect(md).toContain("**Ada**");
@@ -31,16 +34,23 @@ describe("formatDetailsHoverMarkdown", () => {
     expect(md).toContain("command:gitspecs.revision.diffWithPrevious");
     expect(md).toContain("command:gitspecs.history.file");
     expect(md).toContain("command:gitspecs.blame.toggleFile");
+    // Copy SHA / Open on Remote use real commands with args, not detail picks
+    expect(md).toContain("command:gitspecs.blame.copySha");
+    expect(md).toContain("command:gitspecs.blame.openRemote");
+    expect(md).toContain(encodeURIComponent(JSON.stringify([sample.sha])));
     expect(md).toContain("Open on Remote");
+    expect(md).not.toContain("command:gitspecs.blame.showLine");
+    expect(md).not.toContain("command:gitspecs.blame.statusBarDetails");
     // autolink applied inside summary italics
     expect(md).toMatch(/issues\/42|\#42/);
   });
 
-  it("omits remote action when hasRemoteUrl is false", () => {
+  it("omits copy/remote when sha/url not provided", () => {
     const md = formatDetailsHoverMarkdown(sample, {
-      actions: defaultBlameHoverActions({ hasRemoteUrl: false }),
+      actions: defaultBlameHoverActions({}),
     });
     expect(md).not.toContain("Open on Remote");
+    expect(md).not.toContain("Copy SHA");
   });
 });
 

@@ -3,6 +3,7 @@ import * as path from "node:path";
 import type { ChangedLineRange } from "@gitspecs/git-core";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { PlatformLog } from "../../shell/log.js";
+import type { AnnotationModeState } from "../../shell/annotationContext.js";
 
 const REFRESH_DEBOUNCE_MS = 300;
 
@@ -30,8 +31,10 @@ export class ChangesAnnotationController implements vscode.Disposable {
   constructor(
     private readonly repos: RepoContext,
     private readonly log: PlatformLog,
+    private readonly annotationModes?: AnnotationModeState,
   ) {
     this.enabled = this.readSetting();
+    void this.annotationModes?.setChanges(this.enabled);
     this.workingType = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
       overviewRulerLane: vscode.OverviewRulerLane.Left,
@@ -53,6 +56,7 @@ export class ChangesAnnotationController implements vscode.Disposable {
       vscode.workspace.onDidChangeConfiguration((e) => {
         if (e.affectsConfiguration("gitspecs.annotations.changes")) {
           this.enabled = this.readSetting();
+          void this.annotationModes?.setChanges(this.enabled);
           void this.refreshAll();
         }
       }),
@@ -85,12 +89,27 @@ export class ChangesAnnotationController implements vscode.Disposable {
     await vscode.workspace
       .getConfiguration("gitspecs")
       .update("annotations.changes", this.enabled, vscode.ConfigurationTarget.Global);
+    await this.annotationModes?.setChanges(this.enabled);
     void vscode.window.setStatusBarMessage(
       this.enabled
         ? "GitSpecs: changes annotations on"
         : "GitSpecs: changes annotations off",
       2500,
     );
+    await this.refreshAll();
+  }
+
+  /** Turn off changes annotations (Escape dismiss / modes). */
+  async dismiss(): Promise<void> {
+    if (!this.enabled) {
+      await this.annotationModes?.setChanges(false);
+      return;
+    }
+    this.enabled = false;
+    await vscode.workspace
+      .getConfiguration("gitspecs")
+      .update("annotations.changes", false, vscode.ConfigurationTarget.Global);
+    await this.annotationModes?.setChanges(false);
     await this.refreshAll();
   }
 

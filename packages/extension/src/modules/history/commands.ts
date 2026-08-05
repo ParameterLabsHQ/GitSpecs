@@ -79,9 +79,9 @@ export function registerHistoryCommands(
     ),
     vscode.commands.registerCommand(
       "gitspecs.history.viewCommitActions",
-      run(async (item?: HistoryCommitItem, _repoRoot?: string) => {
+      run(async (item?: HistoryCommitItem, repoRoot?: string) => {
         if (!item?.sha) return;
-        await runHistoryActions(repos, log, item);
+        await runHistoryActions(repos, log, item, repoRoot);
       }),
     ),
   );
@@ -187,12 +187,25 @@ async function pickCommitAndAct(
   await runHistoryActions(repos, log, item);
 }
 
+function resolveHistoryRepo(
+  repos: RepoContext,
+  item: HistoryCommitItem,
+  repoRoot?: string,
+) {
+  if (repoRoot) {
+    const byRoot = repos.repoByRoot(repoRoot);
+    if (byRoot) return byRoot;
+  }
+  return repos.repoForPath(item.filePath) ?? repos.currentRepo;
+}
+
 async function runHistoryActions(
   repos: RepoContext,
   log: PlatformLog,
   item: HistoryCommitItem,
+  repoRoot?: string,
 ): Promise<void> {
-  const repo = repos.currentRepo;
+  const repo = resolveHistoryRepo(repos, item, repoRoot);
   let commitUrlStr: string | undefined;
   if (repo) {
     try {
@@ -228,13 +241,13 @@ async function runHistoryActions(
       }
       break;
     case "viewAtRev":
-      await viewFileAtRevision(repos, log, item);
+      await viewFileAtRevision(repos, log, item, repoRoot);
       break;
     case "diffWithPrevious":
-      await diffHistoryWithPrevious(repos, log, item);
+      await diffHistoryWithPrevious(repos, log, item, repoRoot);
       break;
     case "diffWithWorking":
-      await diffHistoryWithWorking(repos, log, item);
+      await diffHistoryWithWorking(repos, log, item, repoRoot);
       break;
   }
 }
@@ -244,8 +257,9 @@ async function viewFileAtRevision(
   repos: RepoContext,
   log: PlatformLog,
   item: HistoryCommitItem,
+  repoRoot?: string,
 ): Promise<void> {
-  const repo = repos.currentRepo;
+  const repo = resolveHistoryRepo(repos, item, repoRoot);
   if (!repo) {
     void vscode.window.showInformationMessage("No Git repository selected");
     return;
@@ -262,8 +276,9 @@ async function diffHistoryWithPrevious(
   repos: RepoContext,
   log: PlatformLog,
   item: HistoryCommitItem,
+  repoRoot?: string,
 ): Promise<void> {
-  const repo = repos.currentRepo;
+  const repo = resolveHistoryRepo(repos, item, repoRoot);
   if (!repo) {
     void vscode.window.showInformationMessage("No Git repository selected");
     return;
@@ -291,8 +306,9 @@ async function diffHistoryWithWorking(
   repos: RepoContext,
   log: PlatformLog,
   item: HistoryCommitItem,
+  repoRoot?: string,
 ): Promise<void> {
-  const repo = repos.currentRepo;
+  const repo = resolveHistoryRepo(repos, item, repoRoot);
   if (!repo) {
     void vscode.window.showInformationMessage("No Git repository selected");
     return;

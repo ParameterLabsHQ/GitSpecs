@@ -91,7 +91,9 @@
     "onCommand:gitspecs.mode.toggleZen",
     "onCommand:gitspecs.mode.toggleReview",
     "onCommand:gitspecs.history.fileHistory.pin",
-    "onCommand:gitspecs.history.lineHistory.pin"
+    "onCommand:gitspecs.history.lineHistory.pin",
+    "onCommand:gitspecs.blame.copySha",
+    "onCommand:gitspecs.blame.openRemote"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -189,7 +191,7 @@
       {
         "view": "gitspecs.scm",
         "when": "!gitspecs.hasRepository",
-        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar.\n\nUse the title-bar icons to switch between Worktrees, Branches, Commits, and Stashes."
+        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs.home) sidebar.\n\nUse the title-bar icons to switch between Worktrees, Branches, Commits, and Stashes."
       },
       {
         "view": "gitspecs.scm",
@@ -756,6 +758,14 @@
       {
         "command": "gitspecs.history.viewCommitActions",
         "title": "GitSpecs: History Commit Actions"
+      },
+      {
+        "command": "gitspecs.blame.copySha",
+        "title": "GitSpecs: Copy Commit SHA"
+      },
+      {
+        "command": "gitspecs.blame.openRemote",
+        "title": "GitSpecs: Open Commit on Remote"
       }
     ],
     "menus": {
@@ -1361,7 +1371,7 @@
       {
         "command": "gitspecs.annotations.dismiss",
         "key": "escape",
-        "when": "editorTextFocus && !textInputFocus && !suggestWidgetVisible && !findWidgetVisible"
+        "when": "gitspecs.annotations.active && editorTextFocus && !suggestWidgetVisible && !findWidgetVisible"
       }
     ]
   },

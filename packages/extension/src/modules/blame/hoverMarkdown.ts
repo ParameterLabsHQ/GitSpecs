@@ -114,34 +114,48 @@ export function formatChangesHoverMarkdown(
 }
 
 /**
+ * Build a VS Code markdown command URI, optionally with JSON-encoded args.
+ * Pure — no vscode dependency.
+ */
+export function commandUri(command: string, args?: unknown[]): string {
+  if (!args || args.length === 0) return `command:${command}`;
+  return `command:${command}?${encodeURIComponent(JSON.stringify(args))}`;
+}
+
+/**
  * Default action links for ambient / annotation blame hovers.
- * Pure URI strings — no vscode dependency.
+ * Labels match real command behavior (copy / open remote are not detail picks).
  */
 export function defaultBlameHoverActions(options: {
-  hasRemoteUrl?: boolean;
+  /** Full commit SHA for Copy SHA (required for the copy action). */
+  sha?: string;
+  /** Prebuilt commit URL for Open on Remote. */
+  commitUrl?: string;
 } = {}): HoverActionLink[] {
   const actions: HoverActionLink[] = [
     {
       label: "Open Changes",
-      commandUri: "command:gitspecs.revision.diffWithPrevious",
+      commandUri: commandUri("gitspecs.revision.diffWithPrevious"),
     },
     {
       label: "File History",
-      commandUri: "command:gitspecs.history.file",
+      commandUri: commandUri("gitspecs.history.file"),
     },
     {
       label: "Toggle File Blame",
-      commandUri: "command:gitspecs.blame.toggleFile",
-    },
-    {
-      label: "Copy SHA",
-      commandUri: "command:gitspecs.blame.showLine",
+      commandUri: commandUri("gitspecs.blame.toggleFile"),
     },
   ];
-  if (options.hasRemoteUrl) {
+  if (options.sha) {
+    actions.push({
+      label: "Copy SHA",
+      commandUri: commandUri("gitspecs.blame.copySha", [options.sha]),
+    });
+  }
+  if (options.commitUrl) {
     actions.push({
       label: "Open on Remote",
-      commandUri: "command:gitspecs.blame.statusBarDetails",
+      commandUri: commandUri("gitspecs.blame.openRemote", [options.commitUrl]),
     });
   }
   return actions;

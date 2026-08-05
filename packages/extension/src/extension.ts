@@ -38,6 +38,7 @@ import { registerAiCommands } from "./modules/ai/commands.js";
 import { FileHistoryProvider } from "./modules/history/fileHistoryProvider.js";
 import { LineHistoryProvider } from "./modules/history/lineHistoryProvider.js";
 import { ModeController, registerModeCommands } from "./shell/modeController.js";
+import { AnnotationModeState } from "./shell/annotationContext.js";
 import {
   DEFAULT_SCM_TAB,
   HAS_REPOSITORY_CONTEXT_KEY,
@@ -173,18 +174,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerCompareCommands(context, repos, log);
   registerSearchCommands(context, repos, log);
 
-  const blameController = new BlameController(repos, log);
+  const annotationModes = new AnnotationModeState();
+  const blameController = new BlameController(repos, log, annotationModes);
   context.subscriptions.push(blameController);
-  registerBlameCommands(context, repos, log, blameController);
+
+  const changesAnnotations = new ChangesAnnotationController(
+    repos,
+    log,
+    annotationModes,
+  );
+  context.subscriptions.push(changesAnnotations);
+  registerBlameCommands(context, repos, log, blameController, changesAnnotations);
   registerRevisionContentProvider(context, repos, log);
   registerRevisionCommands(context, repos, log);
   registerHistoryCommands(context, repos, log, {
     fileHistory: fileHistoryProvider,
     lineHistory: lineHistoryProvider,
   });
-
-  const changesAnnotations = new ChangesAnnotationController(repos, log);
-  context.subscriptions.push(changesAnnotations);
   registerAnnotationCommands(context, repos, log, changesAnnotations);
   registerTerminalLinks(context, repos, log);
   registerHostingCommands(context, repos, log, refresh);

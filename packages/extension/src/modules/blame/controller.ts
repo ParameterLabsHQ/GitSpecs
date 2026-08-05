@@ -3,6 +3,7 @@ import * as path from "node:path";
 import type { BlameLine } from "@gitspecs/git-core";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { PlatformLog } from "../../shell/log.js";
+import type { AnnotationModeState } from "../../shell/annotationContext.js";
 import { presentError } from "../../shell/errors.js";
 import { formatLineBlame, formatStatusBarBlame } from "./format.js";
 import { BlameCache } from "./cache.js";
@@ -69,6 +70,7 @@ export class BlameController implements vscode.Disposable {
   constructor(
     private readonly repos: RepoContext,
     private readonly log: PlatformLog,
+    private readonly annotationModes?: AnnotationModeState,
   ) {
     this.decorationType = vscode.window.createTextEditorDecorationType({
       isWholeLine: false,
@@ -190,6 +192,7 @@ export class BlameController implements vscode.Disposable {
 
   async toggle(): Promise<void> {
     this.enabled = !this.enabled;
+    await this.annotationModes?.setFileBlame(this.enabled);
     if (!this.enabled) {
       this.clearAllFileBlame();
       void vscode.window.setStatusBarMessage("GitSpecs: File blame off", 2000);
@@ -201,19 +204,72 @@ export class BlameController implements vscode.Disposable {
     this.scheduleCurrentLineRefresh();
   }
 
-  /** Escape / dismiss: turn off file blame and clear annotation modes. */
-  async dismissAnnotations(): Promise<void> {
-    let cleared = false;
-    if (this.enabled) {
-      this.enabled = false;
-      this.clearAllFileBlame();
-      cleared = true;
+  /**
+   * Escape / dismiss: turn off full-file blame (+ heatmap session).
+   * Changes annotations are dismissed separately by the shared command.
+   */
+  async dismissAnnotations(): Promise<boolean> {
+    if (!this.enabled) {
+      await this.annotationModes?.setFileBlame(false);
+      return false;
     }
-    // Also clear heatmap-only session by ensuring file blame off
-    if (cleared) {
-      void vscode.window.setStatusBarMessage("GitSpecs: annotations dismissed", 2000);
-    }
+    this.enabled = false;
+    await this.annotationModes?.setFileBlame(false);
+    this.clearAllFileBlame();
     this.scheduleCurrentLineRefresh();
+    return true;
+  }
+
+  /** Copy SHA from arg or current line — real clipboard path for hover links. */
+  async copySha(sha?: string): Promise<void> {
+    let value = typeof sha === "string" && sha.length > 0 ? sha : undefined;
+    if (!value) {
+      const line = await this.resolveCurrentLine();
+      value = line?.sha;
+    }
+    if (!value) {
+      void vscode.window.showInformationMessage("No commit SHA to copy");
+      return;
+    }
+    await vscode.env.clipboard.writeText(value);
+    void vscode.window.setStatusBarMessage("GitSpecs: SHA copied", 2000);
+  }
+
+  /** Open commit URL from arg or current line remote — real external open path. */
+  async openRemote(url?: string): Promise<void> {
+    let target = typeof url === "string" && url.length > 0 ? url : undefined;
+    if (!target) {
+      const line = await this.resolveCurrentLine();
+      if (line) {
+        const repo = this.repos.currentRepo;
+        if (repo) {
+          try {
+            const remoteUrl = await repo.branches.getRemoteUrl("origin");
+            target = resolveCommitUrl(remoteUrl, line.sha);
+          } catch {
+            target = undefined;
+          }
+        }
+      }
+    }
+    if (!target) {
+      void vscode.window.showInformationMessage("No remote commit URL available");
+      return;
+    }
+    await vscode.env.openExternal(vscode.Uri.parse(target));
+  }
+
+  private async resolveCurrentLine(): Promise<BlameLine | undefined> {
+    const editor = vscode.window.activeTextEditor;
+    const repo = this.repos.currentRepo;
+    if (!editor || !repo || !isDiskFile(editor.document)) return undefined;
+    if (!isUnderRepo(repo.root, editor.document.uri.fsPath)) return undefined;
+    return this.cache.getLine(
+      repo,
+      editor.document.uri.fsPath,
+      String(editor.document.version),
+      editor.selection.active.line + 1,
+    );
   }
 
   async toggleCodeLens(): Promise<void> {
@@ -419,18 +475,18 @@ export class BlameController implements vscode.Disposable {
       }
     }
 
-    let hasRemote = false;
+    let commitUrl: string | undefined;
     const repo = this.repos.currentRepo;
     if (repo) {
       try {
         const remoteUrl = await repo.branches.getRemoteUrl("origin");
-        hasRemote = Boolean(resolveCommitUrl(remoteUrl, line.sha));
+        commitUrl = resolveCommitUrl(remoteUrl, line.sha);
       } catch {
-        hasRemote = false;
+        commitUrl = undefined;
       }
     }
 
-    const actions = defaultBlameHoverActions({ hasRemoteUrl: hasRemote });
+    const actions = defaultBlameHoverActions({ sha: line.sha, commitUrl });
     const text = formatCombinedBlameHoverMarkdown(line, {
       includeDetails: details,
       includeChanges: changes,
@@ -571,10 +627,17 @@ export class BlameController implements vscode.Disposable {
           // offline
         }
       }
+      let commitUrl: string | undefined;
+      try {
+        const remoteUrl = await repo.branches.getRemoteUrl("origin");
+        commitUrl = resolveCommitUrl(remoteUrl, line.sha);
+      } catch {
+        commitUrl = undefined;
+      }
       const tip = formatDetailsHoverMarkdown(line, {
         autolinkRules: rules,
         enrichedBlock,
-        actions: defaultBlameHoverActions(),
+        actions: defaultBlameHoverActions({ sha: line.sha, commitUrl }),
       });
       this.statusBar.tooltip = new vscode.MarkdownString(tip, true);
       this.statusBar.show();
@@ -655,7 +718,14 @@ export class BlameController implements vscode.Disposable {
 
       const includeDetails = this.hoverDetailsEnabled("annotations");
       const includeChanges = this.hoverChangesEnabled("annotations");
-      const actions = defaultBlameHoverActions();
+      let defaultCommitUrl: string | undefined;
+      try {
+        const remoteUrl = await repo.branches.getRemoteUrl("origin");
+        // Per-line URLs share host; resolve once and rebuild per sha below via helper
+        defaultCommitUrl = remoteUrl;
+      } catch {
+        defaultCommitUrl = undefined;
+      }
 
       for (let i = 0; i < editor.document.lineCount; i++) {
         const lineNo = i + 1;
@@ -665,6 +735,11 @@ export class BlameController implements vscode.Disposable {
 
         let hoverMessage: vscode.MarkdownString | undefined;
         if (includeDetails || includeChanges) {
+          const commitUrl = resolveCommitUrl(defaultCommitUrl, blame.sha);
+          const actions = defaultBlameHoverActions({
+            sha: blame.sha,
+            commitUrl,
+          });
           const text = formatCombinedBlameHoverMarkdown(blame, {
             includeDetails,
             includeChanges,

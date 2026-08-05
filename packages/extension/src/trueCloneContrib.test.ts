@@ -55,11 +55,21 @@ describe("True Clone package contributions (P24)", () => {
     );
   });
 
-  it("contributes Alt+B and Shift+Alt+B keybindings on gitspecs commands", () => {
+  it("contributes Alt+B, Shift+Alt+B, and Escape dismiss keybindings", () => {
     const kbs = pkg.contributes.keybindings ?? [];
-    const byCmd = Object.fromEntries(kbs.map((k) => [k.command, k.key]));
-    expect(byCmd["gitspecs.blame.toggleFile"]?.toLowerCase()).toBe("alt+b");
-    expect(byCmd["gitspecs.blame.toggleCodeLens"]?.toLowerCase()).toBe("shift+alt+b");
+    const byCmd = Object.fromEntries(
+      kbs.map((k) => [k.command, k as { command: string; key: string; when?: string }]),
+    );
+    expect(byCmd["gitspecs.blame.toggleFile"]?.key.toLowerCase()).toBe("alt+b");
+    expect(byCmd["gitspecs.blame.toggleCodeLens"]?.key.toLowerCase()).toBe("shift+alt+b");
+
+    const esc = byCmd["gitspecs.annotations.dismiss"];
+    expect(esc?.key.toLowerCase()).toBe("escape");
+    // Must not use contradictory editorTextFocus && !textInputFocus
+    expect(esc?.when).toBeTruthy();
+    expect(esc!.when).toContain("gitspecs.annotations.active");
+    expect(esc!.when).not.toMatch(/!textInputFocus/);
+    expect(esc!.when).toContain("editorTextFocus");
   });
 
   it("defaults current-line, status bar, CodeLens, and hovers on", () => {
@@ -72,13 +82,29 @@ describe("True Clone package contributions (P24)", () => {
     expect(props["gitspecs.hovers.currentLine.changes"]?.default).toBe(true);
   });
 
-  it("registers mode and dismiss commands", () => {
+  it("registers mode, dismiss, and honest hover action commands", () => {
     const cmds = pkg.contributes.commands.map((c) => c.command);
     expect(cmds).toContain("gitspecs.mode.switch");
     expect(cmds).toContain("gitspecs.mode.toggleZen");
     expect(cmds).toContain("gitspecs.mode.toggleReview");
     expect(cmds).toContain("gitspecs.annotations.dismiss");
     expect(cmds).toContain("gitspecs.blame.toggleCodeLens");
+    expect(cmds).toContain("gitspecs.blame.copySha");
+    expect(cmds).toContain("gitspecs.blame.openRemote");
+  });
+
+  it("points SCM empty welcome at Home container (not retired mega id)", () => {
+    const pkgFull = JSON.parse(
+      readFileSync(path.join(root, "package.json"), "utf8"),
+    ) as {
+      contributes: {
+        viewsWelcome?: Array<{ view: string; contents: string; when?: string }>;
+      };
+    };
+    const welcomes = pkgFull.contributes.viewsWelcome ?? [];
+    const joined = welcomes.map((w) => w.contents).join("\n");
+    expect(joined).not.toMatch(/workbench\.view\.extension\.gitspecs(?!\.)/);
+    expect(joined).toMatch(/workbench\.view\.extension\.gitspecs\.home/);
   });
 
   it("wires providers and modes in extension entrypoint", () => {

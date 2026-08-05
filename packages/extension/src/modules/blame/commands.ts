@@ -4,6 +4,7 @@ import type { PlatformLog } from "../../shell/log.js";
 import { bindCommand } from "../../shell/bindCommand.js";
 import { presentError } from "../../shell/errors.js";
 import type { BlameController } from "./controller.js";
+import type { ChangesAnnotationController } from "../annotations/controller.js";
 import type { BlameDetailPayload } from "./detail.js";
 
 export function registerBlameCommands(
@@ -11,6 +12,7 @@ export function registerBlameCommands(
   _repos: RepoContext,
   log: PlatformLog,
   controller: BlameController,
+  changes?: ChangesAnnotationController,
 ): void {
   const run = <TArgs extends unknown[]>(fn: (...args: TArgs) => Promise<void>) =>
     bindCommand(fn, {
@@ -61,9 +63,34 @@ export function registerBlameCommands(
       }),
     ),
     vscode.commands.registerCommand(
+      "gitspecs.blame.copySha",
+      run(async (sha?: string) => {
+        await controller.copySha(sha);
+      }),
+    ),
+    vscode.commands.registerCommand(
+      "gitspecs.blame.openRemote",
+      run(async (url?: string) => {
+        await controller.openRemote(url);
+      }),
+    ),
+    vscode.commands.registerCommand(
       "gitspecs.annotations.dismiss",
       run(async () => {
-        await controller.dismissAnnotations();
+        const clearedBlame = await controller.dismissAnnotations();
+        let clearedChanges = false;
+        if (changes?.isEnabled()) {
+          await changes.dismiss();
+          clearedChanges = true;
+        } else if (changes) {
+          await changes.dismiss();
+        }
+        if (clearedBlame || clearedChanges) {
+          void vscode.window.setStatusBarMessage(
+            "GitSpecs: annotations dismissed",
+            2000,
+          );
+        }
       }),
     ),
   );

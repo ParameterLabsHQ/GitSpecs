@@ -10,6 +10,14 @@ Open-source **worktree** and **branch** management for **VS Code** and **Cursor*
 
 ## Features (v1)
 
+### Source Control tab (GitLens-style)
+
+**Worktrees** and **Branches** appear as collapsible sections in the **Source Control** view (alongside the built-in Changes list), with the same create/refresh actions and context menus as the dedicated sidebar.
+
+### Dedicated activity bar
+
+A **Git Platform** icon in the activity bar hosts the same Worktrees and Branches views full-height.
+
 ### Worktrees
 
 List, create (existing branch or new branch from ref), open in current/new window, reveal in OS, copy path, remove, prune.

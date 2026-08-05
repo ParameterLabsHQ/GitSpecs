@@ -15,6 +15,8 @@
   "activationEvents": [
     "onView:gitPlatform.worktrees",
     "onView:gitPlatform.branches",
+    "onView:gitPlatform.scm.worktrees",
+    "onView:gitPlatform.scm.branches",
     "onCommand:gitPlatform.switchRepository",
     "onCommand:gitPlatform.worktrees.refresh",
     "onCommand:gitPlatform.branches.refresh"
@@ -40,8 +42,32 @@
           "id": "gitPlatform.branches",
           "name": "Branches"
         }
+      ],
+      "scm": [
+        {
+          "id": "gitPlatform.scm.worktrees",
+          "name": "Worktrees",
+          "contextualTitle": "Git Platform: Worktrees",
+          "visibility": "visible"
+        },
+        {
+          "id": "gitPlatform.scm.branches",
+          "name": "Branches",
+          "contextualTitle": "Git Platform: Branches",
+          "visibility": "visible"
+        }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "gitPlatform.scm.worktrees",
+        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [Git Platform](command:workbench.view.extension.gitPlatform) sidebar."
+      },
+      {
+        "view": "gitPlatform.scm.branches",
+        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [Git Platform](command:workbench.view.extension.gitPlatform) sidebar."
+      }
+    ],
     "commands": [
       {
         "command": "gitPlatform.switchRepository",
@@ -164,99 +190,99 @@
       "view/title": [
         {
           "command": "gitPlatform.worktrees.create",
-          "when": "view == gitPlatform.worktrees",
+          "when": "view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees",
           "group": "navigation"
         },
         {
           "command": "gitPlatform.worktrees.refresh",
-          "when": "view == gitPlatform.worktrees",
+          "when": "view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees",
           "group": "navigation"
         },
         {
           "command": "gitPlatform.branches.create",
-          "when": "view == gitPlatform.branches",
+          "when": "view == gitPlatform.branches || view == gitPlatform.scm.branches",
           "group": "navigation"
         },
         {
           "command": "gitPlatform.branches.refresh",
-          "when": "view == gitPlatform.branches",
+          "when": "view == gitPlatform.branches || view == gitPlatform.scm.branches",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "gitPlatform.worktrees.openCurrentWindow",
-          "when": "view == gitPlatform.worktrees && viewItem == worktree",
+          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
           "group": "1_open"
         },
         {
           "command": "gitPlatform.worktrees.openNewWindow",
-          "when": "view == gitPlatform.worktrees && viewItem == worktree",
+          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
           "group": "1_open"
         },
         {
           "command": "gitPlatform.worktrees.reveal",
-          "when": "view == gitPlatform.worktrees && viewItem == worktree",
+          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
           "group": "2_path"
         },
         {
           "command": "gitPlatform.worktrees.copyPath",
-          "when": "view == gitPlatform.worktrees && viewItem == worktree",
+          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
           "group": "2_path"
         },
         {
           "command": "gitPlatform.worktrees.remove",
-          "when": "view == gitPlatform.worktrees && viewItem == worktree",
+          "when": "(view == gitPlatform.worktrees || view == gitPlatform.scm.worktrees) && viewItem == worktree",
           "group": "3_danger"
         },
         {
           "command": "gitPlatform.branches.checkout",
-          "when": "view == gitPlatform.branches && viewItem =~ /branch/",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
           "group": "1_nav"
         },
         {
           "command": "gitPlatform.branches.copyName",
-          "when": "view == gitPlatform.branches && viewItem =~ /branch/",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
           "group": "2_copy"
         },
         {
           "command": "gitPlatform.branches.openRemote",
-          "when": "view == gitPlatform.branches && viewItem =~ /branch/",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
           "group": "2_copy"
         },
         {
           "command": "gitPlatform.branches.rename",
-          "when": "view == gitPlatform.branches && viewItem == branchLocal",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem == branchLocal",
           "group": "3_mod"
         },
         {
           "command": "gitPlatform.branches.delete",
-          "when": "view == gitPlatform.branches && viewItem == branchLocal",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem == branchLocal",
           "group": "4_danger"
         },
         {
           "command": "gitPlatform.branches.deleteForce",
-          "when": "view == gitPlatform.branches && viewItem == branchLocal",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem == branchLocal",
           "group": "4_danger"
         },
         {
           "command": "gitPlatform.branches.deleteRemote",
-          "when": "view == gitPlatform.branches && viewItem == branchRemote",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem == branchRemote",
           "group": "4_danger"
         },
         {
           "command": "gitPlatform.branches.merge",
-          "when": "view == gitPlatform.branches && viewItem =~ /branch/",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
           "group": "5_hist"
         },
         {
           "command": "gitPlatform.branches.rebase",
-          "when": "view == gitPlatform.branches && viewItem =~ /branch/",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
           "group": "5_hist"
         },
         {
           "command": "gitPlatform.branches.compare",
-          "when": "view == gitPlatform.branches && viewItem =~ /branch/",
+          "when": "(view == gitPlatform.branches || view == gitPlatform.scm.branches) && viewItem =~ /branch/",
           "group": "5_hist"
         }
       ],

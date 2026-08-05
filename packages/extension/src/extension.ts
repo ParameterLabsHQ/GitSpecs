@@ -28,9 +28,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const branchesProvider = new BranchesProvider(repos, refresh, log);
   context.subscriptions.push(worktreesProvider, branchesProvider);
 
+  // Activity bar + Source Control (SCM) host the same providers (GitLens-style dual placement).
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider("gitPlatform.worktrees", worktreesProvider),
     vscode.window.registerTreeDataProvider("gitPlatform.branches", branchesProvider),
+    vscode.window.registerTreeDataProvider("gitPlatform.scm.worktrees", worktreesProvider),
+    vscode.window.registerTreeDataProvider("gitPlatform.scm.branches", branchesProvider),
   );
 
   registerWorktreeCommands(context, repos, refresh, log);

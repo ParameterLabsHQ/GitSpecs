@@ -60,7 +60,7 @@ Status is grounded in the monorepo as of this revision.
 | Terminal links (SHAs/branches/tags in terminal) | **Shipped** | `modules/terminalLinks` | **P16** |
 | Autolinks (issue keys → URLs, config-driven) | **Shipped** | `modules/autolinks`; blame/history/graph wiring | **P16** |
 | Multi-repo simultaneous views | **Shipped** | `RepoRootItem` grouping; item `repoRoot` + `resolveRepoForItem` | **P17** |
-| Commit Graph webview (DAG canvas, search/filter, WIP row) | **Not started** (high-density tree shipped in P11) | — | **P18** |
+| Commit Graph webview (DAG canvas, search/filter, WIP row) | **Shipped** | webview platform + `gitspecs.graphView` / `graph.openView`; `logPage` | **P18** |
 | Interactive rebase sequence editor | **Not started** (guided flows shipped in P12) | — | **P19** |
 | Visual File History (timeline chart) | **Not started** | — | **P20** |
 | Dual-pane Search & Compare | **Not started** (QuickPick shipped in P6) | — | **P20** |
@@ -328,6 +328,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - P11 high-density tree remains as the SCM-tab and fallback surface
 - Tests: pure layout/message-protocol unit tests; contrib structural tests; CSP/nonce assertion test on generated HTML
 
+**Shipped:** shared webview platform (`webviewHost` / `webviewHtml`, second esbuild browser target, `docs/WEBVIEWS.md`); `repo.graph.logPage` paging; Commit Graph canvas (`gitspecs.graph.openView`, protocol + virtualized-ish client, WIP row, filter, actions); P11 tree retained.
+
 **Out of P18:** rewrite actions inside the graph (P19+); PR/issue rows (P21).
 
 ### Phase P19 — Interactive rebase sequence editor
@@ -408,16 +410,16 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M5 Advanced** | P12–P14 | Rewrite UX shipped; P13 deferred → superseded by P21; P14 finite polish shipped |
 | **M6 Editor depth** | P15–P16 | **Done** (revision nav + annotations/links) |
 | **M7 Scale** | P17 | **Done** — every repo visible under roots |
-| **M8 Webview surfaces** | P18–P20 | Commit Graph canvas, interactive rebase editor, Visual File History, dual-pane compare |
+| **M8 Webview surfaces** | P18–P20 | **P18 done** (platform + graph canvas); P19–P20 next |
 | **M9 Connected** | P21–P22 | PRs/issues/avatars via platform auth; client-side work hub |
 | **M10 Assist** | P23 | Optional BYO-key AI, off by default |
 
-**Next implementation goal:** **P18 — Webview platform + Commit Graph canvas.** P15–P17 shipped; P18–P23 remains the ladder to full GitLens parity, free.
+**Next implementation goal:** **P19 — Interactive rebase sequence editor.** P15–P18 shipped; P19–P23 remains the ladder to full GitLens parity, free.
 
 Recommended default sequence for agents:
 
 ```
-(P0–P12, P15–P17 done) → P18 → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
+(P0–P12, P15–P18 done) → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
 ```
 
 Each phase: read this file + `AGENTS.md` → design note in `docs/superpowers/specs/` if the phase is large (P17, P18, P19, P21 are) → implementation plan → PR with tests → update Section 2 + changelog here. One phase per goal; keep phase N green before starting N+1.
@@ -484,3 +486,4 @@ Interactive rebase **UI** is a local parity target (**P19**); the P12 note preda
 | 2026-08-05 | Marked **P15** Revision navigation shipped (`revisionNeighbors`, `gitspecs:` documents, prev/next/diff commands); next slice **P16** |
 | 2026-08-05 | Marked **P16** Annotations & link surfaces shipped (changes decorations, symbol CodeLens, terminal links, autolinks); next slice **P17** |
 | 2026-08-05 | Marked **P17** Multi-repo views shipped (per-repo tree roots, item repo resolution, principle 4 amended); next slice **P18** |
+| 2026-08-05 | Marked **P18** Webview platform + Commit Graph canvas shipped (`docs/WEBVIEWS.md`, `logPage`, `gitspecs.graph.openView`); next slice **P19** |

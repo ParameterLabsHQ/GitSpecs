@@ -37,7 +37,7 @@ Local clone folder may still be named `gitlens-clone`; that is incidental filesy
 
 Open-source **GitLens-style** extension for VS Code/Cursor. The product goal (set 2026-08-05) is **full GitLens feature parity, offered free** — including client-side features GitLens gates behind paid plans — while excluding vendor-cloud backends and paywalls.
 
-**Shipped today (high level, P0–P12 + P14–P17):**
+**Shipped today (high level, P0–P12 + P14–P18):**
 
 - Worktrees + branches + commits browser (library + activity bar + SCM)
 - File blame (decorations, status bar, CodeLens, heatmap), file + line history
@@ -46,12 +46,13 @@ Open-source **GitLens-style** extension for VS Code/Cursor. The product goal (se
 - Revision documents (`gitspecs:`), prev/next revision, diff with previous/working tree
 - Changes annotations, symbol CodeLens, terminal links, config-driven autolinks
 - Multi-repo tree roots (all views) with per-item repo resolution
+- Webview platform + Commit Graph canvas (`gitspecs.graph.openView`)
 - Hosting links: **URL-only** (`host-urls`); system `git` only (2.23+)
 
 **Product roadmap (order of implementation):**  
-→ **[docs/ROADMAP.md](./docs/ROADMAP.md)** — phases **P0–P23**, status inventory, milestones, and non-goals. P0–P12 + **P15–P17** shipped; **P18–P23** is the ladder to full parity (P13 superseded by P21). Evidence: [GitLens parity gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md).
+→ **[docs/ROADMAP.md](./docs/ROADMAP.md)** — phases **P0–P23**, status inventory, milestones, and non-goals. P0–P12 + **P15–P18** shipped; **P19–P23** is the ladder to full parity (P13 superseded by P21). Evidence: [GitLens parity gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md).
 
-**Next implementation slice (per roadmap):** **P18 — Webview platform + Commit Graph canvas.**
+**Next implementation slice (per roadmap):** **P19 — Interactive rebase sequence editor.**
 
 Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 
@@ -116,7 +117,7 @@ Work done in the initial build/rebrand session, in rough order:
 2. **`git-core` and `host-urls` must not import `vscode`.**
 3. **Modules own UX** (commands, tree providers); shell owns repo context + refresh + errors.
 4. **Multi-repo tree views** when multiple repos are open (per-repo roots); **one current repository** for editor-scoped features and Switch Repository (`RepoContext`).
-5. **Native-first UI.** TreeView, QuickPick, InputBox, confirms by default. Custom webviews are allowed **only** via the shared webview platform that phase **P18** introduces (single host helper: CSP + nonce, theme CSS variables, typed message protocol, documented in `docs/WEBVIEWS.md` when it lands) — never ad-hoc webviews before or outside that platform.
+5. **Native-first UI.** TreeView, QuickPick, InputBox, confirms by default. Custom webviews only via the shared platform (`shell/webviewHost.ts`, `docs/WEBVIEWS.md`) — CSP + nonce, theme CSS variables, typed message protocol; never ad-hoc `createWebviewPanel`.
 6. **Future modules** stay unbuilt until their roadmap phase is designed; do not half-implement a later phase's UI.
 7. **Clean-room parity (binding).** Never open, copy, or port code from `gitkraken/vscode-gitlens`: `src/plus/**` is proprietary (GitKraken EULA), and even its MIT core is behavior-reference only in this GPL-3.0-only codebase. Implement from documented behavior and public docs; interop formats (e.g. `git-rebase-todo`) may match. See the [gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md) Section 3.
 
@@ -170,7 +171,7 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 | M5 Advanced | P12–P14 | P12 done; P13 superseded by P21; P14 ongoing polish |
 | M6 Editor depth | P15–P16 | **Done** (revision nav + annotations/links) |
 | M7 Scale | P17 | **Done** — multi-repo tree roots |
-| M8 Webview surfaces | P18–P20 | Planned — webview platform, Commit Graph canvas, rebase editor, Visual File History, dual-pane compare |
+| M8 Webview surfaces | P18–P20 | P18 done (platform + graph canvas); P19–P20 planned |
 | M9 Connected | P21–P22 | Planned — hosting APIs (`vscode.authentication` / `SecretStorage`), work hub |
 | M10 Assist | P23 | Planned — optional BYO-key AI, off by default |
 

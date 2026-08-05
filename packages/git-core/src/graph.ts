@@ -34,6 +34,22 @@ export interface GraphLogOptions {
    * When false, walk only HEAD ancestry.
    */
   all?: boolean;
+  /**
+   * Skip the first N commits (`git log --skip`). Used for paged loads past the
+   * first window (P18). Clamped to ≥ 0.
+   */
+  skip?: number;
+}
+
+/** Paged graph result for incremental webview loads (P18). */
+export interface GraphLogPage {
+  commits: GraphCommit[];
+  /** Absolute skip used for this page. */
+  skip: number;
+  /** Requested page size (after clamp). */
+  limit: number;
+  /** True when the page was full (caller may request skip+limit next). */
+  hasMore: boolean;
 }
 
 /**
@@ -47,17 +63,40 @@ export class GraphApi {
 
   /**
    * Recent commits with parents + refs for graph UI.
-   * Performance bound: default 200, max 500 commits.
+   * Performance bound: default 200, max 500 commits **per page**.
+   * Use `skip` (or `logPage`) to walk further history incrementally.
    */
   async log(options: GraphLogOptions = {}): Promise<GraphCommit[]> {
+    const page = await this.logPage(options);
+    return page.commits;
+  }
+
+  /**
+   * Paged graph walk for webview incremental load (P18).
+   * `hasMore` is true when this page returned a full `limit` rows.
+   */
+  async logPage(options: GraphLogOptions = {}): Promise<GraphLogPage> {
     const limit = clampGraphLimit(options.limit);
+    const skip = clampSkip(options.skip);
     const all = options.all !== false;
     const args = ["log", `-n${limit}`, `--format=${GRAPH_LOG_FORMAT}`];
+    if (skip > 0) args.push(`--skip=${skip}`);
     if (all) args.push("--all");
     const result = await this.repo.exec(args);
     const raw = parseGraphLog(result.stdout);
-    return layoutGraph(raw);
+    const commits = layoutGraph(raw);
+    return {
+      commits,
+      skip,
+      limit,
+      hasMore: commits.length >= limit,
+    };
   }
+}
+
+function clampSkip(skip: number | undefined): number {
+  if (skip == null || !Number.isFinite(skip) || skip <= 0) return 0;
+  return Math.min(Math.floor(skip), 1_000_000);
 }
 
 export function clampGraphLimit(limit: number | undefined): number {

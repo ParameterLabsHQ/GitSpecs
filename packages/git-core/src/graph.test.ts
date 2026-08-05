@@ -101,4 +101,18 @@ describe("graph API (real git)", () => {
     const nodes = await repo.graph.log({ limit: 2 });
     expect(nodes).toHaveLength(2);
   });
+
+  it("logPage supports skip for incremental loads", async () => {
+    const page0 = await repo.graph.logPage({ limit: 2, skip: 0, all: true });
+    expect(page0.commits).toHaveLength(2);
+    expect(page0.skip).toBe(0);
+    expect(page0.hasMore).toBe(true);
+
+    const page1 = await repo.graph.logPage({ limit: 2, skip: 2, all: true });
+    expect(page1.skip).toBe(2);
+    // Pages should not share the same first sha when history is long enough
+    if (page1.commits.length > 0) {
+      expect(page1.commits[0]!.sha).not.toBe(page0.commits[0]!.sha);
+    }
+  });
 });

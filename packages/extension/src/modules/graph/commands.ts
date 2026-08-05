@@ -8,6 +8,7 @@ import { resolveRepoForItem } from "../../shell/repoTree.js";
 import { resolveCommitUrl } from "../history/actions.js";
 import { runCompareInteractive } from "../compare/commands.js";
 import type { GraphItem } from "./provider.js";
+import { openGraphView } from "./graphView.js";
 
 export function registerGraphCommands(
   context: vscode.ExtensionContext,
@@ -29,6 +30,13 @@ export function registerGraphCommands(
 
   context.subscriptions.push(
     vscode.commands.registerCommand("gitspecs.graph.refresh", run(async () => {})),
+
+    vscode.commands.registerCommand(
+      "gitspecs.graph.openView",
+      runQuiet(async () => {
+        await openGraphView(context, repos, log);
+      }),
+    ),
 
     vscode.commands.registerCommand(
       "gitspecs.graph.copySha",

@@ -83,6 +83,7 @@ export {
   type GraphCommit,
   type GraphCommitRaw,
   type GraphLogOptions,
+  type GraphLogPage,
 } from "./graph.js";
 export {
   RewriteApi,

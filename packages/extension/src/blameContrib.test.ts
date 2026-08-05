@@ -77,6 +77,12 @@ describe("blame extension contributions", () => {
     expect(codeLens).toContain("provideCodeLenses");
     expect(codeLens).toContain("blame.codeLens");
     expect(codeLens).toContain("gitspecs.blame.codeLensDetail");
+    expect(codeLens).toContain("shouldAcceptCodeLensResult");
+    expect(codeLens).toContain("buildFileCodeLensSpecs");
+    // Must not use a provider-global sequence that races concurrent documents
+    expect(codeLens).not.toMatch(/this\.seq\s*=/);
+    expect(codeLens).not.toMatch(/mySeq\s*!==\s*this\.seq/);
+    expect(existsSync(path.join(blameDir, "codeLensBuild.ts"))).toBe(true);
 
     const commands = readFileSync(path.join(blameDir, "commands.ts"), "utf8");
     expect(commands).toContain("gitspecs.blame.statusBarDetails");

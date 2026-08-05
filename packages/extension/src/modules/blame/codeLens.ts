@@ -1,14 +1,12 @@
 import * as vscode from "vscode";
 import * as path from "node:path";
-import type { BlameLine } from "@gitspecs/git-core";
 import type { RepoContext } from "../../shell/repoContext.js";
 import type { PlatformLog } from "../../shell/log.js";
 import type { BlameCache } from "./cache.js";
 import {
-  formatCodeLensAuthors,
-  formatCodeLensLastChange,
-} from "./format.js";
-import { toDetailPayload, type BlameDetailPayload } from "./detail.js";
+  buildFileCodeLensSpecs,
+  shouldAcceptCodeLensResult,
+} from "./codeLensBuild.js";
 
 function isUnderRepo(repoRoot: string, fsPath: string): boolean {
   const root = path.resolve(repoRoot);
@@ -19,6 +17,9 @@ function isUnderRepo(repoRoot: string, fsPath: string): boolean {
 /**
  * File-level CodeLens: author count + last change from one blame pass.
  * Uses shared BlameCache; does not block the host on every keystroke (debounce via provider refresh).
+ *
+ * Stale-async policy: CancellationToken + per-document version match only.
+ * No provider-global sequence (that raced concurrent documents and dropped valid lenses).
  */
 export class BlameCodeLensProvider implements vscode.CodeLensProvider, vscode.Disposable {
   private readonly _onDidChange = new vscode.EventEmitter<void>();
@@ -26,7 +27,6 @@ export class BlameCodeLensProvider implements vscode.CodeLensProvider, vscode.Di
 
   private readonly disposables: vscode.Disposable[] = [];
   private refreshTimer: NodeJS.Timeout | undefined;
-  private seq = 0;
 
   constructor(
     private readonly repos: RepoContext,
@@ -77,43 +77,33 @@ export class BlameCodeLensProvider implements vscode.CodeLensProvider, vscode.Di
     const fsPath = document.uri.fsPath;
     if (!isUnderRepo(repo.root, fsPath)) return [];
 
-    const mySeq = ++this.seq;
+    // Capture per-document version only — never a global seq that races across files.
+    const requestedVersion = document.version;
     try {
-      const rows = await this.cache.get(repo, fsPath, String(document.version));
-      if (token.isCancellationRequested || mySeq !== this.seq) return [];
-      if (rows.length === 0) return [];
+      const rows = await this.cache.get(repo, fsPath, String(requestedVersion));
+      if (
+        !shouldAcceptCodeLensResult({
+          cancelled: token.isCancellationRequested,
+          requestedVersion,
+          currentVersion: document.version,
+        })
+      ) {
+        return [];
+      }
+
+      const specs = buildFileCodeLensSpecs(rows);
+      if (specs.length === 0) return [];
 
       const top = new vscode.Range(0, 0, 0, 0);
-      const lenses: vscode.CodeLens[] = [];
-
-      const authorsTitle = formatCodeLensAuthors(rows);
-      if (authorsTitle) {
-        // Payload: most recent commit for detail
-        const latest = pickLatest(rows);
-        lenses.push(
+      return specs.map(
+        (spec) =>
           new vscode.CodeLens(top, {
-            title: authorsTitle,
+            title: spec.title,
             command: "gitspecs.blame.codeLensDetail",
-            arguments: latest ? [toDetailPayload(latest)] : [],
-            tooltip: "GitSpecs: file authors",
+            arguments: spec.payload ? [spec.payload] : [],
+            tooltip: spec.tooltip,
           }),
-        );
-      }
-
-      const lastChange = formatCodeLensLastChange(rows);
-      if (lastChange) {
-        const latest = pickLatest(rows);
-        lenses.push(
-          new vscode.CodeLens(top, {
-            title: lastChange,
-            command: "gitspecs.blame.codeLensDetail",
-            arguments: latest ? [toDetailPayload(latest)] : [],
-            tooltip: "GitSpecs: last change",
-          }),
-        );
-      }
-
-      return lenses;
+      );
     } catch (err) {
       this.log.debug(
         `CodeLens blame failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -128,16 +118,3 @@ export class BlameCodeLensProvider implements vscode.CodeLensProvider, vscode.Di
     for (const d of this.disposables) d.dispose();
   }
 }
-
-function pickLatest(rows: BlameLine[]): BlameLine | undefined {
-  let latest: BlameLine | undefined;
-  for (const r of rows) {
-    if (!latest || (r.authorTime ?? 0) > (latest.authorTime ?? 0)) {
-      latest = r;
-    }
-  }
-  return latest;
-}
-
-/** Type-only export for tests that construct payloads. */
-export type { BlameDetailPayload };

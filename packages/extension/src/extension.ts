@@ -9,6 +9,18 @@ import { BranchesProvider } from "./modules/branches/provider.js";
 import { registerBranchCommands } from "./modules/branches/commands.js";
 import { BlameController } from "./modules/blame/controller.js";
 import { registerBlameCommands } from "./modules/blame/commands.js";
+import {
+  DEFAULT_SCM_TAB,
+  SCM_CONSOLIDATED_VIEW_ID,
+  SCM_TAB_CONTEXT_KEY,
+  ScmTabState,
+  type ScmTab,
+} from "./shell/scmTabs.js";
+import { ScmGroupedProvider } from "./shell/scmGroupedProvider.js";
+
+async function setScmTabContext(tab: ScmTab): Promise<void> {
+  await vscode.commands.executeCommand("setContext", SCM_TAB_CONTEXT_KEY, tab);
+}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const log = new PlatformLog();
@@ -30,12 +42,29 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const branchesProvider = new BranchesProvider(repos, refresh, log);
   context.subscriptions.push(worktreesProvider, branchesProvider);
 
-  // Activity bar + Source Control (SCM) host the same providers (GitLens-style dual placement).
+  // Activity-bar dual views keep dedicated providers.
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider("gitspecs.worktrees", worktreesProvider),
     vscode.window.registerTreeDataProvider("gitspecs.branches", branchesProvider),
-    vscode.window.registerTreeDataProvider("gitspecs.scm.worktrees", worktreesProvider),
-    vscode.window.registerTreeDataProvider("gitspecs.scm.branches", branchesProvider),
+  );
+
+  // Single consolidated SCM panel with Worktrees/Branches tabs (GitLens-style).
+  const scmTabs = new ScmTabState();
+  await setScmTabContext(DEFAULT_SCM_TAB);
+  const scmGrouped = new ScmGroupedProvider(scmTabs, worktreesProvider, branchesProvider);
+  context.subscriptions.push(
+    scmGrouped,
+    vscode.window.registerTreeDataProvider(SCM_CONSOLIDATED_VIEW_ID, scmGrouped),
+  );
+
+  const switchScmTab = async (tab: ScmTab): Promise<void> => {
+    if (!scmTabs.setActive(tab)) return;
+    await setScmTabContext(tab);
+  };
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("gitspecs.scm.showWorktrees", () => switchScmTab("worktrees")),
+    vscode.commands.registerCommand("gitspecs.scm.showBranches", () => switchScmTab("branches")),
   );
 
   registerWorktreeCommands(context, repos, refresh, log);

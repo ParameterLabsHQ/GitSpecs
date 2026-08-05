@@ -19,9 +19,10 @@
   "activationEvents": [
     "onView:gitspecs.worktrees",
     "onView:gitspecs.branches",
-    "onView:gitspecs.scm.worktrees",
-    "onView:gitspecs.scm.branches",
+    "onView:gitspecs.scm",
     "onCommand:gitspecs.switchRepository",
+    "onCommand:gitspecs.scm.showWorktrees",
+    "onCommand:gitspecs.scm.showBranches",
     "onCommand:gitspecs.worktrees.refresh",
     "onCommand:gitspecs.branches.refresh",
     "onCommand:gitspecs.blame.toggleFile",
@@ -52,33 +53,35 @@
       ],
       "scm": [
         {
-          "id": "gitspecs.scm.worktrees",
-          "name": "Worktrees",
-          "contextualTitle": "GitSpecs: Worktrees",
-          "visibility": "visible"
-        },
-        {
-          "id": "gitspecs.scm.branches",
-          "name": "Branches",
-          "contextualTitle": "GitSpecs: Branches",
+          "id": "gitspecs.scm",
+          "name": "GitSpecs",
+          "contextualTitle": "GitSpecs",
           "visibility": "visible"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "gitspecs.scm.worktrees",
-        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar."
-      },
-      {
-        "view": "gitspecs.scm.branches",
-        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar."
+        "view": "gitspecs.scm",
+        "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar.\n\nUse the title-bar icons to switch between Worktrees and Branches."
       }
     ],
     "commands": [
       {
         "command": "gitspecs.switchRepository",
         "title": "GitSpecs: Switch Repository…"
+      },
+      {
+        "command": "gitspecs.scm.showWorktrees",
+        "title": "GitSpecs: Show Worktrees",
+        "icon": "$(folder)",
+        "category": "GitSpecs"
+      },
+      {
+        "command": "gitspecs.scm.showBranches",
+        "title": "GitSpecs: Show Branches",
+        "icon": "$(git-branch)",
+        "category": "GitSpecs"
       },
       {
         "command": "gitspecs.blame.toggleFile",
@@ -209,104 +212,122 @@
     "menus": {
       "view/title": [
         {
+          "command": "gitspecs.scm.showWorktrees",
+          "when": "view == gitspecs.scm",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitspecs.scm.showBranches",
+          "when": "view == gitspecs.scm",
+          "group": "navigation@2"
+        },
+        {
           "command": "gitspecs.worktrees.create",
-          "when": "view == gitspecs.worktrees || view == gitspecs.scm.worktrees",
-          "group": "navigation"
+          "when": "view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)",
+          "group": "navigation@3"
         },
         {
           "command": "gitspecs.worktrees.refresh",
-          "when": "view == gitspecs.worktrees || view == gitspecs.scm.worktrees",
-          "group": "navigation"
+          "when": "view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)",
+          "group": "navigation@4"
         },
         {
           "command": "gitspecs.branches.create",
-          "when": "view == gitspecs.branches || view == gitspecs.scm.branches",
-          "group": "navigation"
+          "when": "view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)",
+          "group": "navigation@3"
         },
         {
           "command": "gitspecs.branches.refresh",
-          "when": "view == gitspecs.branches || view == gitspecs.scm.branches",
-          "group": "navigation"
+          "when": "view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)",
+          "group": "navigation@4"
         }
       ],
       "view/item/context": [
         {
           "command": "gitspecs.worktrees.openCurrentWindow",
-          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
+          "when": "(view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)) && viewItem == worktree",
           "group": "1_open"
         },
         {
           "command": "gitspecs.worktrees.openNewWindow",
-          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
+          "when": "(view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)) && viewItem == worktree",
           "group": "1_open"
         },
         {
           "command": "gitspecs.worktrees.reveal",
-          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
+          "when": "(view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)) && viewItem == worktree",
           "group": "2_path"
         },
         {
           "command": "gitspecs.worktrees.copyPath",
-          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
+          "when": "(view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)) && viewItem == worktree",
           "group": "2_path"
         },
         {
           "command": "gitspecs.worktrees.remove",
-          "when": "(view == gitspecs.worktrees || view == gitspecs.scm.worktrees) && viewItem == worktree",
+          "when": "(view == gitspecs.worktrees || (view == gitspecs.scm && gitspecs.scm.tab == worktrees)) && viewItem == worktree",
           "group": "3_danger"
         },
         {
           "command": "gitspecs.branches.checkout",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem =~ /branch/",
           "group": "1_nav"
         },
         {
           "command": "gitspecs.branches.copyName",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem =~ /branch/",
           "group": "2_copy"
         },
         {
           "command": "gitspecs.branches.openRemote",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem =~ /branch/",
           "group": "2_copy"
         },
         {
           "command": "gitspecs.branches.rename",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem == branchLocal",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem == branchLocal",
           "group": "3_mod"
         },
         {
           "command": "gitspecs.branches.delete",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem == branchLocal",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem == branchLocal",
           "group": "4_danger"
         },
         {
           "command": "gitspecs.branches.deleteForce",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem == branchLocal",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem == branchLocal",
           "group": "4_danger"
         },
         {
           "command": "gitspecs.branches.deleteRemote",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem == branchRemote",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem == branchRemote",
           "group": "4_danger"
         },
         {
           "command": "gitspecs.branches.merge",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem =~ /branch/",
           "group": "5_hist"
         },
         {
           "command": "gitspecs.branches.rebase",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem =~ /branch/",
           "group": "5_hist"
         },
         {
           "command": "gitspecs.branches.compare",
-          "when": "(view == gitspecs.branches || view == gitspecs.scm.branches) && viewItem =~ /branch/",
+          "when": "(view == gitspecs.branches || (view == gitspecs.scm && gitspecs.scm.tab == branches)) && viewItem =~ /branch/",
           "group": "5_hist"
         }
       ],
       "commandPalette": [
+        {
+          "command": "gitspecs.scm.showWorktrees",
+          "when": "false"
+        },
+        {
+          "command": "gitspecs.scm.showBranches",
+          "when": "false"
+        },
         {
           "command": "gitspecs.worktrees.openCurrentWindow",
           "when": "false"

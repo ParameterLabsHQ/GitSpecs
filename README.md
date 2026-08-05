@@ -26,6 +26,14 @@ List, create (existing branch or new branch from ref), open in current/new windo
 
 Local + remote listing with upstream ahead/behind, create/rename/delete (safe + force), checkout/switch, publish/push/pull/fetch, set upstream, delete remote branch, merge, rebase, cherry-pick, create from commit, compare summary, copy name, **Open on Remote** (URL-only for GitHub/GitLab/Bitbucket/Azure DevOps — no API tokens).
 
+### File blame (Phase 1)
+
+- **GitSpecs: Toggle File Blame** — end-of-line annotations (author • date • sha • summary) with hover detail  
+- **GitSpecs: Show Line Blame** — message for the current line  
+- **GitSpecs: Blame File to Output** — full file dump in the GitSpecs output channel  
+
+Product roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md).
+
 ## Monorepo layout
 
 | Package | Role |

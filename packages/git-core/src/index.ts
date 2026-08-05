@@ -18,6 +18,14 @@ export {
   type CompareResult,
 } from "./branches.js";
 export {
+  BlameApi,
+  parseBlamePorcelain,
+  formatBlameAnnotation,
+  toRepoRelative,
+  type BlameLine,
+  type BlameOptions,
+} from "./blame.js";
+export {
   GitNotFoundError,
   NotAGitRepositoryError,
   GitCommandError,

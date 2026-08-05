@@ -1,7 +1,7 @@
 {
   "name": "gitspecs",
   "displayName": "GitSpecs",
-  "description": "Open-source worktree and branch management for VS Code and Cursor.",
+  "description": "Open-source GitLens-style worktrees, branches, and file blame for VS Code and Cursor.",
   "version": "0.1.0",
   "publisher": "ParameterLabsHQ",
   "license": "GPL-3.0-only",
@@ -23,7 +23,10 @@
     "onView:gitspecs.scm.branches",
     "onCommand:gitspecs.switchRepository",
     "onCommand:gitspecs.worktrees.refresh",
-    "onCommand:gitspecs.branches.refresh"
+    "onCommand:gitspecs.branches.refresh",
+    "onCommand:gitspecs.blame.toggleFile",
+    "onCommand:gitspecs.blame.showLine",
+    "onCommand:gitspecs.blame.fileToOutput"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -76,6 +79,19 @@
       {
         "command": "gitspecs.switchRepository",
         "title": "GitSpecs: Switch Repository…"
+      },
+      {
+        "command": "gitspecs.blame.toggleFile",
+        "title": "GitSpecs: Toggle File Blame",
+        "icon": "$(git-commit)"
+      },
+      {
+        "command": "gitspecs.blame.showLine",
+        "title": "GitSpecs: Show Line Blame"
+      },
+      {
+        "command": "gitspecs.blame.fileToOutput",
+        "title": "GitSpecs: Blame File to Output"
       },
       {
         "command": "gitspecs.worktrees.refresh",
@@ -298,6 +314,25 @@
         {
           "command": "gitspecs.worktrees.openNewWindow",
           "when": "false"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "gitspecs.blame.showLine",
+          "when": "editorTextFocus && resourceScheme == file",
+          "group": "gitspecs@1"
+        },
+        {
+          "command": "gitspecs.blame.toggleFile",
+          "when": "editorTextFocus && resourceScheme == file",
+          "group": "gitspecs@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "gitspecs.blame.toggleFile",
+          "when": "resourceScheme == file",
+          "group": "navigation"
         }
       ]
     },

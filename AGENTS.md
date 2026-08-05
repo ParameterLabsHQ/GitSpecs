@@ -143,16 +143,35 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 - Output channel name: **GitSpecs**.
 - Settings namespace: `gitspecs.git.path`, `gitspecs.worktrees.*`, `gitspecs.confirmDelete`, `gitspecs.log.verbosity`.
 
-## Implementation phases (still useful for later work)
+## Product roadmap
+
+See **[docs/ROADMAP.md](./docs/ROADMAP.md)** for must-have GitLens-clone phases:
+
+| Phase | Focus | Status |
+|-------|--------|--------|
+| 0 | Worktrees + branches (+ basic compare) | Done |
+| 1 | Authorship / **blame** | **Shipped** (`repo.blame`, `gitspecs.blame.*`) |
+| 2 | File / line history | Next incomplete must-have after blame |
+| 3 | Comparison polish | Partial |
+| 4 | Commit graph | Later |
+
+### Blame module notes
+
+- Library: `@gitspecs/git-core` → `repo.blame.blame` / `blameLine` (`git blame --line-porcelain`).
+- Extension: `BlameController` decorations + commands `gitspecs.blame.toggleFile` / `showLine` / `fileToOutput`.
+- Format via shipped `formatBlameAnnotation` (do not reimplement in tests).
+
+## Implementation phases (historical)
 
 1. ~~Scaffold + license + empty activate~~
 2. ~~git-core exec + discovery + worktrees~~
 3. ~~branch toolkit~~
 4. ~~host-urls~~
 5. ~~extension shell + modules + SCM~~
-6. Polish: refresh edge cases, multi-root UX, Windows/Linux verification
-7. Optional later modules: history, blame, graph (new specs first)
-8. Public launch: CONTRIBUTING, CI, Open VSX / Marketplace under GPL-3.0
+6. ~~Phase 1 blame~~
+7. Polish: refresh edge cases, multi-root UX, Windows/Linux verification
+8. Phase 2+ history / compare polish / graph (roadmap first)
+9. Public launch: CONTRIBUTING, CI, Open VSX / Marketplace under GPL-3.0
 
 ## Coding conventions
 

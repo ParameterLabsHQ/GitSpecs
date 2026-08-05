@@ -6,7 +6,7 @@
   "license": "GPL-3.0-only",
   "scripts": {
     "build": "pnpm -r run build",
-    "test": "pnpm --filter @gitspecs/git-core test && pnpm --filter @gitspecs/host-urls test && pnpm --filter gitspecs test",
+    "test": "pnpm --filter @gitspecs/git-core test && pnpm --filter @gitspecs/host-urls test && pnpm --filter @gitspecs/git-core build && pnpm --filter @gitspecs/host-urls build && pnpm --filter gitspecs test",
     "watch": "pnpm --filter gitspecs run watch",
     "package": "pnpm --filter gitspecs run package",
     "consumer": "pnpm --filter @gitspecs/git-core run consumer"

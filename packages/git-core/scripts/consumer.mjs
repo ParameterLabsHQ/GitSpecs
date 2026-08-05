@@ -31,11 +31,34 @@ await execGit(git.path, ["init", dir]);
 await execGit(git.path, ["-C", dir, "config", "user.email", "c@example.com"]);
 await execGit(git.path, ["-C", dir, "config", "user.name", "Consumer"]);
 await execGit(git.path, ["-C", dir, "checkout", "-b", "main"]);
-await writeFile(path.join(dir, "f.txt"), "hi\n");
+await writeFile(path.join(dir, "f.txt"), "hi\nline2\n");
 await execGit(git.path, ["-C", dir, "add", "f.txt"]);
 await execGit(git.path, ["-C", dir, "commit", "-m", "init"]);
+const initSha = (await execGit(git.path, ["-C", dir, "rev-parse", "HEAD"])).stdout.trim();
 
 const repo = await openRepository(dir, git);
+
+// Phase 1: blame library API on shipped dist
+const blameRows = await repo.blame.blame({ file: "f.txt" });
+const blameLine = await repo.blame.blameLine("f.txt", 1);
+if (!blameLine || blameLine.sha !== initSha || !blameLine.author) {
+  console.error("blame consumer failed", { blameLine, initSha, blameRows });
+  process.exitCode = 1;
+}
+console.log(
+  JSON.stringify(
+    {
+      blameLineCount: blameRows.length,
+      blameLine1Sha: blameLine?.sha,
+      blameLine1Author: blameLine?.author,
+      blameLine1Summary: blameLine?.summary,
+      blameMatchesInit: blameLine?.sha === initSha,
+    },
+    null,
+    2,
+  ),
+);
+
 const branches = await repo.branches.list({ includeRemotes: false });
 await repo.branches.create({ name: "consumer-branch" });
 const after = await repo.branches.list({ includeRemotes: false });

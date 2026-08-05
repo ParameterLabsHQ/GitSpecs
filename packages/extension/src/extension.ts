@@ -7,6 +7,8 @@ import { WorktreesProvider } from "./modules/worktrees/provider.js";
 import { registerWorktreeCommands } from "./modules/worktrees/commands.js";
 import { BranchesProvider } from "./modules/branches/provider.js";
 import { registerBranchCommands } from "./modules/branches/commands.js";
+import { BlameController } from "./modules/blame/controller.js";
+import { registerBlameCommands } from "./modules/blame/commands.js";
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const log = new PlatformLog();
@@ -38,6 +40,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   registerWorktreeCommands(context, repos, refresh, log);
   registerBranchCommands(context, repos, refresh, log);
+
+  const blameController = new BlameController(repos, log);
+  context.subscriptions.push(blameController);
+  registerBlameCommands(context, repos, log, blameController);
 
   context.subscriptions.push(
     vscode.commands.registerCommand("gitspecs.switchRepository", async () => {

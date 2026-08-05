@@ -48,7 +48,7 @@ Open-source **GitLens-style** extension for VS Code/Cursor. **Worktrees, branche
 **Product roadmap (order of implementation):**  
 → **[docs/ROADMAP.md](./docs/ROADMAP.md)** — complete phases **P0–P14**, status inventory, milestones, and non-parity deferrals (Launchpad, AI, Cloud Patches, etc.).
 
-**Next implementation slice (per roadmap):** **P8** Stashes (P7 Commits sidebar is shipped; see recommended sequence in the roadmap).
+**Next implementation slice (per roadmap):** none for local OSS parity — **P0–P12 shipped**, **P13 deferred** (hosting PAT/OAuth), **P14 finite polish shipped**. See `docs/ROADMAP.md`.
 
 Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 

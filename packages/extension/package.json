@@ -5,6 +5,10 @@
   "version": "0.1.0",
   "publisher": "gitplatform",
   "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tbone/gitlens-clone.git"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },

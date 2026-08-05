@@ -5,7 +5,9 @@
 **Updated:** 2026-08-05  
 **Audience:** maintainers and coding agents
 
-This is the **single product contract** for how GitSpecs approaches open-source **GitLens-style** parity in VS Code/Cursor. It orders work into **shippable phases**, records honest **current status**, and separates **local system-git parity** from **cloud/Pro non-goals**.
+This is the **single product contract** for how GitSpecs approaches open-source **GitLens-style** parity in VS Code/Cursor. It orders work into **shippable phases**, records honest **current status**, and separates **client-side parity** (in scope, including features GitLens gates behind paid plans) from **vendor-cloud non-goals**.
+
+> **Scope expansion (2026-08-05):** the target is now **full GitLens feature parity, free** — not just local-git parity. Phases **P15–P23** cover editor depth, multi-repo, webview surfaces (Commit Graph canvas, rebase editor), hosting APIs, a work hub, and optional BYO-key AI. Evidence and tier data: [GitLens parity gap analysis](./superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md).
 
 > **Do not implement every phase in one goal.** Each incomplete phase should become its own design note (if large) → implementation plan → PR. Keep Phase N green before starting N+1 unless the phase explicitly allows parallel polish.
 
@@ -15,10 +17,12 @@ This is the **single product contract** for how GitSpecs approaches open-source 
 
 1. **System `git` only** for repository truth (`@gitspecs/git-core`). No isomorphic-git, no embedded binary.
 2. **Library before UI.** Porcelain parsers and ops live in pure packages; the extension binds TreeViews, commands, decorations, CodeLens, webviews.
-3. **URL remotes before hosting APIs.** `host-urls` stays network-free until a late optional phase.
-4. **One current repo context** (multi-root switcher) for all views/commands.
+3. **URL remotes before hosting APIs.** `host-urls` stays network-free; hosting HTTP APIs arrive only in **P21** and never block offline git.
+4. **One current repo context** (multi-root switcher) for all views/commands — **until P17**, which adds multi-repo views while keeping single-repo behavior unchanged.
 5. **Branding:** `GitSpecs` / `ParameterLabsHQ` / `gitspecs.*` only (see `AGENTS.md`).
-6. **Open-source local parity ≠ GitKraken cloud.** Launchpad, Cloud Patches, AI Commit Composer, Code Suggest, paywalls are **non-parity** (Section 5).
+6. **Full-product parity, free.** Client-side GitLens features are in scope even when GitLens sells them (Commit Graph canvas, rich integrations, work hub, BYO-key AI). Vendor **cloud services** — Launchpad's backend, Cloud Patches, Code Suggest, hosted AI — and paywalls are **non-parity** (Section 5).
+7. **Native-first UI.** TreeView/QuickPick/InputBox by default; custom webviews only via the shared webview platform introduced in **P18** — no ad-hoc webviews.
+8. **Clean-room parity.** Never open, copy, or port code from `gitkraken/vscode-gitlens` (its `src/plus/` is proprietary; even the MIT core is reference-by-behavior only). See the [gap analysis](./superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md) Section 3.
 
 ---
 
@@ -50,6 +54,19 @@ Status is grounded in the monorepo as of this revision.
 | Interactive rebase / history rewrite UI | **Shipped** (guided, not full editor) | `rewrite.ts` status/abort/continue + guided rebase/cherry-pick | **P12** |
 | Hosting provider HTTP APIs (PRs, issues) | **Deferred** | Needs PAT/OAuth secrets; offline git must not block — see P13 note | **P13** optional |
 | Heatmaps / avatar CDN / always-on perf polish | **Shipped** (finite slice) | Blame heatmap setting; CONTRIBUTING; GitHub CI matrix; no avatar CDN | **P14** polish |
+| Revision navigation (prev/next revision, diff with previous/working) | **Not started** (one-shot view-at-revision only) | — | **P15** |
+| Changes annotations (working-tree / unpushed lines) | **Not started** | — | **P16** |
+| Symbol-level CodeLens | **Not started** (file-level shipped in P3) | — | **P16** |
+| Terminal links (SHAs/branches/tags in terminal) | **Not started** | — | **P16** |
+| Autolinks (issue keys → URLs, config-driven) | **Not started** | — | **P16** |
+| Multi-repo simultaneous views | **Not started** (single current repo) | — | **P17** |
+| Commit Graph webview (DAG canvas, search/filter, WIP row) | **Not started** (high-density tree shipped in P11) | — | **P18** |
+| Interactive rebase sequence editor | **Not started** (guided flows shipped in P12) | — | **P19** |
+| Visual File History (timeline chart) | **Not started** | — | **P20** |
+| Dual-pane Search & Compare | **Not started** (QuickPick shipped in P6) | — | **P20** |
+| Hosting APIs: PRs / issues / avatars | **Not started** — supersedes P13 via `vscode.authentication` + `SecretStorage` | — | **P21** |
+| Work hub (client-side Launchpad-style) | **Not started** | — | **P22** |
+| AI assist (BYO key, optional, off by default) | **Not started** | — | **P23** |
 
 ---
 
@@ -235,6 +252,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 **Deferred reason (2026-08-05):** Full Done means require stored credentials (PAT/OAuth). AGENTS.md forbids inventing token storage for v1; no secrets/network credentials are available in agent goals. URL-only remote open remains shipped via `host-urls`. Revisit when a deliberate secrets design + user-facing auth UX lands.
 
+**Superseded (2026-08-05):** re-scoped as **P21**. The blocker is resolved without inventing storage: `vscode.authentication` (built-in GitHub provider) and `SecretStorage` for PATs. Do not implement under this phase number — see P21.
+
 ### Phase P14 — Polish *(continuous, after core daily-driver)* *(finite slice shipped)*
 
 **Depends on:** P1+  
@@ -244,7 +263,130 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Windows/Linux CI matrix  
 - CONTRIBUTING, release automation, Open VSX/Marketplace publish  
 
-**Shipped (finite slice):** optional `gitspecs.blame.heatmap` overview-ruler age colors; [CONTRIBUTING.md](../CONTRIBUTING.md); GitHub Actions CI on `ubuntu-latest` + `macos-latest` (build/test/package/consumer). Avatar CDN, Open VSX publish automation, and Windows CI matrix remain follow-ups.  
+**Shipped (finite slice):** optional `gitspecs.blame.heatmap` overview-ruler age colors; [CONTRIBUTING.md](../CONTRIBUTING.md); GitHub Actions CI on `ubuntu-latest` + `macos-latest` (build/test/package/consumer). Avatar CDN, Open VSX publish automation, Windows CI matrix, Modes (Zen/Review setting profiles), and worktree `move` remain follow-ups.  
+
+### Phase P15 — Revision navigation & revision diffs
+
+**Depends on:** P4–P5 (history library)  
+**Parity target:** GitLens revision navigation (step back/forward through a file's revisions) and "open changes with previous revision" — free-tier GitLens features GitSpecs lacks entirely
+
+**Done means:**
+
+- Read-only `gitspecs:` `TextDocumentContentProvider` serving file content at a revision (backed by `repo.history.showFile`); history/stash/commit flows stop rendering into untitled editors and use real revision documents
+- Library: resolve previous/next revision for a `(path, sha)` pair from the `git log --follow` sequence (documented rename policy; reuse `repo.history.file` ordering)
+- Commands: `gitspecs.revision.openAtRevision` (pick from file history), `gitspecs.revision.diffWithPrevious`, `gitspecs.revision.diffWithWorking`, `gitspecs.revision.previous` / `gitspecs.revision.next` (editor-title navigation icons with enablement context when viewing a revision)
+- Existing history / commits / stashes "view" actions upgraded to `vscode.diff` against the resolved base where one exists
+- Real-git tests for revision-sequence resolution (multi-commit fixtures incl. a rename); structural contrib tests for new commands/menus
+
+**Out of P15:** annotations and link surfaces (P16), timeline webviews (P20).
+
+### Phase P16 — Annotations & link surfaces
+
+**Depends on:** P1–P3 (blame infra); P15 helpful (diff plumbing)  
+**Parity target:** GitLens changes annotations, symbol-level CodeLens, terminal links, autolinks — all free-tier, all network-free
+
+**Done means:**
+
+- **Changes annotations:** toggleable decorations marking lines changed in the working tree and/or unpushed commits (`git diff` / `git diff @{upstream}` parsers in `git-core`); command `gitspecs.annotations.toggleChanges`; setting `gitspecs.annotations.changes`
+- **Symbol-level CodeLens:** extend `modules/blame` CodeLens to top-level symbols via `vscode.executeDocumentSymbolProvider` (most-recent change + author count per symbol range); file-level lens kept; still honors `gitspecs.blame.codeLens`
+- **Terminal links:** `TerminalLinkProvider` recognizing commit SHAs and branch/tag names in terminal output → actions (show commit, checkout, copy); setting `gitspecs.terminalLinks`
+- **Autolinks:** setting `gitspecs.autolinks` — array of `{ prefix, url }` rules with `<num>` substitution; linkified in blame hovers, commit QuickPick details, and graph tooltips via a pure helper (`modules/autolinks/format.ts` or `host-urls`); **no network, no issue titles** (P21 enriches)
+- Real-git tests for diff parsers; pure unit tests for autolink/terminal matchers; contrib structural tests
+
+**Out of P16:** provider-fetched issue metadata (P21); Modes (P14 follow-up).
+
+### Phase P17 — Multi-repo views
+
+**Depends on:** P0 shell  
+**Parity target:** GitLens multi-repo awareness — every repo visible at once instead of a single switched context
+
+**Done means:**
+
+- `RepoContext` exposes all discovered repos; when a workspace has >1 repo, tree views (worktrees, branches, commits, stashes, tags, remotes, contributors, graph) group under per-repository roots
+- The single "current repo" concept remains for editor-scoped features (blame, history, revision navigation) and `gitspecs.switchRepository`
+- Every TreeItem carries its repository; command handlers resolve the repo from the item, never from global current-repo state (audit all `bindCommand` call sites)
+- Refresh stays per-repo where cheap (per-repo `fs.watch` already exists)
+- Real-git tests with two temp repos; structural tests for grouped roots; single-repo workspaces render exactly as today
+- Amend roadmap principle 4 in the same PR
+
+### Phase P18 — Webview platform + Commit Graph canvas
+
+**Depends on:** P11 (graph model); P17 recommended first  
+**Parity target:** GitLens Commit Graph webview (Pro on private repos) — **flagship differentiator**, free here
+
+**Done means:**
+
+- **Webview platform (one-time infra, own design note before implementation):** second esbuild target for webview bundles; shared host helper providing CSP + nonce, theme CSS variables, a typed `postMessage` protocol, and `getState`/`setState` persistence; documented in `docs/WEBVIEWS.md`; AGENTS.md native-UI rule amended to "webviews via the shared platform only" in the same PR
+- **Graph canvas:** `gitspecs.graphView` webview — virtualized rows, lane/edge rendering from the existing `repo.graph.log` layout, ref badges, working-tree (WIP) row, search/filter by message/author/SHA, commit selection → details panel, context actions (checkout, create branch, compare, open remote, copy SHA) that reuse existing commands over the message protocol
+- Incremental load past the current 500-commit cap (paged `git log`); performance bounds documented
+- P11 high-density tree remains as the SCM-tab and fallback surface
+- Tests: pure layout/message-protocol unit tests; contrib structural tests; CSP/nonce assertion test on generated HTML
+
+**Out of P18:** rewrite actions inside the graph (P19+); PR/issue rows (P21).
+
+### Phase P19 — Interactive rebase sequence editor
+
+**Depends on:** P12 (rewrite API); P18 (webview platform)  
+**Parity target:** GitLens Interactive Rebase Editor — the last free-tier GitLens feature GitSpecs lacks
+
+**Done means:**
+
+- Library: `repo.rewrite.interactiveRebase(baseRef)` launches rebase with a `GIT_SEQUENCE_EDITOR` helper script that hands `git-rebase-todo` to the extension and blocks until the UI resolves (the P12 deferral, now due)
+- Editor UI on the P18 platform (webview or `CustomTextEditor` for `git-rebase-todo`): reorder rows, per-row pick/reword/squash/fixup/drop/edit, commit metadata (subject, author, date) from a `repo.graph.log` slice, apply/abort
+- Registers as editor for `git-rebase-todo` so a terminal-run `git rebase -i` (with VS Code as core.editor) opens the same UI
+- Conflict handling remains the P12 guided flow (status / continue / abort)
+- Real-git end-to-end test driving a scripted sequence edit through the helper (non-interactive); pure round-trip parser tests for the todo file
+
+### Phase P20 — Visual File History & dual-pane Search & Compare
+
+**Depends on:** P18 (webview platform); P4 / P6 (data)  
+**Parity target:** GitLens Visual File History (Pro on private repos) + Search & Compare dual-pane
+
+**Done means:**
+
+- Library: `--numstat` churn parse added to `repo.history` (per-commit additions/deletions for a path)
+- **Visual File History:** webview timeline of a file's commits (time axis, churn-scaled marks, author color), hover details, click → P15 revision diff
+- **Dual-pane compare:** persistent compare surface (webview or split tree) for two refs or ref-vs-working-tree — ahead/behind, shortstat, per-file open-diff actions; promotes the P6 QuickPick flow
+- Tests: numstat parser real-git tests; message-protocol unit tests; contrib structural tests
+
+### Phase P21 — Hosting provider APIs *(supersedes P13)*
+
+**Depends on:** P0 host-urls; P16 (autolinks are the enrichment target)  
+**Parity target:** GitLens rich integrations — PR/issue details, PR-for-branch, avatars (Pro-gated for private/self-hosted repos in GitLens)
+
+**Done means:**
+
+- **Auth without inventing storage:** GitHub via built-in `vscode.authentication.getSession("github", …)` (no custom secret handling at all); GitLab / Bitbucket / Azure DevOps PATs via `context.secrets` (`SecretStorage`) with explicit sign-in/sign-out commands; everything remains fully functional offline/signed-out
+- New package `@gitspecs/host-api`: provider clients (GitHub/GitLab first) taking injected `fetch` + token — no `vscode` import, unit-tested against stubbed fixtures, no live network in CI
+- Features: PR-for-branch (branches view badge + status bar), PR/issue details in hovers and autolink tooltips, avatars in views (provider avatar URLs, cached; no third-party avatar CDN), create-PR flow (prefilled compare URL always; API create when a session exists)
+- Settings: `gitspecs.hosting.enabled` (default true, inert until sign-in); per-host base URLs for self-hosted GitHub/GitLab
+- Resilience: cached last-known data, rate-limit aware, never blocks or delays local git commands
+- Update AGENTS.md token rule ("no invented token storage" → "platform auth APIs only") in the same PR
+
+### Phase P22 — Work hub (client-side Launchpad-style)
+
+**Depends on:** P21  
+**Parity target:** GitLens Launchpad (Pro) — rebuilt entirely client-side; no vendor cloud, no account
+
+**Done means:**
+
+- Activity-bar **Hub** view aggregating across signed-in repos: your open PRs (review + CI state), PRs awaiting your review, assigned issues, and WIP branches (ahead/behind, uncommitted changes)
+- Grouping by urgency (blocked / needs your action / waiting on others); actions: open PR/issue, checkout branch, create worktree for a PR branch
+- Data via `@gitspecs/host-api` only; poll-on-refresh (RefreshBus + manual) — no push/webhook infrastructure
+- Pure unit tests for aggregation/grouping over `host-api` fixtures; contrib structural tests
+
+### Phase P23 — AI assist *(optional, BYO key, off by default)*
+
+**Depends on:** P0; P21 optional  
+**Parity target:** GitLens AI features (Pro / BYO-key) — commit message generation, explain commit
+
+**Done means:**
+
+- Commands: generate commit message from the staged diff; explain a commit/diff — visible only once a provider is configured
+- Providers: user-configured endpoint + model (Anthropic and OpenAI-compatible APIs); key stored in `SecretStorage`; nothing bundled, zero requests until configured
+- Privacy: first-use consent dialog stating exactly what is sent (diff text, file names); prompt-size caps; no telemetry
+- Explicit non-goals stay: hosted AI service, token quotas, accounts (Section 5)
+- Pure unit tests for prompt assembly + diff truncation; stubbed-client tests for response handling
 
 ---
 
@@ -257,44 +399,54 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M2 History** | P4–P5 | Walk file/line revision history — **done** |
 | **M3 Explore & compare** | P6–P10 | Browse commits/stashes/tags; rich compare/search (P6–P7 shipped) |
 | **M4 Graph** | P11 | Visual branch topology — **done** (high-density tree) |
-| **M5 Advanced** | P12–P14 | Rewrite UX shipped; P13 deferred; P14 finite polish shipped |
+| **M5 Advanced** | P12–P14 | Rewrite UX shipped; P13 deferred → superseded by P21; P14 finite polish shipped |
+| **M6 Editor depth** | P15–P16 | Revision navigation/diffs; annotations, symbol CodeLens, terminal links, autolinks |
+| **M7 Scale** | P17 | Every repo visible at once |
+| **M8 Webview surfaces** | P18–P20 | Commit Graph canvas, interactive rebase editor, Visual File History, dual-pane compare |
+| **M9 Connected** | P21–P22 | PRs/issues/avatars via platform auth; client-side work hub |
+| **M10 Assist** | P23 | Optional BYO-key AI, off by default |
 
-**Next implementation goal after this roadmap:** none for local OSS parity phases — **P0–P12 shipped**, **P13 deferred** (credentials), **P14 finite polish shipped**. Further work is incremental polish, hosting auth design, or user-reported fixes.
+**Next implementation goal:** **P15 — Revision navigation & revision diffs.** Local-git parity (P0–P12) is shipped; P15–P23 is the ladder to full GitLens parity, free.
 
-Recommended default sequence for agents (complete):
+Recommended default sequence for agents:
 
 ```
-(P0–P12 done) → (P13 only with secrets design) → ongoing P14 polish
+(P0–P12 done) → P15 → P16 → P17 → P18 → P19 → P20 → P21 → P22 → P23 (+ ongoing P14 polish)
 ```
+
+Each phase: read this file + `AGENTS.md` → design note in `docs/superpowers/specs/` if the phase is large (P17, P18, P19, P21 are) → implementation plan → PR with tests → update Section 2 + changelog here. One phase per goal; keep phase N green before starting N+1.
 
 ---
 
 ## 5. Explicitly out of open-source parity (non-goals)
 
-These GitKraken/GitLens **cloud or Pro-adjacent** products are **not** success criteria for GitSpecs OSS parity:
+**Re-scoped 2026-08-05:** two former non-goals moved into scope as client-side equivalents — **Launchpad → work hub (P22)** and **AI commit composer → BYO-key AI assist (P23)**. What remains out is anything requiring us (or GitKraken) to operate a cloud backend, plus paywalls:
 
-| Item | Why deferred |
-|------|----------------|
-| Launchpad / work-item hub | Cloud product surface |
-| Cloud Patches | SaaS collaboration |
-| Code Suggest / AI commit composer | Vendor AI services |
-| GitLens+ paywall / paid feature gates | We stay fully free/OSS |
-| Avatar CDN / identity services | Optional polish only (P14) |
-| Multi-org enterprise hosting matrices | Beyond URL + optional P13 |
+| Item | Why out |
+|------|----------|
+| Launchpad's **cloud service** (GitKraken account, cross-product sync) | P22 rebuilds the hub client-side; the vendor backend is not a target |
+| Cloud Patches | SaaS collaboration backend; we run no server |
+| Code Suggest | GitKraken cloud review service |
+| Cloud Workspaces / gitkraken.dev deep links | Vendor cloud |
+| Hosted AI service, token quotas, AI accounts | P23 is BYO-key only, off by default |
+| GitLens+ paywall / paid feature gates | We stay fully free/OSS, permanently |
+| Avatar CDN / identity services | Provider-API avatars ship in P21; no CDN of ours |
+| Multi-org enterprise hosting matrices | Beyond per-host base URLs in P21 |
 | Pixel-perfect GitLens UI clones | Functional parity first |
 
-Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud—still optional ordering.
+Interactive rebase **UI** is a local parity target (**P19**); the P12 note predates it.
 
 ---
 
 ## 6. Agent checklist for any new phase
 
 1. Read this roadmap + `AGENTS.md` branding rules.  
-2. Add/adjust library ops in `@gitspecs/git-core` (or pure sibling package) with **real-git** tests.  
-3. Wire extension contributions (`gitspecs.*` commands/views) via `bindCommand` for TreeItem args.  
-4. Keep activity-bar / SCM dual placement consistent when adding views.  
-5. Update **Section 2 status table** in this file when a phase ships.  
-6. `pnpm test` and `pnpm package` green before claiming done.  
+2. **Clean-room rule:** never open/copy/port `gitkraken/vscode-gitlens` code (`src/plus/` is proprietary; MIT core is behavior-reference only).  
+3. Add/adjust library ops in `@gitspecs/git-core` (or pure sibling package) with **real-git** tests.  
+4. Wire extension contributions (`gitspecs.*` commands/views) via `bindCommand` for TreeItem args.  
+5. Keep activity-bar / SCM dual placement consistent when adding views.  
+6. Update **Section 2 status table** + **Section 8 changelog** in this file when a phase ships; keep `roadmapParity.test.ts` green.  
+7. `pnpm test` and `pnpm package` green before claiming done.  
 
 ---
 
@@ -305,6 +457,7 @@ Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud�
 | [AGENTS.md](../AGENTS.md) | Agent conventions, branding, architecture rules |
 | [README.md](../README.md) | User-facing install and feature summary |
 | [Design v1](./superpowers/specs/2026-08-04-gitspecs-design.md) | Original v1 design (worktrees/branches shell) |
+| [GitLens parity gap analysis](./superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md) | Verified GitLens 18.3 feature/tier inventory, gap buckets behind P15–P23, clean-room licensing rule |
 
 ---
 
@@ -321,3 +474,4 @@ Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud�
 | 2026-08-05 | Marked **P11** Commit Graph shipped (lane layout + high-density tree); next slice **P12** |
 | 2026-08-05 | Marked **P12** guided rewrite UX shipped; next **P13?** / **P14** |
 | 2026-08-05 | **P13 deferred** (no token storage); **P14** finite polish (heatmap + CONTRIBUTING + CI) |
+| 2026-08-05 | **Scope expanded to full GitLens parity, free.** Added **P15–P23** (revision navigation, annotations/links, multi-repo, webview platform + graph canvas, rebase editor, visual history/compare, hosting APIs superseding P13, work hub, BYO-key AI); re-scoped Section 5 non-goals; added clean-room rule + [gap analysis](./superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md). Next slice: **P15** |

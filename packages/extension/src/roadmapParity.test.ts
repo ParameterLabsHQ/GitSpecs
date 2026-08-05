@@ -40,6 +40,15 @@ describe("docs/ROADMAP.md GitLens parity contract", () => {
       "Phase P12",
       "Phase P13",
       "Phase P14",
+      "Phase P15",
+      "Phase P16",
+      "Phase P17",
+      "Phase P18",
+      "Phase P19",
+      "Phase P20",
+      "Phase P21",
+      "Phase P22",
+      "Phase P23",
     ];
     for (const h of requiredHeadings) {
       expect(roadmap, `missing ${h}`).toContain(h);
@@ -89,6 +98,39 @@ describe("docs/ROADMAP.md GitLens parity contract", () => {
     expect(roadmap).toMatch(/File blame[\s\S]{0,80}\*\*Shipped\*\*/);
   });
 
+  it("covers the full-parity expansion areas (P15–P23) with honest status", () => {
+    // Defining areas of the 2026-08-05 scope expansion
+    expect(roadmap).toMatch(/revision navigation/i);
+    expect(roadmap).toMatch(/changes annotations/i);
+    expect(roadmap).toMatch(/terminal links/i);
+    expect(roadmap).toMatch(/autolinks/i);
+    expect(roadmap).toMatch(/multi-repo/i);
+    expect(roadmap).toMatch(/webview platform/i);
+    expect(roadmap).toMatch(/interactive rebase sequence editor/i);
+    expect(roadmap).toMatch(/visual file history/i);
+    expect(roadmap).toMatch(/vscode\.authentication/);
+    expect(roadmap).toMatch(/SecretStorage/);
+    expect(roadmap).toMatch(/work hub/i);
+    expect(roadmap).toMatch(/BYO[- ]key/i);
+    // Honesty: no P15+ area may claim Shipped until code exists
+    if (!existsSync(path.join(repoRoot, "packages/extension/src/modules/revision"))) {
+      expect(roadmap).toMatch(/Revision navigation[\s\S]{0,160}\*\*Not started\*\*/i);
+    }
+    if (!existsSync(path.join(repoRoot, "packages/extension/src/webviews"))) {
+      expect(roadmap).toMatch(/Commit Graph webview[\s\S]{0,160}\*\*Not started\*\*/i);
+    }
+    // Clean-room licensing rule must remain stated
+    expect(roadmap).toMatch(/clean-room/i);
+    expect(roadmap).toMatch(/src\/plus/);
+    // Gap analysis evidence doc exists and is linked
+    expect(
+      existsSync(
+        path.join(repoRoot, "docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md"),
+      ),
+    ).toBe(true);
+    expect(roadmap).toMatch(/2026-08-05-gitlens-parity-gap-analysis\.md/);
+  });
+
   it("labels cloud/AI items as non-parity and states implementation order", () => {
     expect(roadmap).toMatch(/Launchpad/);
     expect(roadmap).toMatch(/Cloud Patches/);
@@ -108,6 +150,9 @@ describe("AGENTS.md / README point at complete roadmap", () => {
     const readme = read("README.md");
     expect(agents).toMatch(/docs\/ROADMAP\.md/);
     expect(readme).toMatch(/docs\/ROADMAP\.md/);
-    expect(agents).toMatch(/P0–P14|P0-P14|P2/);
+    expect(agents).toMatch(/P0–P23|P0-P23/);
+    // AGENTS.md must name the current next slice and the clean-room rule
+    expect(agents).toMatch(/Next implementation slice[\s\S]{0,120}P15/);
+    expect(agents).toMatch(/clean-room/i);
   });
 });

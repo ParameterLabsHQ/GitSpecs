@@ -11,7 +11,7 @@ Guidance for AI coding agents and humans working in this repository.
 | **Public repo** | [ParameterLabsHQ/GitSpecs](https://github.com/ParameterLabsHQ/GitSpecs) |
 | **Extension package name** | `gitspecs` (full id: `ParameterLabsHQ.gitspecs`) |
 | **Settings / commands prefix** | `gitspecs.*` |
-| **View ids** | Activity bar: `gitspecs.worktrees`, `gitspecs.branches`, `gitspecs.commits`; SCM: single consolidated `gitspecs.scm` (Worktrees/Branches/Commits tabs via `gitspecs.scm.tab`) |
+| **View ids** | Activity bar: `gitspecs.worktrees`, `gitspecs.branches`, `gitspecs.commits`, `gitspecs.stashes`, `gitspecs.tags`, `gitspecs.remotes`, `gitspecs.contributors`, `gitspecs.graph`; SCM: single consolidated `gitspecs.scm` (tabs via `gitspecs.scm.tab`) |
 | **Libraries** | `@gitspecs/git-core`, `@gitspecs/host-urls` |
 | **License** | GPL-3.0-only |
 | **Editors** | VS Code 1.85+ and Cursor (VS Code Extension API) |
@@ -35,20 +35,20 @@ Local clone folder may still be named `gitlens-clone`; that is incidental filesy
 
 ## What this project is
 
-Open-source **GitLens-style** extension for VS Code/Cursor. **Worktrees, branches, commits browser, and file blame** ship today; the long-term path to broader GitLens-style parity is the phased roadmap (not full GitKraken cloud parity).
+Open-source **GitLens-style** extension for VS Code/Cursor. The product goal (set 2026-08-05) is **full GitLens feature parity, offered free** — including client-side features GitLens gates behind paid plans — while excluding vendor-cloud backends and paywalls.
 
-**Shipped today (high level):**
+**Shipped today (high level, P0–P12 + P14 slice):**
 
-- Worktrees + branches + commits (library + activity bar + SCM)
-- File blame (toggle decorations, line, output, status bar, CodeLens)
-- File + line history (QuickPick; copy SHA / open remote / view at rev)
-- Compare + commit search (QuickPick)
+- Worktrees + branches + commits browser (library + activity bar + SCM)
+- File blame (decorations, status bar, CodeLens, heatmap), file + line history
+- Compare + commit search (QuickPick); stashes, tags, remotes, contributors views
+- Commit Graph (lane-layout high-density tree); guided rebase/cherry-pick conflict UX
 - Hosting links: **URL-only** (`host-urls`); system `git` only (2.23+)
 
 **Product roadmap (order of implementation):**  
-→ **[docs/ROADMAP.md](./docs/ROADMAP.md)** — complete phases **P0–P14**, status inventory, milestones, and non-parity deferrals (Launchpad, AI, Cloud Patches, etc.).
+→ **[docs/ROADMAP.md](./docs/ROADMAP.md)** — phases **P0–P23**, status inventory, milestones, and non-goals. P0–P12 shipped; **P15–P23** is the ladder to full parity (P13 superseded by P21). Evidence: [GitLens parity gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md).
 
-**Next implementation slice (per roadmap):** none for local OSS parity — **P0–P12 shipped**, **P13 deferred** (hosting PAT/OAuth), **P14 finite polish shipped**. See `docs/ROADMAP.md`.
+**Next implementation slice (per roadmap):** **P15 — Revision navigation & revision diffs.**
 
 Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 
@@ -87,8 +87,13 @@ Work done in the initial build/rebrand session, in rough order:
 │           │   ├── history/     # file + line history (P4–P5)
 │           │   ├── compare/     # two-ref / working-tree compare (P6)
 │           │   ├── search/      # commit message/author search (P6)
-│           │   ├── blame/       # file blame, status bar, CodeLens (P1–P3)
-│           │   └── graph/       # stub only
+│           │   ├── blame/       # file blame, status bar, CodeLens, heatmap (P1–P3, P14)
+│           │   ├── stashes/     # stashes view + actions (P8)
+│           │   ├── tags/        # tags view (P9)
+│           │   ├── remotes/     # remotes view (P9)
+│           │   ├── contributors/# contributors view (P10)
+│           │   ├── graph/       # commit graph, high-density tree (P11)
+│           │   └── rewrite/     # guided rebase/cherry-pick UX (P12)
 │           └── extension.ts
 ├── docs/superpowers/specs/2026-08-04-gitspecs-design.md
 ├── package.json                 # pnpm workspace root
@@ -104,8 +109,9 @@ Work done in the initial build/rebrand session, in rough order:
 2. **`git-core` and `host-urls` must not import `vscode`.**
 3. **Modules own UX** (commands, tree providers); shell owns repo context + refresh + errors.
 4. **One current repository** in multi-root workspaces (`RepoContext` + Switch Repository command).
-5. **Native UI** for v1: TreeView, QuickPick, InputBox, confirms — no custom webview sidebars.
-6. **Future modules** stay as stubs until designed; do not half-implement graph/compare sidebars.
+5. **Native-first UI.** TreeView, QuickPick, InputBox, confirms by default. Custom webviews are allowed **only** via the shared webview platform that phase **P18** introduces (single host helper: CSP + nonce, theme CSS variables, typed message protocol, documented in `docs/WEBVIEWS.md` when it lands) — never ad-hoc webviews before or outside that platform.
+6. **Future modules** stay unbuilt until their roadmap phase is designed; do not half-implement a later phase's UI.
+7. **Clean-room parity (binding).** Never open, copy, or port code from `gitkraken/vscode-gitlens`: `src/plus/**` is proprietary (GitKraken EULA), and even its MIT core is behavior-reference only in this GPL-3.0-only codebase. Implement from documented behavior and public docs; interop formats (e.g. `git-rebase-todo`) may match. See the [gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md) Section 3.
 
 ## Commands for agents
 
@@ -152,9 +158,21 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 | M0 Daily git ops | P0 | Done |
 | M1 Authorship | P1–P3 | **Done** (file blame, status-bar, CodeLens) |
 | M2 History | P4–P5 | **Done** (file + line history) |
-| M3 Explore & compare | P6–P10 | P6–P7 done (compare/search + commits); P8–P10 not started |
-| M4 Graph | P11 | Not started (stub) |
-| M5 Advanced | P12–P14 | Optional / polish / non-cloud |
+| M3 Explore & compare | P6–P10 | **Done** (compare/search, commits, stashes, tags/remotes, contributors) |
+| M4 Graph | P11 | **Done** (lane-layout high-density tree) |
+| M5 Advanced | P12–P14 | P12 done; P13 superseded by P21; P14 ongoing polish |
+| M6 Editor depth | P15–P16 | **Next** — revision navigation/diffs; annotations, symbol CodeLens, terminal links, autolinks |
+| M7 Scale | P17 | Planned — multi-repo views |
+| M8 Webview surfaces | P18–P20 | Planned — webview platform, Commit Graph canvas, rebase editor, Visual File History, dual-pane compare |
+| M9 Connected | P21–P22 | Planned — hosting APIs (`vscode.authentication` / `SecretStorage`), work hub |
+| M10 Assist | P23 | Planned — optional BYO-key AI, off by default |
+
+### Picking up the next phase (coding agents — Claude Code, Grok Build, etc.)
+
+1. Read `docs/ROADMAP.md` Section 4 for the current **next slice** and the phase's **Done means**.
+2. Large phases (P17, P18, P19, P21) get a design note in `docs/superpowers/specs/` first; all phases get an implementation plan before code.
+3. Implement one phase per goal: library ops in `git-core`/pure packages with **real-git tests** → module UI → manifest contributions → structural `*Contrib.test.ts`.
+4. Before claiming done: update ROADMAP Section 2 status table + Section 8 changelog + the "Next implementation slice" line in this file; `pnpm test` and `pnpm package` green (`roadmapParity.test.ts` enforces doc honesty).
 
 ### Blame module notes (P1–P3)
 
@@ -192,7 +210,7 @@ Install VSIX: Command Palette → **Extensions: Install from VSIX…**
 - Extension bundle: **esbuild** (`packages/extension/esbuild.mjs`), `vscode` external, CJS outfile `dist/extension.js`.
 - Prefer small pure helpers next to commands when logic needs unit tests without the extension host.
 - Destructive actions: confirm when `gitspecs.confirmDelete` is true (default).
-- Log git argv + exit/stderr to the output channel; never invent token storage (v1 has no secrets).
+- Log git argv + exit/stderr to the output channel; never invent token storage — hosting auth (**P21+**) must use `vscode.authentication` (GitHub) or `context.secrets` / `SecretStorage` (PATs). No tokens in settings, files, or globalState. Before P21 lands there are no secrets at all.
 
 ## License / contributions
 
@@ -201,6 +219,7 @@ GPL-3.0-only. Relicensing future versions is only possible for code under copyri
 ## Quick “don’t break these” checklist
 
 - [ ] Branding remains **GitSpecs** / **ParameterLabsHQ** / `gitspecs.*`
+- [ ] No code copied/ported from `gitkraken/vscode-gitlens` (clean-room rule; `src/plus/` is proprietary)
 - [ ] No `vscode` imports in `git-core` or `host-urls`
 - [ ] Tree commands use `bindCommand` (args forwarded)
 - [ ] Worktree branch pick keeps `feature/*` and non-`origin` remotes

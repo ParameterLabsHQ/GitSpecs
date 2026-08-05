@@ -1,8 +1,8 @@
 # GitSpecs
 
-Open-source **GitLens-style** tooling for **VS Code** and **Cursor** (GPL-3.0-only): worktrees, branches, commits browser, blame, history, compare, and commit search today, with a phased path toward broader local feature parity.
+Open-source **GitLens-style** tooling for **VS Code** and **Cursor** (GPL-3.0-only): worktrees, branches, commits browser, blame, history, compare, and commit search today, with a phased path toward **full GitLens feature parity — free**, including features GitLens sells (commit graph canvas, rich hosting integrations, work hub).
 
-**Roadmap (implementation order):** [docs/ROADMAP.md](./docs/ROADMAP.md) — phases P0–P14, status inventory, and what is deliberately *not* parity (cloud/AI).
+**Roadmap (implementation order):** [docs/ROADMAP.md](./docs/ROADMAP.md) — phases P0–P23, status inventory, and what is deliberately *not* parity (vendor-cloud backends, paywalls).
 
 ## Requirements
 
@@ -48,7 +48,7 @@ Local + remote listing with upstream ahead/behind, create/rename/delete (safe + 
 
 ### What’s next
 
-Local OSS parity phases **P0–P12** are shipped; **P13** hosting HTTP APIs are deferred (credentials); **P14** has a finite polish slice (blame heatmap option, CONTRIBUTING, CI). See **[docs/ROADMAP.md](./docs/ROADMAP.md)** and **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
+Local git parity phases **P0–P12** are shipped; **P14** has a finite polish slice (blame heatmap option, CONTRIBUTING, CI). The road to full GitLens parity continues with **P15–P23** — revision navigation, annotations/autolinks, multi-repo, a Commit Graph webview, an interactive rebase editor, hosting-provider integrations (PRs/issues/avatars), a work hub, and optional BYO-key AI. See **[docs/ROADMAP.md](./docs/ROADMAP.md)** and **[CONTRIBUTING.md](./CONTRIBUTING.md)**.
 
 ## Monorepo layout
 

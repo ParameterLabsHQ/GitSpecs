@@ -31,7 +31,7 @@ describe("P13 deferral + P14 polish (finite slice)", () => {
     expect(ci).toContain("pnpm package");
   });
 
-  it("declares heatmap setting and pure helper", () => {
+  it("declares heatmap setting and wires overview-ruler decoration types", () => {
     const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")) as {
       contributes?: { configuration?: { properties?: Record<string, unknown> } };
     };
@@ -41,7 +41,14 @@ describe("P13 deferral + P14 polish (finite slice)", () => {
       path.join(root, "src/modules/blame/controller.ts"),
       "utf8",
     );
-    expect(controller).toContain("heatmapColorForAuthorTime");
+    // Valid API: overview ruler on decoration *types* (lane + color), not DecorationOptions.
+    expect(controller).toContain("heatmapDecorationTypeOptions");
+    expect(controller).toContain("heatmapBucketIndex");
     expect(controller).toContain("overviewRulerColor");
+    expect(controller).toContain("OverviewRulerLane.Full");
+    expect(controller).not.toMatch(/deco\.overviewRulerColor\s*=/);
+    const heatmap = readFileSync(path.join(root, "src/modules/blame/heatmap.ts"), "utf8");
+    expect(heatmap).toContain("heatmapDecorationTypeOptions");
+    expect(heatmap).toContain("overviewRulerLane");
   });
 });

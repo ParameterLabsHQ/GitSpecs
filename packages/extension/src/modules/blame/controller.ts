@@ -17,7 +17,11 @@ import {
   toDetailPayload,
   type BlameDetailPayload,
 } from "./detail.js";
-import { heatmapColorForAuthorTime } from "./heatmap.js";
+import {
+  HEATMAP_BUCKET_COUNT,
+  heatmapBucketIndex,
+  heatmapDecorationTypeOptions,
+} from "./heatmap.js";
 
 const STATUS_BAR_DEBOUNCE_MS = 200;
 const DECORATION_DEBOUNCE_MS = 400;
@@ -33,7 +37,13 @@ function isUnderRepo(repoRoot: string, fsPath: string): boolean {
 }
 
 export class BlameController implements vscode.Disposable {
+  /** End-of-line annotation decorations (no overview ruler). */
   private readonly decorationType: vscode.TextEditorDecorationType;
+  /**
+   * One overview-ruler decoration type per heat bucket (created with
+   * overviewRulerColor + overviewRulerLane — the only valid VS Code path).
+   */
+  private readonly heatmapTypes: vscode.TextEditorDecorationType[];
   private readonly statusBar: vscode.StatusBarItem;
   private readonly cache = new BlameCache();
   private enabled = false;
@@ -59,6 +69,19 @@ export class BlameController implements vscode.Disposable {
       },
     });
     this.disposables.push(this.decorationType);
+
+    // Bucketed heatmap types: color lives on the decoration *type*, not DecorationOptions.
+    this.heatmapTypes = [];
+    for (let i = 0; i < HEATMAP_BUCKET_COUNT; i++) {
+      const opts = heatmapDecorationTypeOptions(i);
+      const type = vscode.window.createTextEditorDecorationType({
+        isWholeLine: opts.isWholeLine,
+        overviewRulerColor: opts.overviewRulerColor,
+        overviewRulerLane: vscode.OverviewRulerLane.Full,
+      });
+      this.heatmapTypes.push(type);
+      this.disposables.push(type);
+    }
 
     this.statusBar = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
@@ -94,6 +117,9 @@ export class BlameController implements vscode.Disposable {
       vscode.workspace.onDidChangeConfiguration((e) => {
         if (e.affectsConfiguration("gitspecs.blame.statusBar")) {
           this.scheduleStatusBarRefresh();
+        }
+        if (e.affectsConfiguration("gitspecs.blame.heatmap") && this.enabled) {
+          void this.refreshActiveEditor();
         }
       }),
       this.repos.onDidChange(() => {
@@ -337,17 +363,17 @@ export class BlameController implements vscode.Disposable {
     const editor = vscode.window.activeTextEditor;
     if (!editor || !this.enabled) return;
     if (!isDiskFile(editor.document)) {
-      editor.setDecorations(this.decorationType, []);
+      this.clearEditorDecorations(editor);
       return;
     }
     const repo = this.repos.currentRepo;
     if (!repo) {
-      editor.setDecorations(this.decorationType, []);
+      this.clearEditorDecorations(editor);
       return;
     }
     const fsPath = editor.document.uri.fsPath;
     if (!isUnderRepo(repo.root, fsPath)) {
-      editor.setDecorations(this.decorationType, []);
+      this.clearEditorDecorations(editor);
       return;
     }
 
@@ -365,13 +391,20 @@ export class BlameController implements vscode.Disposable {
       const heatmap = vscode.workspace
         .getConfiguration("gitspecs.blame")
         .get<boolean>("heatmap", false);
-      const decorations: vscode.DecorationOptions[] = [];
+
+      const annotations: vscode.DecorationOptions[] = [];
+      const heatRanges: vscode.Range[][] = Array.from(
+        { length: HEATMAP_BUCKET_COUNT },
+        () => [],
+      );
+
       for (let i = 0; i < editor.document.lineCount; i++) {
         const lineNo = i + 1;
         const blame = byLine.get(lineNo);
         if (!blame) continue;
         const range = editor.document.lineAt(i).range;
-        const deco: vscode.DecorationOptions = {
+        // Annotation decorations only use valid DecorationOptions fields (range, hover, renderOptions).
+        annotations.push({
           range,
           renderOptions: {
             after: {
@@ -379,24 +412,37 @@ export class BlameController implements vscode.Disposable {
             },
           },
           hoverMessage: new vscode.MarkdownString(formatEnrichedBlameHover(blame)),
-        };
+        });
         if (heatmap) {
-          // Overview ruler age heat (accessibility: visual density of recent edits).
-          deco.overviewRulerColor = heatmapColorForAuthorTime(blame.authorTime);
+          const bucket = heatmapBucketIndex(blame.authorTime ?? 0);
+          heatRanges[bucket]!.push(range);
         }
-        decorations.push(deco);
       }
-      editor.setDecorations(this.decorationType, decorations);
+
+      editor.setDecorations(this.decorationType, annotations);
+      for (let b = 0; b < HEATMAP_BUCKET_COUNT; b++) {
+        editor.setDecorations(
+          this.heatmapTypes[b]!,
+          heatmap ? heatRanges[b]! : [],
+        );
+      }
     } catch (err) {
       if (seq !== this.decorationSeq) return;
       this.log.debug(`blame refresh failed: ${err instanceof Error ? err.message : String(err)}`);
-      editor.setDecorations(this.decorationType, []);
+      this.clearEditorDecorations(editor);
+    }
+  }
+
+  private clearEditorDecorations(editor: vscode.TextEditor): void {
+    editor.setDecorations(this.decorationType, []);
+    for (const t of this.heatmapTypes) {
+      editor.setDecorations(t, []);
     }
   }
 
   private clearAll(): void {
     for (const ed of vscode.window.visibleTextEditors) {
-      ed.setDecorations(this.decorationType, []);
+      this.clearEditorDecorations(ed);
     }
   }
 

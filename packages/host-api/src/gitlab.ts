@@ -38,6 +38,21 @@ export class GitLabClient {
     return `${base}?${q}`;
   }
 
+  /**
+   * Default branch for a project (`default_branch` field).
+   * Falls back to `"main"` when unavailable (offline / no token).
+   */
+  async getDefaultBranch(projectPath: string): Promise<string> {
+    try {
+      const id = encodeURIComponent(projectPath);
+      const data = await this.getJson<Record<string, unknown>>(`/projects/${id}`);
+      const name = String(data.default_branch ?? "").trim();
+      return name || "main";
+    } catch {
+      return "main";
+    }
+  }
+
   private async getJson<T>(path: string): Promise<T> {
     const res = await this.fetchFn(`${this.baseUrl}${path}`, {
       headers: {

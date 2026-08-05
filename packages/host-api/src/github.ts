@@ -111,6 +111,9 @@ export class GitHubClient {
   /**
    * Open PRs where review is requested from the authenticated user
    * (`search/issues` review-requested filter).
+   *
+   * Search hits lack `head.ref`; each result is enriched via `getPullRequest`
+   * so checkout/worktree actions have a real branch name.
    */
   async listReviewRequested(login: string): Promise<PullRequestSummary[]> {
     const key = cacheKey(["gh", "review-req", login]);
@@ -120,11 +123,48 @@ export class GitHubClient {
         `/search/issues?q=${q}&per_page=30`,
       );
       const items = Array.isArray(data.items) ? data.items : [];
-      const prs = items.map(mapGhSearchIssueToPr);
+      const prs: PullRequestSummary[] = [];
+      for (const raw of items) {
+        const partial = mapGhSearchIssueToPr(raw);
+        const loc = parseRepoFromSearchItem(raw);
+        if (loc && partial.number > 0) {
+          try {
+            const full = await this.getPullRequest(loc.owner, loc.repo, partial.number);
+            prs.push(full);
+            continue;
+          } catch {
+            // fall through to partial
+          }
+        }
+        prs.push(partial);
+      }
       this.cache.set(key, prs);
       return prs;
     } catch (err) {
       if (err instanceof RateLimitError) return this.cache.getStale<PullRequestSummary[]>(key) ?? [];
+      throw err;
+    }
+  }
+
+  /** Full PR payload (includes head.ref) for a number. */
+  async getPullRequest(
+    owner: string,
+    repo: string,
+    number: number,
+  ): Promise<PullRequestSummary> {
+    const key = cacheKey(["gh", "pr", owner, repo, number]);
+    try {
+      const data = await this.getJson<Record<string, unknown>>(
+        `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/pulls/${number}`,
+      );
+      const pr = mapGhPr(data);
+      this.cache.set(key, pr);
+      return pr;
+    } catch (err) {
+      if (err instanceof RateLimitError) {
+        const stale = this.cache.getStale<PullRequestSummary>(key);
+        if (stale) return stale;
+      }
       throw err;
     }
   }
@@ -315,9 +355,27 @@ function mapGhPr(raw: unknown): PullRequestSummary {
   };
 }
 
-function mapGhSearchIssueToPr(raw: unknown): PullRequestSummary {
+/**
+ * Map a GitHub issue-search hit (PR shape) to PullRequestSummary.
+ * Search payloads often omit nested `head`/`base`; prefer explicit fields when
+ * present, else leave headRef/baseRef for getPullRequest enrichment.
+ * Exported for unit tests of the shipped mapper.
+ */
+export function mapGhSearchIssueToPr(raw: unknown): PullRequestSummary {
   const r = raw as Record<string, unknown>;
   const user = r.user as Record<string, unknown> | undefined;
+  // Some search/enterprise payloads may embed head/base like pulls list.
+  const head = r.head as Record<string, unknown> | undefined;
+  const base = r.base as Record<string, unknown> | undefined;
+  // Occasional flat fields from search extensions
+  const headRefFlat =
+    (typeof r.head_ref === "string" && r.head_ref) ||
+    (typeof r.headRef === "string" && r.headRef) ||
+    undefined;
+  const baseRefFlat =
+    (typeof r.base_ref === "string" && r.base_ref) ||
+    (typeof r.baseRef === "string" && r.baseRef) ||
+    undefined;
   return {
     id: String(r.id ?? r.number ?? ""),
     number: Number(r.number) || 0,
@@ -326,9 +384,33 @@ function mapGhSearchIssueToPr(raw: unknown): PullRequestSummary {
     state: String(r.state) === "closed" ? "closed" : "open",
     authorLogin: user?.login ? String(user.login) : undefined,
     authorAvatarUrl: user?.avatar_url ? String(user.avatar_url) : undefined,
+    headRef: head?.ref ? String(head.ref) : headRefFlat || undefined,
+    baseRef: base?.ref ? String(base.ref) : baseRefFlat || undefined,
     draft: Boolean(r.draft),
     updatedAt: r.updated_at ? String(r.updated_at) : undefined,
   };
+}
+
+/** Parse owner/repo from a search issue item (repository_url or html_url). */
+export function parseRepoFromSearchItem(
+  raw: unknown,
+): { owner: string; repo: string } | undefined {
+  const r = raw as Record<string, unknown>;
+  const repoUrl = typeof r.repository_url === "string" ? r.repository_url : "";
+  // https://api.github.com/repos/owner/repo
+  const apiMatch = repoUrl.match(/\/repos\/([^/]+)\/([^/]+?)(?:\.git)?\/?$/i);
+  if (apiMatch) {
+    return { owner: apiMatch[1]!, repo: apiMatch[2]! };
+  }
+  const html = typeof r.html_url === "string" ? r.html_url : "";
+  // https://github.com/owner/repo/pull/7
+  const htmlMatch = html.match(
+    /github\.com\/([^/]+)\/([^/]+)\/(?:pull|issues)\/\d+/i,
+  );
+  if (htmlMatch) {
+    return { owner: htmlMatch[1]!, repo: htmlMatch[2]! };
+  }
+  return undefined;
 }
 
 function mapGhIssue(raw: Record<string, unknown>): IssueSummary {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { GitHubClient } from "./github.js";
+import { GitHubClient, mapGhSearchIssueToPr, parseRepoFromSearchItem } from "./github.js";
 import { GitLabClient } from "./gitlab.js";
 import { RateLimitError } from "./types.js";
 import { HostApiCache } from "./cache.js";
@@ -115,21 +115,36 @@ describe("GitHubClient (stubbed fetch)", () => {
     expect(mine.map((p) => p.number)).toEqual([1]);
   });
 
-  it("listReviewRequested uses search API", async () => {
+  it("listReviewRequested enriches headRef via getPullRequest", async () => {
     const fetch = vi.fn(async (url: string) => {
-      expect(String(url)).toContain("/search/issues");
-      expect(String(url)).toContain("review-requested");
-      return jsonResponse({
-        items: [
-          {
-            number: 7,
-            title: "Review me",
-            html_url: "https://github.com/o/r/pull/7",
-            state: "open",
-            user: { login: "bob" },
-          },
-        ],
-      });
+      const u = String(url);
+      if (u.includes("/search/issues")) {
+        expect(u).toContain("review-requested");
+        return jsonResponse({
+          items: [
+            {
+              number: 7,
+              title: "Review me",
+              html_url: "https://github.com/o/r/pull/7",
+              repository_url: "https://api.github.com/repos/o/r",
+              state: "open",
+              user: { login: "bob" },
+            },
+          ],
+        });
+      }
+      if (u.includes("/repos/o/r/pulls/7")) {
+        return jsonResponse({
+          number: 7,
+          title: "Review me",
+          html_url: "https://github.com/o/r/pull/7",
+          state: "open",
+          user: { login: "bob" },
+          head: { ref: "feature/review-me" },
+          base: { ref: "main" },
+        });
+      }
+      return jsonResponse({});
     });
     const client = new GitHubClient({
       fetch: fetch as unknown as typeof globalThis.fetch,
@@ -137,6 +152,7 @@ describe("GitHubClient (stubbed fetch)", () => {
     });
     const prs = await client.listReviewRequested("ada");
     expect(prs[0]?.number).toBe(7);
+    expect(prs[0]?.headRef).toBe("feature/review-me");
   });
 
   it("listAssignedIssues drops PR payloads", async () => {
@@ -261,6 +277,34 @@ describe("GitHubClient (stubbed fetch)", () => {
   });
 });
 
+describe("mapGhSearchIssueToPr / parseRepoFromSearchItem", () => {
+  it("reads head_ref when present on search payload", () => {
+    const pr = mapGhSearchIssueToPr({
+      number: 3,
+      title: "t",
+      html_url: "https://github.com/a/b/pull/3",
+      state: "open",
+      head_ref: "feat/x",
+      base_ref: "develop",
+    });
+    expect(pr.headRef).toBe("feat/x");
+    expect(pr.baseRef).toBe("develop");
+  });
+
+  it("parses owner/repo from repository_url and html_url", () => {
+    expect(
+      parseRepoFromSearchItem({
+        repository_url: "https://api.github.com/repos/Acme/App",
+      }),
+    ).toEqual({ owner: "Acme", repo: "App" });
+    expect(
+      parseRepoFromSearchItem({
+        html_url: "https://github.com/o/r/pull/9",
+      }),
+    ).toEqual({ owner: "o", repo: "r" });
+  });
+});
+
 describe("GitLabClient (stubbed fetch)", () => {
   it("lists merge requests", async () => {
     const fetch = vi.fn(async () =>
@@ -283,5 +327,14 @@ describe("GitLabClient (stubbed fetch)", () => {
     });
     const mrs = await client.listMergeRequests("g/p", { sourceBranch: "feat" });
     expect(mrs[0]).toMatchObject({ number: 7, title: "MR title", authorLogin: "bob" });
+  });
+
+  it("getDefaultBranch reads project.default_branch", async () => {
+    const fetch = vi.fn(async () => jsonResponse({ default_branch: "develop" }));
+    const client = new GitLabClient({
+      fetch: fetch as unknown as typeof globalThis.fetch,
+      token: "pat",
+    });
+    expect(await client.getDefaultBranch("g/p")).toBe("develop");
   });
 });

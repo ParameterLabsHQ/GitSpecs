@@ -51,12 +51,17 @@ describe("P21 hosting surface completeness", () => {
     expect(src).toContain("prNumber");
   });
 
-  it("create-PR resolves default branch (no hardcoded main-only path in create)", () => {
+  it("create-PR resolves default branch for GitHub and GitLab", () => {
     const src = readFileSync(path.join(root, "src/modules/hosting/commands.ts"), "utf8");
     expect(src).toContain("getDefaultBranch");
     expect(src).toContain("createPullRequest");
-    // Must not pass literal "main" as sole base without getDefaultBranch nearby
-    expect(src).toMatch(/getDefaultBranch[\s\S]{0,200}createPullRequest|createPullRequestUrl/);
+    // GitLab path must call getDefaultBranch (not hardcode "main" alone)
+    expect(src).toMatch(
+      /provider === "gitlab"[\s\S]{0,400}getDefaultBranch/,
+    );
+    // Badge warm re-fires refresh after cache fill
+    expect(src).toContain("warmBranchPrBadges");
+    expect(src).toContain("suppressBadgeNetwork");
   });
 
   it("blame enriches hovers via getIssue path", () => {
@@ -74,13 +79,25 @@ describe("P21 hosting surface completeness", () => {
 });
 
 describe("P22 hub surface completeness", () => {
-  it("loads review-requested, assigned issues, my PRs, CI", () => {
+  it("loads review-requested, assigned issues, my PRs, CI, and repoRoot", () => {
     const src = readFileSync(path.join(root, "src/modules/hub/provider.ts"), "utf8");
     expect(src).toContain("listReviewRequested");
     expect(src).toContain("listAssignedIssues");
     expect(src).toContain("listMyOpenPullRequests");
     expect(src).toContain("getCiStatus");
     expect(src).toContain("HubIssueTreeItem");
+    expect(src).toContain("repoRoot");
+    expect(src).toContain("rootByHostRepo");
+  });
+
+  it("hub commands resolve repo from item.repoRoot", () => {
+    const src = readFileSync(path.join(root, "src/modules/hub/commands.ts"), "utf8");
+    expect(src).toContain("resolveHubRepo");
+    expect(src).not.toMatch(
+      /hub\.checkout[\s\S]{0,200}const repo = repos\.currentRepo/,
+    );
+    const pure = readFileSync(path.join(root, "src/modules/hub/resolveRepo.ts"), "utf8");
+    expect(pure).toContain("repoByRoot");
   });
 
   it("declares hub open/checkout/worktree commands and menus", () => {

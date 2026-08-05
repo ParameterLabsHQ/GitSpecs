@@ -31,9 +31,12 @@ export class HubGroupItem extends vscode.TreeItem {
 
 export class HubPrTreeItem extends vscode.TreeItem {
   readonly hubKind = "pr" as const;
+  /** Absolute repo root when known (multi-repo command resolution). */
+  readonly repoRoot: string;
 
   constructor(readonly item: HubPrItem) {
     super(`#${item.pr.number} ${item.pr.title}`, vscode.TreeItemCollapsibleState.None);
+    this.repoRoot = item.repoRoot ?? "";
     this.description = `${item.repoLabel} · ${item.reason}`;
     this.tooltip = [
       item.pr.url,
@@ -57,9 +60,11 @@ export class HubPrTreeItem extends vscode.TreeItem {
 
 export class HubIssueTreeItem extends vscode.TreeItem {
   readonly hubKind = "issue" as const;
+  readonly repoRoot: string;
 
   constructor(readonly item: HubIssueItem) {
     super(`#${item.issue.number} ${item.issue.title}`, vscode.TreeItemCollapsibleState.None);
+    this.repoRoot = item.repoRoot ?? "";
     this.description = item.repoLabel;
     this.tooltip = item.issue.url;
     this.contextValue = "hubIssue";
@@ -162,10 +167,11 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
               new HubWipItem(
                 b.name,
                 b.repoLabel,
-                // repoRoot resolved later via label match is imperfect; store label only for checkout from current
-                this.repos.allRepos.find((r) =>
-                  (r.root.split(/[/\\]/).pop() ?? r.root) === b.repoLabel,
-                )?.root ?? "",
+                b.repoRoot ??
+                  this.repos.allRepos.find((r) =>
+                    (r.root.split(/[/\\]/).pop() ?? r.root) === b.repoLabel,
+                  )?.root ??
+                  "",
                 b.ahead,
                 b.behind,
               ),
@@ -186,11 +192,26 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
   private async load(): Promise<HubGroups> {
     if (this.cache) return this.cache;
     const token = await getGitHubToken();
-    const myOpenPrs: Array<PullRequestSummary & { repoLabel: string }> = [];
-    const reviewRequested: typeof myOpenPrs = [];
-    const assignedIssues: Array<IssueSummary & { repoLabel: string }> = [];
+    type Meta = { repoLabel: string; repoRoot: string };
+    const myOpenPrs: Array<PullRequestSummary & Meta> = [];
+    const reviewRequested: Array<PullRequestSummary & Meta> = [];
+    const assignedIssues: Array<IssueSummary & Meta> = [];
     const wipBranches: HubGroups["wip"] = [];
     let currentLogin: string | undefined;
+
+    // Map github owner/repo → workspace root for multi-repo actions.
+    const rootByHostRepo = new Map<string, { root: string; label: string }>();
+    for (const repo of this.repos.allRepos) {
+      const label = repo.root.split(/[/\\]/).pop() ?? repo.root;
+      const remoteUrl = await repo.branches.getRemoteUrl("origin").catch(() => undefined);
+      const id = remoteUrl ? parseRemoteUrl(remoteUrl) : undefined;
+      if (id?.provider === "github") {
+        rootByHostRepo.set(`${id.owner.toLowerCase()}/${id.repo.toLowerCase()}`, {
+          root: repo.root,
+          label,
+        });
+      }
+    }
 
     if (token) {
       try {
@@ -199,11 +220,23 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
         currentLogin = user?.login;
         const reviews = await client.listReviewRequested(currentLogin ?? "");
         for (const p of reviews) {
-          reviewRequested.push({ ...p, repoLabel: "github" });
+          const hostKey = hostKeyFromPrUrl(p.url);
+          const meta = hostKey ? rootByHostRepo.get(hostKey) : undefined;
+          reviewRequested.push({
+            ...p,
+            repoLabel: meta?.label ?? hostKey ?? "github",
+            repoRoot: meta?.root ?? "",
+          });
         }
         const issues = await client.listAssignedIssues(currentLogin);
         for (const i of issues) {
-          assignedIssues.push({ ...i, repoLabel: "github" });
+          const hostKey = hostKeyFromPrUrl(i.url);
+          const meta = hostKey ? rootByHostRepo.get(hostKey) : undefined;
+          assignedIssues.push({
+            ...i,
+            repoLabel: meta?.label ?? hostKey ?? "github",
+            repoRoot: meta?.root ?? "",
+          });
         }
       } catch (err) {
         this.log.debug(
@@ -223,6 +256,7 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
               ahead: b.ahead,
               behind: b.behind,
               repoLabel: label,
+              repoRoot: repo.root,
             });
           }
         }
@@ -240,7 +274,7 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
               // ignore
             }
           }
-          myOpenPrs.push({ ...p, repoLabel: label });
+          myOpenPrs.push({ ...p, repoLabel: label, repoRoot: repo.root });
         }
       } catch (err) {
         this.log.debug(
@@ -263,4 +297,11 @@ export class HubProvider implements vscode.TreeDataProvider<HubNode>, vscode.Dis
     for (const d of this.disposables) d.dispose();
     this._onDidChangeTreeData.dispose();
   }
+}
+
+/** Extract `owner/repo` (lowercased) from a github.com pull/issue URL. */
+function hostKeyFromPrUrl(url: string): string | undefined {
+  const m = url.match(/github\.com\/([^/]+)\/([^/]+)\/(?:pull|issues)\//i);
+  if (!m) return undefined;
+  return `${m[1]!.toLowerCase()}/${m[2]!.toLowerCase()}`;
 }

@@ -7,22 +7,36 @@ export interface HubPrItem {
   urgency: HubUrgency;
   reason: string;
   repoLabel: string;
+  /** Absolute repo root for multi-repo command resolution (P17+P22). */
+  repoRoot?: string;
 }
 
 export interface HubIssueItem {
   issue: IssueSummary;
   repoLabel: string;
+  repoRoot?: string;
+}
+
+export interface HubRepoMeta {
+  repoLabel: string;
+  repoRoot?: string;
 }
 
 export interface HubAggregationInput {
   /** PRs authored by the current user only. */
-  myOpenPrs: Array<PullRequestSummary & { repoLabel: string }>;
+  myOpenPrs: Array<PullRequestSummary & HubRepoMeta>;
   /** PRs awaiting review by the current user. */
-  reviewRequested: Array<PullRequestSummary & { repoLabel: string }>;
+  reviewRequested: Array<PullRequestSummary & HubRepoMeta>;
   /** Issues assigned to the current user. */
-  assignedIssues?: Array<IssueSummary & { repoLabel: string }>;
+  assignedIssues?: Array<IssueSummary & HubRepoMeta>;
   /** Local WIP branch names that are ahead of upstream. */
-  wipBranches: Array<{ name: string; ahead: number; behind: number; repoLabel: string }>;
+  wipBranches: Array<{
+    name: string;
+    ahead: number;
+    behind: number;
+    repoLabel: string;
+    repoRoot?: string;
+  }>;
   /** Current user login (for ownership checks). */
   currentLogin?: string;
 }
@@ -56,6 +70,7 @@ export function aggregateHub(input: HubAggregationInput): HubGroups {
       urgency: "needsAction",
       reason: pr.ciStatus ? `Review requested · CI ${pr.ciStatus}` : "Review requested",
       repoLabel: pr.repoLabel,
+      repoRoot: pr.repoRoot,
     });
   }
 
@@ -74,6 +89,7 @@ export function aggregateHub(input: HubAggregationInput): HubGroups {
             ? "Merge conflicts"
             : "Blocked",
         repoLabel: pr.repoLabel,
+        repoRoot: pr.repoRoot,
       });
     } else if (pr.state === "open") {
       waiting.push({
@@ -81,6 +97,7 @@ export function aggregateHub(input: HubAggregationInput): HubGroups {
         urgency: "waiting",
         reason: pr.ciStatus ? `Waiting on review · CI ${pr.ciStatus}` : "Waiting on review",
         repoLabel: pr.repoLabel,
+        repoRoot: pr.repoRoot,
       });
     } else {
       other.push({
@@ -88,6 +105,7 @@ export function aggregateHub(input: HubAggregationInput): HubGroups {
         urgency: "other",
         reason: pr.state,
         repoLabel: pr.repoLabel,
+        repoRoot: pr.repoRoot,
       });
     }
   }
@@ -95,6 +113,7 @@ export function aggregateHub(input: HubAggregationInput): HubGroups {
   const assignedIssues: HubIssueItem[] = (input.assignedIssues ?? []).map((issue) => ({
     issue,
     repoLabel: issue.repoLabel,
+    repoRoot: issue.repoRoot,
   }));
 
   return {

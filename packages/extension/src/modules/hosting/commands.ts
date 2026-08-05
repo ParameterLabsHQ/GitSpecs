@@ -223,11 +223,14 @@ export function registerHostingCommands(
         }
 
         if (identity.provider === "gitlab") {
-          const url = GitLabClient.createMergeRequestUrl(
-            `${identity.owner}/${identity.repo}`,
-            current,
-            "main",
-          );
+          const projectPath = `${identity.owner}/${identity.repo}`;
+          const pat = await getGitLabPat(context.secrets);
+          const gl = new GitLabClient({
+            token: pat,
+            baseUrl: gitlabApiBaseUrl(),
+          });
+          const base = await gl.getDefaultBranch(projectPath);
+          const url = GitLabClient.createMergeRequestUrl(projectPath, current, base);
           await vscode.env.openExternal(vscode.Uri.parse(url));
           return;
         }
@@ -253,19 +256,36 @@ export function registerHostingCommands(
   status.show();
   context.subscriptions.push(status);
 
+  /** When true, a RefreshBus fire only re-renders trees (skips re-fetching badges). */
+  let suppressBadgeNetwork = false;
+
+  const warmBranchPrBadges = async (): Promise<void> => {
+    await refreshBranchPrBadges(repos, log);
+    if (!refresh) return;
+    // Re-render branches after cache is warm without re-entering badge network.
+    suppressBadgeNetwork = true;
+    try {
+      refresh.fire();
+    } finally {
+      suppressBadgeNetwork = false;
+    }
+  };
+
   void refreshPrStatus(repos, status, log);
-  void refreshBranchPrBadges(repos, log);
+  void warmBranchPrBadges();
   context.subscriptions.push(
     repos.onDidChange(() => {
       void refreshPrStatus(repos, status, log);
-      void refreshBranchPrBadges(repos, log);
+      void warmBranchPrBadges();
     }),
   );
   if (refresh) {
     context.subscriptions.push(
       refresh.onDidRefresh(() => {
         void refreshPrStatus(repos, status, log);
-        void refreshBranchPrBadges(repos, log);
+        if (!suppressBadgeNetwork) {
+          void warmBranchPrBadges();
+        }
       }),
     );
   }

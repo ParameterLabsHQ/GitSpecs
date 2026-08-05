@@ -61,6 +61,12 @@ export {
   type RemoteInfo,
 } from "./remotes.js";
 export {
+  ContributorsApi,
+  parseShortlog,
+  type ContributorInfo,
+  type ContributorsOptions,
+} from "./contributors.js";
+export {
   GitNotFoundError,
   NotAGitRepositoryError,
   GitCommandError,

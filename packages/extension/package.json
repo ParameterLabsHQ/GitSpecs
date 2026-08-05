@@ -47,7 +47,9 @@
     "onCommand:gitspecs.tags.refresh",
     "onCommand:gitspecs.tags.create",
     "onCommand:gitspecs.remotes.refresh",
-    "onCommand:gitspecs.remotes.fetch"
+    "onCommand:gitspecs.remotes.fetch",
+    "onView:gitspecs.contributors",
+    "onCommand:gitspecs.contributors.refresh"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -85,6 +87,10 @@
         {
           "id": "gitspecs.remotes",
           "name": "Remotes"
+        },
+        {
+          "id": "gitspecs.contributors",
+          "name": "Contributors"
         }
       ],
       "scm": [
@@ -370,6 +376,19 @@
       {
         "command": "gitspecs.remotes.open",
         "title": "GitSpecs: Open Remote in Browser"
+      },
+      {
+        "command": "gitspecs.contributors.refresh",
+        "title": "GitSpecs: Refresh Contributors",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitspecs.contributors.copyName",
+        "title": "GitSpecs: Copy Contributor Name"
+      },
+      {
+        "command": "gitspecs.contributors.copyEmail",
+        "title": "GitSpecs: Copy Contributor Email"
       }
     ],
     "menus": {
@@ -448,6 +467,11 @@
           "command": "gitspecs.remotes.fetch",
           "when": "view == gitspecs.remotes",
           "group": "navigation@2"
+        },
+        {
+          "command": "gitspecs.contributors.refresh",
+          "when": "view == gitspecs.contributors",
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
@@ -595,6 +619,16 @@
           "command": "gitspecs.remotes.open",
           "when": "view == gitspecs.remotes && viewItem == remote",
           "group": "2_copy"
+        },
+        {
+          "command": "gitspecs.contributors.copyName",
+          "when": "view == gitspecs.contributors && viewItem == contributor",
+          "group": "1_copy"
+        },
+        {
+          "command": "gitspecs.contributors.copyEmail",
+          "when": "view == gitspecs.contributors && viewItem == contributor",
+          "group": "1_copy"
         }
       ],
       "commandPalette": [

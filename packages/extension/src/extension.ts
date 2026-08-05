@@ -15,6 +15,8 @@ import { TagsProvider } from "./modules/tags/provider.js";
 import { registerTagCommands } from "./modules/tags/commands.js";
 import { RemotesProvider } from "./modules/remotes/provider.js";
 import { registerRemoteCommands } from "./modules/remotes/commands.js";
+import { ContributorsProvider } from "./modules/contributors/provider.js";
+import { registerContributorCommands } from "./modules/contributors/commands.js";
 import { BlameController } from "./modules/blame/controller.js";
 import { registerBlameCommands } from "./modules/blame/commands.js";
 import { BlameCodeLensProvider } from "./modules/blame/codeLens.js";
@@ -56,6 +58,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const stashesProvider = new StashesProvider(repos, refresh, log);
   const tagsProvider = new TagsProvider(repos, refresh, log);
   const remotesProvider = new RemotesProvider(repos, refresh, log);
+  const contributorsProvider = new ContributorsProvider(repos, refresh, log);
   context.subscriptions.push(
     worktreesProvider,
     branchesProvider,
@@ -63,6 +66,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     stashesProvider,
     tagsProvider,
     remotesProvider,
+    contributorsProvider,
   );
 
   context.subscriptions.push(
@@ -72,6 +76,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.window.registerTreeDataProvider("gitspecs.stashes", stashesProvider),
     vscode.window.registerTreeDataProvider("gitspecs.tags", tagsProvider),
     vscode.window.registerTreeDataProvider("gitspecs.remotes", remotesProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.contributors", contributorsProvider),
   );
 
   const scmTabs = new ScmTabState();
@@ -110,6 +115,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerStashCommands(context, repos, refresh, log);
   registerTagCommands(context, repos, refresh, log);
   registerRemoteCommands(context, repos, refresh, log);
+  registerContributorCommands(context, repos, refresh, log);
   registerCompareCommands(context, repos, log);
   registerSearchCommands(context, repos, log);
 
@@ -136,7 +142,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
 
   log.info(
-    "GitSpecs activated (worktrees, branches, commits, stashes, tags, remotes, blame, history, compare, search)",
+    "GitSpecs activated (worktrees, branches, commits, stashes, tags, remotes, contributors, blame, history, compare, search)",
   );
 }
 

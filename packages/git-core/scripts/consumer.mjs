@@ -242,6 +242,29 @@ console.log(
   JSON.stringify({ tagsOk, tagsDeleted, remotesOk, remoteCount: remotesList.length }, null, 2),
 );
 
+// P10: contributors shortlog
+const contributors = await repo.contributors.list({ limit: 20 });
+const contributorsOk =
+  Array.isArray(contributors) &&
+  contributors.length >= 1 &&
+  contributors.every((c) => c.name && c.commits > 0);
+if (!contributorsOk) {
+  console.error("P10 contributors consumer failed", { contributors });
+  process.exitCode = 1;
+}
+console.log(
+  JSON.stringify(
+    {
+      contributorCount: contributors.length,
+      topContributor: contributors[0]?.name,
+      topCommits: contributors[0]?.commits,
+      contributorsOk,
+    },
+    null,
+    2,
+  ),
+);
+
 const branches = await repo.branches.list({ includeRemotes: false });
 await repo.branches.create({ name: "consumer-branch" });
 const after = await repo.branches.list({ includeRemotes: false });

@@ -45,7 +45,7 @@ Status is grounded in the monorepo as of this revision.
 | Commits sidebar / SCM commits browser | **Shipped** | `history.recent`; `modules/commits`; activity-bar `gitspecs.commits` + SCM tab | **P7** |
 | Stashes view + actions | **Shipped** | `stashes.ts`; `modules/stashes`; activity-bar + SCM tab | **P8** |
 | Tags / remotes browser views | **Shipped** | `tags.ts` / `remotes.ts`; `modules/tags` + `modules/remotes` | **P9** |
-| Contributors view | **Not started** | — | **P10** |
+| Contributors view | **Shipped** | `contributors.ts` shortlog; `modules/contributors` | **P10** |
 | Commit Graph (visual DAG) | **Not started** | Stub `modules/graph/README.md` only | **P11** |
 | Interactive rebase / history rewrite UI | **Not started** | — | **P12** (parity-target, hard) |
 | Hosting provider HTTP APIs (PRs, issues) | **Not started** | Explicitly late / optional | **P13** optional |
@@ -182,7 +182,7 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 **Shipped:** `repo.tags` (list/create/delete) + `repo.remotes` (list/fetch/getUrl); activity-bar Tags & Remotes views; create/delete/checkout tag; fetch/copy/open remote (URL-only via host-urls).  
 
-### Phase P10 — Sidebar: Contributors
+### Phase P10 — Sidebar: Contributors *(done)*
 
 **Depends on:** P0  
 **Parity target:** GitLens Contributors  
@@ -192,6 +192,8 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 - Library: shortlog / contribution counts (`git shortlog` or log aggregation)  
 - Contributors tree with commit counts; optional “open file history by author” later  
 - Real-git tests on multi-author fixtures  
+
+**Shipped:** `repo.contributors.list` via `git shortlog -sne`; activity-bar Contributors tree; copy name/email; RefreshBus.  
 
 ### Phase P11 — Commit Graph
 
@@ -249,15 +251,15 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M4 Graph** | P11 | Visual branch topology |
 | **M5 Advanced** | P12–P14 | Rewrite UX, optional APIs, polish/publish |
 
-**Next implementation goal after this roadmap:** **P10** (Contributors), building on shipped P0–P9.
+**Next implementation goal after this roadmap:** **P11** (Commit Graph), building on shipped P0–P10.
 
-Recommended default sequence for agents (P0–P9 shipped):
+Recommended default sequence for agents (P0–P10 shipped):
 
 ```
-P10 → P11 → P12 → (P13?) → P14
+P11 → P12 → (P13?) → P14
 ```
 
-Rationale: contributors then graph; rewrite UX; hosting APIs last.
+Rationale: graph then rewrite UX; hosting APIs last.
 
 ---
 
@@ -309,3 +311,4 @@ Interactive rebase **UI** is listed as **P12 parity-target** (local), not cloud�
 | 2026-08-05 | Marked **P7** Commits sidebar shipped (`history.recent` + activity-bar/SCM commits browser); next slice **P8** |
 | 2026-08-05 | Marked **P8** Stashes shipped (`repo.stashes` + activity-bar/SCM); next slice **P9** |
 | 2026-08-05 | Marked **P9** Tags & Remotes shipped; next slice **P10** |
+| 2026-08-05 | Marked **P10** Contributors shipped; next slice **P11** |

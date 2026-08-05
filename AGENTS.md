@@ -11,7 +11,7 @@ Guidance for AI coding agents and humans working in this repository.
 | **Public repo** | [ParameterLabsHQ/GitSpecs](https://github.com/ParameterLabsHQ/GitSpecs) |
 | **Extension package name** | `gitspecs` (full id: `ParameterLabsHQ.gitspecs`) |
 | **Settings / commands prefix** | `gitspecs.*` |
-| **View ids** | Activity bar: `gitspecs.worktrees`, `gitspecs.branches`, `gitspecs.commits`, `gitspecs.stashes`, `gitspecs.tags`, `gitspecs.remotes`, `gitspecs.contributors`, `gitspecs.graph`; SCM: single consolidated `gitspecs.scm` (tabs via `gitspecs.scm.tab`) |
+| **View ids** | Activity bar: Home (`gitspecs.home` / Hub), Inspect (`gitspecs.fileHistory`, `gitspecs.lineHistory`), Graph (`gitspecs.graph`); SCM: consolidated `gitspecs.scm` + object browsers (worktrees/branches/commits/stashes/tags/remotes/contributors) |
 | **Libraries** | `@gitspecs/git-core`, `@gitspecs/host-urls` |
 | **License** | GPL-3.0-only |
 | **Editors** | VS Code 1.85+ and Cursor (VS Code Extension API) |
@@ -55,7 +55,7 @@ Open-source **GitLens-style** extension for VS Code/Cursor. The product goal (se
 **Product roadmap (order of implementation):**  
 → **[docs/ROADMAP.md](./docs/ROADMAP.md)** — phases **P0–P23**, status inventory, milestones, and non-goals. P0–P12 + **P15–P23** shipped; remaining is the ladder to full parity (P13 superseded by P21). Evidence: [GitLens parity gap analysis](./docs/superpowers/specs/2026-08-05-gitlens-parity-gap-analysis.md).
 
-**Next implementation slice (per roadmap):** **none (P15–P23 parity ladder complete; P14 polish ongoing).**
+**Next implementation slice (per roadmap):** **True Clone polish / P24f+** (Commit Details, Git Command Palette density). Core P24a–P24e shipped — see `docs/superpowers/specs/2026-08-05-true-clone-fidelity-design.md` and `docs/FIDELITY_MATRIX.md`.
 
 Design origin (v1 shell): `docs/superpowers/specs/2026-08-04-gitspecs-design.md`.
 

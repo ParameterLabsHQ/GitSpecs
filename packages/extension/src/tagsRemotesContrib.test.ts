@@ -20,9 +20,9 @@ describe("tags & remotes contributions (P9)", () => {
   };
 
   it("declares tags and remotes views and commands", () => {
-    const side = pkg.contributes?.views?.gitspecs ?? [];
-    expect(side.some((v) => v.id === "gitspecs.tags")).toBe(true);
-    expect(side.some((v) => v.id === "gitspecs.remotes")).toBe(true);
+    const allViews = Object.values(pkg.contributes?.views ?? {}).flat();
+    expect(allViews.some((v) => v.id === "gitspecs.tags")).toBe(true);
+    expect(allViews.some((v) => v.id === "gitspecs.remotes")).toBe(true);
     const cmds = (pkg.contributes?.commands ?? []).map((c) => c.command);
     for (const id of [
       "gitspecs.tags.create",

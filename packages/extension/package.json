@@ -80,56 +80,65 @@
     "onCommand:gitspecs.hub.refresh",
     "onCommand:gitspecs.ai.configure",
     "onCommand:gitspecs.ai.generateCommitMessage",
-    "onCommand:gitspecs.ai.explainCommit"
+    "onCommand:gitspecs.ai.explainCommit",
+    "onView:gitspecs.home",
+    "onView:gitspecs.inspect",
+    "onView:gitspecs.fileHistory",
+    "onView:gitspecs.lineHistory",
+    "onCommand:gitspecs.blame.toggleCodeLens",
+    "onCommand:gitspecs.annotations.dismiss",
+    "onCommand:gitspecs.mode.switch",
+    "onCommand:gitspecs.mode.toggleZen",
+    "onCommand:gitspecs.mode.toggleReview",
+    "onCommand:gitspecs.history.fileHistory.pin",
+    "onCommand:gitspecs.history.lineHistory.pin"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "gitspecs",
+          "id": "gitspecs.home",
           "title": "GitSpecs",
+          "icon": "media/gitspecs.svg"
+        },
+        {
+          "id": "gitspecs.inspect",
+          "title": "GitSpecs Inspect",
+          "icon": "media/gitspecs.svg"
+        },
+        {
+          "id": "gitspecs.graph",
+          "title": "GitSpecs Graph",
           "icon": "media/gitspecs.svg"
         }
       ]
     },
     "views": {
-      "gitspecs": [
-        {
-          "id": "gitspecs.worktrees",
-          "name": "Worktrees"
-        },
-        {
-          "id": "gitspecs.branches",
-          "name": "Branches"
-        },
-        {
-          "id": "gitspecs.commits",
-          "name": "Commits"
-        },
-        {
-          "id": "gitspecs.stashes",
-          "name": "Stashes"
-        },
-        {
-          "id": "gitspecs.tags",
-          "name": "Tags"
-        },
-        {
-          "id": "gitspecs.remotes",
-          "name": "Remotes"
-        },
-        {
-          "id": "gitspecs.contributors",
-          "name": "Contributors"
-        },
-        {
-          "id": "gitspecs.graph",
-          "name": "Commit Graph"
-        },
+      "gitspecs.home": [
         {
           "id": "gitspecs.hub",
-          "name": "Hub"
+          "name": "Hub",
+          "visibility": "visible"
+        }
+      ],
+      "gitspecs.inspect": [
+        {
+          "id": "gitspecs.fileHistory",
+          "name": "File History",
+          "visibility": "visible"
+        },
+        {
+          "id": "gitspecs.lineHistory",
+          "name": "Line History",
+          "visibility": "collapsed"
+        }
+      ],
+      "gitspecs.graph": [
+        {
+          "id": "gitspecs.graph",
+          "name": "Commit Graph",
+          "visibility": "visible"
         }
       ],
       "scm": [
@@ -138,13 +147,113 @@
           "name": "GitSpecs",
           "contextualTitle": "GitSpecs",
           "visibility": "visible"
+        },
+        {
+          "id": "gitspecs.worktrees",
+          "name": "Worktrees",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "gitspecs.branches",
+          "name": "Branches",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "gitspecs.commits",
+          "name": "Commits",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "gitspecs.stashes",
+          "name": "Stashes",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "gitspecs.tags",
+          "name": "Tags",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "gitspecs.remotes",
+          "name": "Remotes",
+          "visibility": "collapsed"
+        },
+        {
+          "id": "gitspecs.contributors",
+          "name": "Contributors",
+          "visibility": "collapsed"
         }
       ]
     },
     "viewsWelcome": [
       {
         "view": "gitspecs.scm",
+        "when": "!gitspecs.hasRepository",
         "contents": "No Git repository open.\n[Open Folder](command:vscode.openFolder)\n\nOr open the full [GitSpecs](command:workbench.view.extension.gitspecs) sidebar.\n\nUse the title-bar icons to switch between Worktrees, Branches, Commits, and Stashes."
+      },
+      {
+        "view": "gitspecs.scm",
+        "when": "gitspecs.hasRepository && gitspecs.scm.tab == worktrees",
+        "contents": "No worktrees to show.\n[Create Worktree](command:gitspecs.worktrees.create)\n[Refresh Worktrees](command:gitspecs.worktrees.refresh)"
+      },
+      {
+        "view": "gitspecs.scm",
+        "when": "gitspecs.hasRepository && gitspecs.scm.tab == branches",
+        "contents": "No branches to show.\n[Create Branch](command:gitspecs.branches.create)\n[Refresh Branches](command:gitspecs.branches.refresh)"
+      },
+      {
+        "view": "gitspecs.scm",
+        "when": "gitspecs.hasRepository && gitspecs.scm.tab == commits",
+        "contents": "No commits to show.\n[Refresh Commits](command:gitspecs.commits.refresh)"
+      },
+      {
+        "view": "gitspecs.scm",
+        "when": "gitspecs.hasRepository && gitspecs.scm.tab == stashes",
+        "contents": "No stashes in this repository.\n[Create Stash](command:gitspecs.stashes.push)\n[Refresh Stashes](command:gitspecs.stashes.refresh)"
+      },
+      {
+        "view": "gitspecs.worktrees",
+        "contents": "No Git repository open, or views were moved out of this sidebar.\n[Open Folder](command:vscode.openFolder)\n[Reset View Locations](command:workbench.action.resetViewLocations)\n[Refresh Worktrees](command:gitspecs.worktrees.refresh)"
+      },
+      {
+        "view": "gitspecs.branches",
+        "contents": "No branches to show.\n[Open Folder](command:vscode.openFolder)\n[Reset View Locations](command:workbench.action.resetViewLocations)\n[Refresh Branches](command:gitspecs.branches.refresh)"
+      },
+      {
+        "view": "gitspecs.commits",
+        "contents": "No commits to show.\n[Open Folder](command:vscode.openFolder)\n[Reset View Locations](command:workbench.action.resetViewLocations)\n[Refresh Commits](command:gitspecs.commits.refresh)"
+      },
+      {
+        "view": "gitspecs.stashes",
+        "contents": "No stashes in this repository.\n[Refresh Stashes](command:gitspecs.stashes.refresh)"
+      },
+      {
+        "view": "gitspecs.tags",
+        "contents": "No tags in this repository.\n[Refresh Tags](command:gitspecs.tags.refresh)"
+      },
+      {
+        "view": "gitspecs.remotes",
+        "contents": "No remotes configured.\n[Refresh Remotes](command:gitspecs.remotes.refresh)"
+      },
+      {
+        "view": "gitspecs.contributors",
+        "contents": "No contributors found.\n[Refresh Contributors](command:gitspecs.contributors.refresh)"
+      },
+      {
+        "view": "gitspecs.graph",
+        "contents": "No commits to graph.\n[Open Folder](command:vscode.openFolder)\n[Reset View Locations](command:workbench.action.resetViewLocations)\n[Refresh Graph](command:gitspecs.graph.refresh)\n[Open Graph Canvas](command:gitspecs.graph.openView)"
+      },
+      {
+        "view": "gitspecs.hub",
+        "contents": "No pull requests or issues to show.\nSign in under Hosting commands, or [Refresh Hub](command:gitspecs.hub.refresh)."
+      },
+      {
+        "view": "gitspecs.fileHistory",
+        "contents": "Open a file to show its commit history.\n[File History (QuickPick)](command:gitspecs.history.file)\n[Visual File History](command:gitspecs.history.visualFile)"
+      },
+      {
+        "view": "gitspecs.lineHistory",
+        "contents": "Select lines in a file to show line history.\n[Line History (QuickPick)](command:gitspecs.history.line)"
       }
     ],
     "languages": [
@@ -163,7 +272,7 @@
     "commands": [
       {
         "command": "gitspecs.switchRepository",
-        "title": "GitSpecs: Switch Repository\u2026"
+        "title": "GitSpecs: Switch Repository…"
       },
       {
         "command": "gitspecs.scm.showWorktrees",
@@ -221,7 +330,7 @@
       },
       {
         "command": "gitspecs.revision.openAtRevision",
-        "title": "GitSpecs: Open File at Revision\u2026",
+        "title": "GitSpecs: Open File at Revision…",
         "icon": "$(history)"
       },
       {
@@ -251,17 +360,17 @@
       },
       {
         "command": "gitspecs.compare",
-        "title": "GitSpecs: Compare References\u2026",
+        "title": "GitSpecs: Compare References…",
         "icon": "$(git-compare)"
       },
       {
         "command": "gitspecs.compare.dualPane",
-        "title": "GitSpecs: Dual-Pane Compare\u2026",
+        "title": "GitSpecs: Dual-Pane Compare…",
         "icon": "$(split-horizontal)"
       },
       {
         "command": "gitspecs.search.commits",
-        "title": "GitSpecs: Search Commits\u2026",
+        "title": "GitSpecs: Search Commits…",
         "icon": "$(search)"
       },
       {
@@ -271,7 +380,7 @@
       },
       {
         "command": "gitspecs.worktrees.create",
-        "title": "GitSpecs: Create Worktree\u2026",
+        "title": "GitSpecs: Create Worktree…",
         "icon": "$(add)"
       },
       {
@@ -292,7 +401,7 @@
       },
       {
         "command": "gitspecs.worktrees.remove",
-        "title": "GitSpecs: Remove Worktree\u2026"
+        "title": "GitSpecs: Remove Worktree…"
       },
       {
         "command": "gitspecs.worktrees.prune",
@@ -305,20 +414,20 @@
       },
       {
         "command": "gitspecs.branches.create",
-        "title": "GitSpecs: Create Branch\u2026",
+        "title": "GitSpecs: Create Branch…",
         "icon": "$(add)"
       },
       {
         "command": "gitspecs.branches.rename",
-        "title": "GitSpecs: Rename Branch\u2026"
+        "title": "GitSpecs: Rename Branch…"
       },
       {
         "command": "gitspecs.branches.delete",
-        "title": "GitSpecs: Delete Branch\u2026"
+        "title": "GitSpecs: Delete Branch…"
       },
       {
         "command": "gitspecs.branches.deleteForce",
-        "title": "GitSpecs: Delete Branch (Force)\u2026"
+        "title": "GitSpecs: Delete Branch (Force)…"
       },
       {
         "command": "gitspecs.branches.checkout",
@@ -326,7 +435,7 @@
       },
       {
         "command": "gitspecs.branches.publish",
-        "title": "GitSpecs: Publish Branch\u2026"
+        "title": "GitSpecs: Publish Branch…"
       },
       {
         "command": "gitspecs.branches.push",
@@ -342,31 +451,31 @@
       },
       {
         "command": "gitspecs.branches.setUpstream",
-        "title": "GitSpecs: Set Upstream\u2026"
+        "title": "GitSpecs: Set Upstream…"
       },
       {
         "command": "gitspecs.branches.deleteRemote",
-        "title": "GitSpecs: Delete Remote Branch\u2026"
+        "title": "GitSpecs: Delete Remote Branch…"
       },
       {
         "command": "gitspecs.branches.merge",
-        "title": "GitSpecs: Merge into Current\u2026"
+        "title": "GitSpecs: Merge into Current…"
       },
       {
         "command": "gitspecs.branches.rebase",
-        "title": "GitSpecs: Rebase Current Onto\u2026"
+        "title": "GitSpecs: Rebase Current Onto…"
       },
       {
         "command": "gitspecs.branches.cherryPick",
-        "title": "GitSpecs: Cherry-pick\u2026"
+        "title": "GitSpecs: Cherry-pick…"
       },
       {
         "command": "gitspecs.branches.createFromCommit",
-        "title": "GitSpecs: Create Branch from Commit\u2026"
+        "title": "GitSpecs: Create Branch from Commit…"
       },
       {
         "command": "gitspecs.branches.compare",
-        "title": "GitSpecs: Compare with\u2026",
+        "title": "GitSpecs: Compare with…",
         "icon": "$(git-compare)"
       },
       {
@@ -392,7 +501,7 @@
       },
       {
         "command": "gitspecs.commits.createBranch",
-        "title": "GitSpecs: Create Branch from Commit\u2026"
+        "title": "GitSpecs: Create Branch from Commit…"
       },
       {
         "command": "gitspecs.commits.openRemote",
@@ -411,7 +520,7 @@
       },
       {
         "command": "gitspecs.stashes.push",
-        "title": "GitSpecs: Stash Changes\u2026",
+        "title": "GitSpecs: Stash Changes…",
         "icon": "$(archive)"
       },
       {
@@ -420,11 +529,11 @@
       },
       {
         "command": "gitspecs.stashes.pop",
-        "title": "GitSpecs: Pop Stash\u2026"
+        "title": "GitSpecs: Pop Stash…"
       },
       {
         "command": "gitspecs.stashes.drop",
-        "title": "GitSpecs: Drop Stash\u2026"
+        "title": "GitSpecs: Drop Stash…"
       },
       {
         "command": "gitspecs.stashes.show",
@@ -437,12 +546,12 @@
       },
       {
         "command": "gitspecs.tags.create",
-        "title": "GitSpecs: Create Tag\u2026",
+        "title": "GitSpecs: Create Tag…",
         "icon": "$(add)"
       },
       {
         "command": "gitspecs.tags.delete",
-        "title": "GitSpecs: Delete Tag\u2026"
+        "title": "GitSpecs: Delete Tag…"
       },
       {
         "command": "gitspecs.tags.copyName",
@@ -502,11 +611,11 @@
       },
       {
         "command": "gitspecs.graph.createBranch",
-        "title": "GitSpecs: Create Branch from Graph Commit\u2026"
+        "title": "GitSpecs: Create Branch from Graph Commit…"
       },
       {
         "command": "gitspecs.graph.compare",
-        "title": "GitSpecs: Compare Graph Commit\u2026"
+        "title": "GitSpecs: Compare Graph Commit…"
       },
       {
         "command": "gitspecs.graph.openRemote",
@@ -518,16 +627,16 @@
       },
       {
         "command": "gitspecs.rewrite.interactiveRebase",
-        "title": "GitSpecs: Interactive Rebase\u2026",
+        "title": "GitSpecs: Interactive Rebase…",
         "icon": "$(list-ordered)"
       },
       {
         "command": "gitspecs.rewrite.editTodo",
-        "title": "GitSpecs: Edit Rebase Sequence\u2026"
+        "title": "GitSpecs: Edit Rebase Sequence…"
       },
       {
         "command": "gitspecs.hosting.signInGitHub",
-        "title": "GitSpecs: Sign In to GitHub\u2026"
+        "title": "GitSpecs: Sign In to GitHub…"
       },
       {
         "command": "gitspecs.hosting.signOutGitHub",
@@ -535,15 +644,15 @@
       },
       {
         "command": "gitspecs.hosting.setGitLabPat",
-        "title": "GitSpecs: Set GitLab PAT\u2026"
+        "title": "GitSpecs: Set GitLab PAT…"
       },
       {
         "command": "gitspecs.hosting.setBitbucketPat",
-        "title": "GitSpecs: Set Bitbucket PAT\u2026"
+        "title": "GitSpecs: Set Bitbucket PAT…"
       },
       {
         "command": "gitspecs.hosting.setAzurePat",
-        "title": "GitSpecs: Set Azure DevOps PAT\u2026"
+        "title": "GitSpecs: Set Azure DevOps PAT…"
       },
       {
         "command": "gitspecs.hosting.signOutPats",
@@ -551,11 +660,11 @@
       },
       {
         "command": "gitspecs.hosting.prForBranch",
-        "title": "GitSpecs: PR for Current Branch\u2026"
+        "title": "GitSpecs: PR for Current Branch…"
       },
       {
         "command": "gitspecs.hosting.createPr",
-        "title": "GitSpecs: Create Pull Request\u2026"
+        "title": "GitSpecs: Create Pull Request…"
       },
       {
         "command": "gitspecs.hub.refresh",
@@ -576,7 +685,7 @@
       },
       {
         "command": "gitspecs.ai.configure",
-        "title": "GitSpecs: Configure AI Provider\u2026"
+        "title": "GitSpecs: Configure AI Provider…"
       },
       {
         "command": "gitspecs.ai.generateCommitMessage",
@@ -585,16 +694,16 @@
       },
       {
         "command": "gitspecs.ai.explainCommit",
-        "title": "GitSpecs: Explain Commit (AI)\u2026",
+        "title": "GitSpecs: Explain Commit (AI)…",
         "enablement": "gitspecs.ai.configured"
       },
       {
         "command": "gitspecs.rewrite.rebase",
-        "title": "GitSpecs: Guided Rebase\u2026"
+        "title": "GitSpecs: Guided Rebase…"
       },
       {
         "command": "gitspecs.rewrite.cherryPick",
-        "title": "GitSpecs: Guided Cherry-pick\u2026"
+        "title": "GitSpecs: Guided Cherry-pick…"
       },
       {
         "command": "gitspecs.rewrite.abort",
@@ -603,6 +712,50 @@
       {
         "command": "gitspecs.rewrite.continue",
         "title": "GitSpecs: Continue Rewrite"
+      },
+      {
+        "command": "gitspecs.blame.toggleCodeLens",
+        "title": "GitSpecs: Toggle Git CodeLens"
+      },
+      {
+        "command": "gitspecs.annotations.dismiss",
+        "title": "GitSpecs: Dismiss Annotations"
+      },
+      {
+        "command": "gitspecs.mode.switch",
+        "title": "GitSpecs: Switch Mode…"
+      },
+      {
+        "command": "gitspecs.mode.toggleZen",
+        "title": "GitSpecs: Toggle Zen Mode"
+      },
+      {
+        "command": "gitspecs.mode.toggleReview",
+        "title": "GitSpecs: Toggle Review Mode"
+      },
+      {
+        "command": "gitspecs.history.fileHistory.refresh",
+        "title": "GitSpecs: Refresh File History",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitspecs.history.fileHistory.pin",
+        "title": "GitSpecs: Pin File History",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "gitspecs.history.lineHistory.refresh",
+        "title": "GitSpecs: Refresh Line History",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gitspecs.history.lineHistory.pin",
+        "title": "GitSpecs: Pin Line History",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "gitspecs.history.viewCommitActions",
+        "title": "GitSpecs: History Commit Actions"
       }
     ],
     "menus": {
@@ -701,6 +854,31 @@
           "command": "gitspecs.hub.refresh",
           "when": "view == gitspecs.hub",
           "group": "navigation@1"
+        },
+        {
+          "command": "gitspecs.history.fileHistory.refresh",
+          "when": "view == gitspecs.fileHistory",
+          "group": "navigation"
+        },
+        {
+          "command": "gitspecs.history.fileHistory.pin",
+          "when": "view == gitspecs.fileHistory",
+          "group": "navigation"
+        },
+        {
+          "command": "gitspecs.history.lineHistory.refresh",
+          "when": "view == gitspecs.lineHistory",
+          "group": "navigation"
+        },
+        {
+          "command": "gitspecs.history.lineHistory.pin",
+          "when": "view == gitspecs.lineHistory",
+          "group": "navigation"
+        },
+        {
+          "command": "gitspecs.history.visualFile",
+          "when": "view == gitspecs.fileHistory",
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [
@@ -1037,7 +1215,7 @@
         "gitspecs.blame.statusBar": {
           "type": "boolean",
           "default": true,
-          "description": "Show current-line blame in the status bar (author \u2022 date \u2022 short SHA). Click for detail actions."
+          "description": "Show current-line blame in the status bar (author • date • short SHA). Click for detail actions."
         },
         "gitspecs.blame.codeLens": {
           "type": "boolean",
@@ -1114,9 +1292,78 @@
           ],
           "default": "openai-compatible",
           "description": "AI provider protocol. Anthropic uses the native Messages API; others use OpenAI-compatible chat completions."
+        },
+        "gitspecs.currentLine.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show current-line end-of-line blame annotation (independent of full-file blame)."
+        },
+        "gitspecs.hovers.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable GitSpecs blame hovers."
+        },
+        "gitspecs.hovers.currentLine.details": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show commit details in current-line blame hover."
+        },
+        "gitspecs.hovers.currentLine.changes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show changes section in current-line blame hover."
+        },
+        "gitspecs.hovers.annotations.details": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show commit details in file-blame annotation hovers."
+        },
+        "gitspecs.hovers.annotations.changes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show changes section in file-blame annotation hovers."
+        },
+        "gitspecs.mode": {
+          "type": "string",
+          "default": "",
+          "enum": [
+            "",
+            "zen",
+            "review",
+            "inspect"
+          ],
+          "enumDescriptions": [
+            "Normal",
+            "Zen (quiet chrome)",
+            "Review (changes + heatmap)",
+            "Inspect (history-focused)"
+          ],
+          "description": "Active GitSpecs mode profile (Zen / Review / Inspect). Empty = normal."
+        },
+        "gitspecs.mode.statusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show active mode in the status bar when a mode is selected."
         }
       }
-    }
+    },
+    "keybindings": [
+      {
+        "command": "gitspecs.blame.toggleFile",
+        "key": "alt+b",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "gitspecs.blame.toggleCodeLens",
+        "key": "shift+alt+b",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "gitspecs.annotations.dismiss",
+        "key": "escape",
+        "when": "editorTextFocus && !textInputFocus && !suggestWidgetVisible && !findWidgetVisible"
+      }
+    ]
   },
   "scripts": {
     "build": "node esbuild.mjs",

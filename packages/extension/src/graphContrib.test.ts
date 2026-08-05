@@ -13,7 +13,8 @@ describe("commit graph contributions (P11)", () => {
   };
 
   it("declares graph view and action commands", () => {
-    expect((pkg.contributes?.views?.gitspecs ?? []).some((v) => v.id === "gitspecs.graph")).toBe(true);
+    const allViews = Object.values(pkg.contributes?.views ?? {}).flat();
+    expect(allViews.some((v) => v.id === "gitspecs.graph")).toBe(true);
     const cmds = (pkg.contributes?.commands ?? []).map((c) => c.command);
     for (const id of [
       "gitspecs.graph.refresh",

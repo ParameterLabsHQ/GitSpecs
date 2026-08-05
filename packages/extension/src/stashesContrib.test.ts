@@ -33,8 +33,8 @@ describe("stashes package contributions (P8)", () => {
   ];
 
   it("declares stashes view and commands", () => {
-    const side = pkg.contributes?.views?.gitspecs ?? [];
-    expect(side.some((v) => v.id === "gitspecs.stashes" && v.name === "Stashes")).toBe(true);
+    const allViews = Object.values(pkg.contributes?.views ?? {}).flat();
+    expect(allViews.some((v) => v.id === "gitspecs.stashes" && v.name === "Stashes")).toBe(true);
     const cmds = (pkg.contributes?.commands ?? []).map((c) => c.command);
     for (const id of required) {
       expect(cmds, `missing ${id}`).toContain(id);
@@ -91,6 +91,20 @@ describe("stashes package contributions (P8)", () => {
     expect(provider).toContain("stashes.list");
     expect(provider).toContain("onDidRefresh");
     expect(provider).toContain('contextValue = "stash"');
+  });
+
+  it("SCM stashes empty welcome does not claim no repository is open", () => {
+    const welcome = (
+      (
+        pkg.contributes as {
+          viewsWelcome?: Array<{ view: string; contents: string; when?: string }>;
+        }
+      )?.viewsWelcome ?? []
+    ).filter((w) => w.view === "gitspecs.scm" && w.when?.includes("stashes"));
+    expect(welcome.length).toBe(1);
+    expect(welcome[0]?.when).toContain("gitspecs.hasRepository");
+    expect(welcome[0]?.contents).toMatch(/No stashes/i);
+    expect(welcome[0]?.contents).not.toMatch(/No Git repository open/i);
   });
 
   it("ships format helpers and unit tests", () => {

@@ -67,6 +67,11 @@ Status is grounded in the monorepo as of this revision.
 | Hosting APIs: PRs / issues / avatars | **Shipped** | `@gitspecs/host-api` (PR create/API, getIssue, cache, CI); branch PR badges; avatar URLs; platform auth + PAT sign-out | **P21** |
 | Work hub (client-side Launchpad-style) | **Shipped** | `gitspecs.hub` (my PRs, review-requested, assigned issues, CI, checkout/worktree actions) | **P22** |
 | AI assist (BYO key, optional, off by default) | **Shipped** | `modules/ai` (enablement when configured; OpenAI + Anthropic; consent; SecretStorage) | **P23** |
+| True Clone: ambient blame / hovers / gutter | **Shipped** | `currentLine`, `hoverMarkdown`, gutter+heatmap; Escape dismiss | **P24b** |
+| True Clone: Inspect File/Line History views | **Shipped** | `gitspecs.inspect` + `fileHistory` / `lineHistory` providers | **P24a** |
+| True Clone: Home / Inspect / Graph containers | **Shipped** | `viewsContainers` home/inspect/graph; Hub; SCM object browsers | **P24c** |
+| True Clone: Modes (Zen/Review/Inspect) | **Shipped** | `shell/modes.ts` + `ModeController` | **P24d** |
+| True Clone: GitLens-like keybindings | **Shipped** | Alt+B / Shift+Alt+B on `gitspecs.*` | **P24e** |
 
 ---
 
@@ -408,6 +413,32 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 
 ---
 
+
+### Phase P24a — Inspect shell + File/Line History views *(done)*
+
+**Depends on:** P4–P5, P15  
+**Parity target:** GitLens Inspect File History / Line History persistent views  
+
+**Done means:** `gitspecs.inspect` container; `gitspecs.fileHistory` / `gitspecs.lineHistory` TreeDataProviders following the active editor with pin; revision/copy/open/diff actions; QuickPick commands retained.
+
+### Phase P24b — Editor ambient chrome *(done)*
+
+**Depends on:** P1–P3, P16  
+**Done means:** current-line EOL blame default on; multi-action details/changes hovers; file blame gutter + heatmap; Escape dismiss; GitLens-like defaults for status bar/CodeLens/hovers.
+
+### Phase P24c — Home / Graph containers + SCM object browsers *(done)*
+
+**Depends on:** P22, P18  
+**Done means:** activity-bar `gitspecs.home` (Hub), `gitspecs.inspect`, `gitspecs.graph` with open-canvas title action; object browsers under SCM (grouped + individual).
+
+### Phase P24d — Modes *(done)*
+
+**Done means:** Zen / Review / Inspect profiles apply and restore `gitspecs.*` settings via workspace snapshot; status-bar mode indicator.
+
+### Phase P24e — Keybindings *(done)*
+
+**Done means:** `Alt+B` → toggle file blame; `Shift+Alt+B` → toggle CodeLens; Escape dismisses annotation modes when focused.
+
 ## 4. Suggested milestone groups
 
 | Milestone | Phases | User-visible outcome |
@@ -424,12 +455,12 @@ Phases are **sequential dependencies** unless noted. Each phase is a slice a fut
 | **M9 Connected** | P21–P22 | **Done** — PRs/issues via platform auth; work hub |
 | **M10 Assist** | P23 | **Done** — optional BYO-key AI, off until configured |
 
-**Next implementation goal:** **Parity ladder complete for P15–P23.** Ongoing P14 polish only.
+**Next implementation goal:** **P24a–P24e True Clone core shipped.** Ongoing polish is **P24f+** (Commit Details inspect panel, Git Command Palette density, interactive settings UI). See [True Clone design](./superpowers/specs/2026-08-05-true-clone-fidelity-design.md) and [fidelity matrix](./FIDELITY_MATRIX.md).
 
 Recommended default sequence for agents:
 
 ```
-(P0–P12, P15–P23 done) (+ ongoing P14 polish)
+(P24a–P24e done) → P24f+ optional polish
 ```
 
 Each phase: read this file + `AGENTS.md` → design note in `docs/superpowers/specs/` if the phase is large (P17, P18, P19, P21 are) → implementation plan → PR with tests → update Section 2 + changelog here. One phase per goal; keep phase N green before starting N+1.
@@ -502,3 +533,4 @@ Interactive rebase **UI** is a local parity target (**P19**); the P12 note preda
 | 2026-08-05 | Marked **P21** Hosting APIs shipped (`@gitspecs/host-api`, vscode.authentication / SecretStorage); next **P22** |
 | 2026-08-05 | Marked **P22** Work hub shipped (`gitspecs.hub`); next **P23** |
 | 2026-08-05 | Marked **P23** BYO-key AI assist shipped (off until configured); parity ladder P15–P23 complete |
+| 2026-08-05 | **True Clone P24a–P24e shipped** (ambient blame, Inspect history, Home/Inspect/Graph, Modes, keybindings); design adopted; FIDELITY_MATRIX.md |

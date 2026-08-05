@@ -32,8 +32,8 @@ describe("commits package contributions (P7)", () => {
   ];
 
   it("declares commits view and commands", () => {
-    const side = pkg.contributes?.views?.gitspecs ?? [];
-    expect(side.some((v) => v.id === "gitspecs.commits" && v.name === "Commits")).toBe(
+    const allViews = Object.values(pkg.contributes?.views ?? {}).flat();
+    expect(allViews.some((v) => v.id === "gitspecs.commits" && v.name === "Commits")).toBe(
       true,
     );
     const cmds = (pkg.contributes?.commands ?? []).map((c) => c.command);

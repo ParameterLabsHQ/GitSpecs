@@ -16,7 +16,8 @@ describe("contributors contributions (P10)", () => {
   };
 
   it("declares view and commands", () => {
-    expect((pkg.contributes?.views?.gitspecs ?? []).some((v) => v.id === "gitspecs.contributors")).toBe(true);
+    const allViews = Object.values(pkg.contributes?.views ?? {}).flat();
+    expect(allViews.some((v) => v.id === "gitspecs.contributors")).toBe(true);
     const cmds = (pkg.contributes?.commands ?? []).map((c) => c.command);
     expect(cmds).toContain("gitspecs.contributors.refresh");
     expect(cmds).toContain("gitspecs.contributors.copyName");

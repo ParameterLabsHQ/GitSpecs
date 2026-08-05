@@ -11,6 +11,13 @@ export const SCM_CONSOLIDATED_VIEW_ID = "gitspecs.scm";
 /** Context key set via `setContext` for menu `when` clauses on the active tab. */
 export const SCM_TAB_CONTEXT_KEY = "gitspecs.scm.tab";
 
+/**
+ * Context key: true when at least one Git repository is open.
+ * Used by consolidated SCM `viewsWelcome` `when` clauses so empty tabs
+ * (e.g. no stashes) do not show the “No Git repository open” message.
+ */
+export const HAS_REPOSITORY_CONTEXT_KEY = "gitspecs.hasRepository";
+
 export const DEFAULT_SCM_TAB: ScmTab = "worktrees";
 
 const SCM_TABS: readonly ScmTab[] = ["worktrees", "branches", "commits", "stashes"];

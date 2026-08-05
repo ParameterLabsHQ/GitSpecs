@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   DEFAULT_SCM_TAB,
+  HAS_REPOSITORY_CONTEXT_KEY,
   SCM_CONSOLIDATED_VIEW_ID,
   SCM_TAB_CONTEXT_KEY,
   ScmTabState,
@@ -13,6 +14,7 @@ describe("scmTabs pure helpers", () => {
   it("exports consolidated view id and context key used by the manifest", () => {
     expect(SCM_CONSOLIDATED_VIEW_ID).toBe("gitspecs.scm");
     expect(SCM_TAB_CONTEXT_KEY).toBe("gitspecs.scm.tab");
+    expect(HAS_REPOSITORY_CONTEXT_KEY).toBe("gitspecs.hasRepository");
     expect(DEFAULT_SCM_TAB).toBe("worktrees");
   });
 

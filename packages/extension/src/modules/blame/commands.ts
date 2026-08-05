@@ -54,5 +54,17 @@ export function registerBlameCommands(
         await controller.showLine();
       }),
     ),
+    vscode.commands.registerCommand(
+      "gitspecs.blame.toggleCodeLens",
+      run(async () => {
+        await controller.toggleCodeLens();
+      }),
+    ),
+    vscode.commands.registerCommand(
+      "gitspecs.annotations.dismiss",
+      run(async () => {
+        await controller.dismissAnnotations();
+      }),
+    ),
   );
 }

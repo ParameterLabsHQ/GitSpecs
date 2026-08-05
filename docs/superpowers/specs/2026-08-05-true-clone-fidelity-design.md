@@ -1,9 +1,9 @@
 # True Clone fidelity program — design
 
-**Date:** 2026-08-05 · **Status:** draft (awaiting maintainer review)  
+**Date:** 2026-08-05 · **Status:** adopted  
 **Product:** GitSpecs · **Org:** ParameterLabsHQ  
 **Audience:** maintainers and coding agents  
-**Supersedes for “next work”:** ROADMAP “parity ladder complete; P14 polish only” → replace with **P24+ True Clone**
+**Supersedes for “next work”:** ROADMAP “parity ladder complete; P14 polish only” → **P24+ True Clone** (active program)
 
 ## 1. Product decision
 

@@ -19,6 +19,9 @@ import {
 } from "./actions.js";
 import { readAutolinkRules } from "../autolinks/settings.js";
 import { openVisualFileHistory } from "./visualFileHistory.js";
+import type { FileHistoryProvider } from "./fileHistoryProvider.js";
+import type { LineHistoryProvider } from "./lineHistoryProvider.js";
+import type { HistoryCommitItem } from "./actions.js";
 
 function isDiskFile(doc: vscode.TextDocument): boolean {
   return doc.uri.scheme === "file";
@@ -28,6 +31,10 @@ export function registerHistoryCommands(
   context: vscode.ExtensionContext,
   repos: RepoContext,
   log: PlatformLog,
+  options?: {
+    fileHistory?: FileHistoryProvider;
+    lineHistory?: LineHistoryProvider;
+  },
 ): void {
   const run = <TArgs extends unknown[]>(fn: (...args: TArgs) => Promise<void>) =>
     bindCommand(fn, {
@@ -52,6 +59,29 @@ export function registerHistoryCommands(
       "gitspecs.history.visualFile",
       run(async () => {
         await openVisualFileHistory(context, repos, log);
+      }),
+    ),
+    vscode.commands.registerCommand(
+      "gitspecs.history.fileHistory.refresh",
+      () => options?.fileHistory?.refresh(),
+    ),
+    vscode.commands.registerCommand(
+      "gitspecs.history.fileHistory.pin",
+      () => options?.fileHistory?.togglePin(),
+    ),
+    vscode.commands.registerCommand(
+      "gitspecs.history.lineHistory.refresh",
+      () => options?.lineHistory?.refresh(),
+    ),
+    vscode.commands.registerCommand(
+      "gitspecs.history.lineHistory.pin",
+      () => options?.lineHistory?.togglePin(),
+    ),
+    vscode.commands.registerCommand(
+      "gitspecs.history.viewCommitActions",
+      run(async (item?: HistoryCommitItem, _repoRoot?: string) => {
+        if (!item?.sha) return;
+        await runHistoryActions(repos, log, item);
       }),
     ),
   );

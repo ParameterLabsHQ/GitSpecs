@@ -35,8 +35,12 @@ import { registerHostingCommands } from "./modules/hosting/commands.js";
 import { HubProvider } from "./modules/hub/provider.js";
 import { registerHubCommands } from "./modules/hub/commands.js";
 import { registerAiCommands } from "./modules/ai/commands.js";
+import { FileHistoryProvider } from "./modules/history/fileHistoryProvider.js";
+import { LineHistoryProvider } from "./modules/history/lineHistoryProvider.js";
+import { ModeController, registerModeCommands } from "./shell/modeController.js";
 import {
   DEFAULT_SCM_TAB,
+  HAS_REPOSITORY_CONTEXT_KEY,
   SCM_CONSOLIDATED_VIEW_ID,
   SCM_TAB_CONTEXT_KEY,
   ScmTabState,
@@ -59,6 +63,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await repos.initialize();
   } catch (err) {
     await presentError(log, err, "GitSpecs activation");
+    // Ensure welcome `when` clauses see a defined false when discovery fails.
+    await vscode.commands.executeCommand("setContext", HAS_REPOSITORY_CONTEXT_KEY, false);
   }
 
   const refresh = new RefreshBus(repos);
@@ -85,7 +91,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     hubProvider,
   );
 
+  const fileHistoryProvider = new FileHistoryProvider(repos, log);
+  const lineHistoryProvider = new LineHistoryProvider(repos, log);
+  context.subscriptions.push(fileHistoryProvider, lineHistoryProvider);
+
   context.subscriptions.push(
+    // SCM-facing object browsers (also used when views are moved by the user)
     vscode.window.registerTreeDataProvider("gitspecs.worktrees", worktreesProvider),
     vscode.window.registerTreeDataProvider("gitspecs.branches", branchesProvider),
     vscode.window.registerTreeDataProvider("gitspecs.commits", commitsProvider),
@@ -93,8 +104,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.window.registerTreeDataProvider("gitspecs.tags", tagsProvider),
     vscode.window.registerTreeDataProvider("gitspecs.remotes", remotesProvider),
     vscode.window.registerTreeDataProvider("gitspecs.contributors", contributorsProvider),
-    vscode.window.registerTreeDataProvider("gitspecs.graph", graphProvider),
+    // True Clone containers
     vscode.window.registerTreeDataProvider("gitspecs.hub", hubProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.fileHistory", fileHistoryProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.lineHistory", lineHistoryProvider),
+    vscode.window.registerTreeDataProvider("gitspecs.graph", graphProvider),
   );
 
   const scmTabs = new ScmTabState();
@@ -164,7 +178,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerBlameCommands(context, repos, log, blameController);
   registerRevisionContentProvider(context, repos, log);
   registerRevisionCommands(context, repos, log);
-  registerHistoryCommands(context, repos, log);
+  registerHistoryCommands(context, repos, log, {
+    fileHistory: fileHistoryProvider,
+    lineHistory: lineHistoryProvider,
+  });
 
   const changesAnnotations = new ChangesAnnotationController(repos, log);
   context.subscriptions.push(changesAnnotations);
@@ -173,6 +190,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerHostingCommands(context, repos, log, refresh);
   registerHubCommands(context, repos, refresh, log);
   registerAiCommands(context, repos, log);
+
+  const modeController = new ModeController(context);
+  context.subscriptions.push(modeController);
+  registerModeCommands(context, modeController);
 
   const blameCodeLens = new BlameCodeLensProvider(
     repos,
@@ -192,7 +213,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   );
 
   log.info(
-    "GitSpecs activated (worktrees, branches, commits, stashes, tags, remotes, contributors, graph, rewrite, blame, history, compare, search)",
+    "GitSpecs activated (True Clone Home/Inspect/Graph, ambient blame, history views, modes)",
   );
 }
 

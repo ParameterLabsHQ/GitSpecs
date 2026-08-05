@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   DEFAULT_SCM_TAB,
+  HAS_REPOSITORY_CONTEXT_KEY,
   SCM_CONSOLIDATED_VIEW_ID,
   SCM_TAB_CONTEXT_KEY,
 } from "./shell/scmTabs.js";
@@ -16,7 +17,7 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     contributes: {
       commands: Array<{ command: string; icon?: string }>;
       views: Record<string, Array<{ id: string; name: string; visibility?: string }>>;
-      viewsWelcome?: Array<{ view: string; contents: string }>;
+      viewsWelcome?: Array<{ view: string; contents: string; when?: string }>;
       menus: {
         "view/title": Array<{ when: string; command: string; group?: string }>;
         "view/item/context": Array<{ when: string; command: string }>;
@@ -24,22 +25,21 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     };
   };
 
-  it("contributes exactly one primary GitSpecs panel under scm (not dual accordion)", () => {
+  it("contributes primary consolidated GitSpecs panel under scm (not dual accordion)", () => {
     const scm = pkg.contributes.views.scm;
     expect(scm).toBeDefined();
     const ids = scm.map((v) => v.id);
-    expect(ids).toEqual([SCM_CONSOLIDATED_VIEW_ID]);
-    expect(scm[0]?.name).toBe("GitSpecs");
+    expect(ids).toContain(SCM_CONSOLIDATED_VIEW_ID);
+    expect(scm.find((v) => v.id === SCM_CONSOLIDATED_VIEW_ID)?.name).toBe("GitSpecs");
     // Dual accordion ids must not return as the default SCM layout.
     expect(ids).not.toContain("gitspecs.scm.worktrees");
     expect(ids).not.toContain("gitspecs.scm.branches");
     expect(ids).not.toContain("gitspecs.scm.commits");
-    expect(scm).toHaveLength(1);
   });
 
-  it("keeps dedicated activity-bar Worktrees, Branches, Commits, and Stashes views", () => {
-    const side = pkg.contributes.views.gitspecs;
-    expect(side.map((v) => v.id)).toEqual(
+  it("places Worktrees/Branches/Commits/Stashes under SCM (True Clone object browsers)", () => {
+    const scm = pkg.contributes.views.scm;
+    expect(scm.map((v) => v.id)).toEqual(
       expect.arrayContaining([
         "gitspecs.worktrees",
         "gitspecs.branches",
@@ -144,6 +144,66 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     expect(welcome.every((w) => w.view !== "gitspecs.scm.branches")).toBe(true);
   });
 
+  it("SCM welcomes distinguish no-repo vs empty tab (stashes must not say no repo)", () => {
+    const welcome = (pkg.contributes.viewsWelcome ?? []).filter(
+      (w) => w.view === SCM_CONSOLIDATED_VIEW_ID,
+    );
+    expect(welcome.length).toBeGreaterThanOrEqual(5);
+
+    const noRepo = welcome.find((w) => w.when === `!${HAS_REPOSITORY_CONTEXT_KEY}`);
+    expect(noRepo).toBeDefined();
+    expect(noRepo?.contents).toContain("No Git repository open");
+    expect(noRepo?.contents).toContain("vscode.openFolder");
+
+    for (const tab of ["worktrees", "branches", "commits", "stashes"] as const) {
+      const tabWelcome = welcome.find(
+        (w) =>
+          w.when ===
+          `${HAS_REPOSITORY_CONTEXT_KEY} && ${SCM_TAB_CONTEXT_KEY} == ${tab}`,
+      );
+      expect(tabWelcome, `missing SCM welcome for tab ${tab}`).toBeDefined();
+      expect(tabWelcome?.contents).not.toContain("No Git repository open");
+    }
+
+    const stashes = welcome.find(
+      (w) =>
+        w.when ===
+        `${HAS_REPOSITORY_CONTEXT_KEY} && ${SCM_TAB_CONTEXT_KEY} == stashes`,
+    );
+    expect(stashes?.contents).toMatch(/No stashes/i);
+    expect(stashes?.contents).toContain("gitspecs.stashes.push");
+    expect(stashes?.contents).toContain("gitspecs.stashes.refresh");
+  });
+
+  it("contributes viewsWelcome and visibility on activity-bar views", () => {
+    const welcome = pkg.contributes.viewsWelcome ?? [];
+    const activityIds = [
+      "gitspecs.worktrees",
+      "gitspecs.branches",
+      "gitspecs.commits",
+      "gitspecs.stashes",
+      "gitspecs.tags",
+      "gitspecs.remotes",
+      "gitspecs.contributors",
+      "gitspecs.graph",
+      "gitspecs.hub",
+    ];
+    for (const id of activityIds) {
+      expect(welcome.some((w) => w.view === id)).toBe(true);
+    }
+    // Primary activity containers remain visible; SCM object browsers may be collapsed.
+    const home = pkg.contributes.views["gitspecs.home"] ?? [];
+    const inspect = pkg.contributes.views["gitspecs.inspect"] ?? [];
+    const graph = pkg.contributes.views["gitspecs.graph"] ?? [];
+    for (const v of [...home, ...graph]) {
+      expect(v.visibility ?? "visible").toBe("visible");
+    }
+    expect(inspect.some((v) => v.id === "gitspecs.fileHistory")).toBe(true);
+    // Empty-state welcome should offer a way to recover dragged-out views.
+    const worktreesWelcome = welcome.find((w) => w.view === "gitspecs.worktrees");
+    expect(worktreesWelcome?.contents).toContain("workbench.action.resetViewLocations");
+  });
+
   it("registers consolidated facade provider and tab commands in shipped extension entry", () => {
     const src = readFileSync(path.join(root, "src/extension.ts"), "utf8");
     expect(src).toContain("ScmGroupedProvider");
@@ -156,6 +216,7 @@ describe("SCM Source Control contributions (GitLens-style single panel + tabs)",
     expect(src).toContain("gitspecs.scm.showStashes");
     expect(src).toContain("setContext");
     expect(src).toContain("SCM_TAB_CONTEXT_KEY");
+    expect(src).toContain("HAS_REPOSITORY_CONTEXT_KEY");
     // Dual SCM accordion providers must not be registered.
     expect(src).not.toContain('registerTreeDataProvider("gitspecs.scm.worktrees"');
     expect(src).not.toContain('registerTreeDataProvider("gitspecs.scm.branches"');
